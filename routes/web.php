@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 use App\Models\Dinas;
+use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\AdminController;
@@ -84,7 +85,10 @@ Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
-
+Route::post('/chatbot/ask', [ChatbotController::class, 'ask'])
+    ->name('chatbot.ask')
+    ->middleware('throttle:20,1');
+    
 /*GOOGLE AUTHENTICATION*/
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])

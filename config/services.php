@@ -25,5 +25,9 @@ return [
     'client_secret' => env('GOOGLE_CLIENT_SECRET'),
     'redirect' => env('GOOGLE_REDIRECT_URI'), // <-- Pastikan ini mengarah ke GOOGLE_REDIRECT_URI
 ],
+'gemini' => [
+    'key' => env('GEMINI_API_KEY'),
+    'model' => env('GEMINI_MODEL', 'gemini-3.5-flash'),
+],
 
 ];

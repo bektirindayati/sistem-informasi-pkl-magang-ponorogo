@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>MagangHub - Portal Pendaftaran Magang Terpadu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,49 +16,103 @@
     <x-preloader />
     <x-navbar />
 
-    {{-- ==================== HERO / BERANDA ====================
-         Tetap punya blob warna sendiri di tengah, TIDAK ikut dibungkus
-         <x-flowing-bg> supaya area hero tetap jadi pusat perhatian.
-         Warna akhir (to-blue-50, solid) sengaja disamakan persis dengan
-         warna awal <x-flowing-bg> supaya tidak ada garis sambungan. --}}
-   <section id="beranda"
-    class="relative min-h-screen flex flex-col justify-center
-           pt-24 pb-8 sm:pt-28 sm:pb-12 px-4 sm:px-6
+{{-- ==================== HERO / BERANDA ==================== --}}
+<section id="beranda"
+    class="relative min-h-[calc(100vh-1rem)]
+           flex flex-col justify-center
+           pt-28 pb-16 sm:pt-32 sm:pb-20
+           px-4 sm:px-6
            overflow-hidden
-           bg-gradient-to-b from-slate-50 via-slate-50 to-blue-50">
+           bg-gradient-to-b from-slate-50 via-blue-50/70 to-blue-100/60">
 
-    {{-- Background blob --}}
-    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2
-                w-[600px] h-[600px]
-                bg-gradient-to-tr from-blue-400/20 via-cyan-400/20 to-sky-300/20
-                rounded-full blur-[120px] pointer-events-none">
+    {{-- ==================== BACKGROUND DECORATION ==================== --}}
+
+    {{-- Glow utama --}}
+    <div class="absolute top-[18%] left-1/2 -translate-x-1/2
+                w-[500px] h-[500px] sm:w-[700px] sm:h-[700px]
+                bg-gradient-to-tr from-blue-400/20 via-cyan-300/15 to-sky-300/20
+                rounded-full blur-[110px] sm:blur-[140px]
+                pointer-events-none">
     </div>
 
-    {{-- Grid background --}}
+    {{-- Glow kiri --}}
+    <div class="absolute -left-32 top-[45%]
+                w-72 h-72
+                bg-blue-400/10
+                rounded-full blur-[90px]
+                pointer-events-none">
+    </div>
+
+    {{-- Glow kanan --}}
+    <div class="absolute -right-32 top-[30%]
+                w-80 h-80
+                bg-cyan-400/10
+                rounded-full blur-[100px]
+                pointer-events-none">
+    </div>
+
+    {{-- Grid halus --}}
     <div class="absolute inset-0
-                bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),
-                linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)]
+                bg-[linear-gradient(to_right,#cbd5e1_1px,transparent_1px),
+                linear-gradient(to_bottom,#cbd5e1_1px,transparent_1px)]
                 bg-[size:3.5rem_3.5rem]
-                pointer-events-none opacity-50
-                [mask-image:linear-gradient(to_bottom,black_35%,transparent_95%)]
-                [-webkit-mask-image:linear-gradient(to_bottom,black_35%,transparent_95%)]">
+                opacity-30
+                pointer-events-none
+                [mask-image:linear-gradient(to_bottom,black_15%,transparent_75%)]
+                [-webkit-mask-image:linear-gradient(to_bottom,black_15%,transparent_75%)]">
     </div>
 
 
-    {{-- CONTENT --}}
-    <div class="max-w-4xl mx-auto text-center flex flex-col items-center relative z-10">
+    {{-- ==================== DEKORASI ABSTRAK ==================== --}}
 
-        {{-- BADGE --}}
+    {{-- Lingkaran kiri --}}
+    <div class="absolute left-[7%] top-[42%]
+                hidden lg:block
+                w-5 h-5
+                rounded-full bg-blue-500/20">
+    </div>
+
+    <div class="absolute left-[11%] top-[47%]
+                hidden lg:block
+                w-2.5 h-2.5
+                rounded-full bg-cyan-500/30">
+    </div>
+
+    {{-- Lingkaran kanan --}}
+    <div class="absolute right-[9%] top-[35%]
+                hidden lg:block
+                w-7 h-7
+                rounded-full border-2 border-blue-400/20">
+    </div>
+
+    <div class="absolute right-[13%] top-[43%]
+                hidden lg:block
+                w-3 h-3
+                rounded-full bg-cyan-400/25">
+    </div>
+
+
+    {{-- ==================== CONTENT ==================== --}}
+    <div class="relative z-10
+                max-w-4xl mx-auto
+                text-center
+                flex flex-col items-center">
+
+
+        {{-- ==================== BADGE ==================== --}}
         <div class="inline-flex items-center gap-2
-                    px-3.5 py-1.5
+                    px-4 py-2
                     rounded-full
-                    bg-white/90 border border-slate-200
-                    shadow-sm backdrop-blur-md
-                    mb-10 sm:mb-12">
+                    bg-white/90
+                    border border-white
+                    shadow-md shadow-blue-100/60
+                    backdrop-blur-md
+                    mb-8 sm:mb-10">
 
             <span class="relative flex h-2.5 w-2.5">
-                <span class="animate-ping absolute inline-flex h-full w-full
-                             rounded-full bg-blue-400 opacity-75">
+                <span class="animate-ping absolute inline-flex
+                             h-full w-full rounded-full
+                             bg-blue-400 opacity-60">
                 </span>
 
                 <span class="relative inline-flex rounded-full
@@ -63,29 +120,39 @@
                 </span>
             </span>
 
-            <span class="text-xs font-bold text-slate-700 tracking-wide">
+            <span class="text-xs sm:text-sm
+                         font-bold text-slate-700
+                         tracking-wide">
                 Pusat Informasi & Pendaftaran Magang
             </span>
 
         </div>
 
 
-        {{-- JUDUL --}}
-        <h1 class="text-3xl sm:text-5xl md:text-6xl
-                   font-extrabold text-slate-900
-                   tracking-tight leading-[1.18]">
+        {{-- ==================== JUDUL ==================== --}}
+        <h1 class="text-4xl sm:text-5xl md:text-6xl
+                   font-extrabold
+                   text-slate-900
+                   tracking-tight
+                   leading-[1.12]">
 
-            Portal Magang Terpadu <br>
+            Portal 
+            Magang Terpadu
+            <br>
 
-            <span class="bg-gradient-to-r from-blue-700 via-cyan-600 to-sky-500
-                         bg-clip-text text-transparent">
+            <span class="bg-gradient-to-r
+                         from-blue-700
+                         via-indigo-600
+                         to-cyan-500
+                         bg-clip-text
+                         text-transparent">
                 Kabupaten Ponorogo
             </span>
 
         </h1>
 
 
-        {{-- DESKRIPSI --}}
+        {{-- ==================== DESKRIPSI ==================== --}}
         <p class="mt-6 sm:mt-7
                   text-sm sm:text-lg
                   text-slate-600
@@ -100,28 +167,38 @@
         </p>
 
 
-        {{-- BUTTON --}}
-        <div class="mt-16 sm:mt-17
-                    flex flex-col sm:flex-row
-                    gap-3 sm:gap-4
+        {{-- ==================== BUTTON ==================== --}}
+        <div class="mt-10 sm:mt-12
+                    flex flex-row
+                    gap-2.5 sm:gap-4
                     w-full sm:w-auto
                     justify-center">
 
+            {{-- Tombol Daftar --}}
             <a href="{{ route('user.pendaftaran.create') }}"
-                class="w-full sm:w-auto
-                       px-6 sm:px-8
+                class="flex-1 sm:flex-none
+                       px-3.5 sm:px-8
                        py-3.5 sm:py-4
-                       bg-gradient-to-r from-blue-600 to-cyan-600
+                       bg-gradient-to-r
+                       from-blue-600 to-cyan-600
                        hover:from-blue-700 hover:to-cyan-700
-                       text-white font-bold text-xs sm:text-sm
+                       text-white
+                       font-bold
+                       text-xs sm:text-sm
                        rounded-xl
-                       shadow-lg shadow-blue-500/25
+                       shadow-lg
+                       shadow-blue-500/25
+                       hover:shadow-xl
+                       hover:shadow-blue-500/30
+                       hover:-translate-y-0.5
                        transition-all duration-200
-                       flex items-center justify-center gap-2">
+                       flex items-center justify-center
+                       gap-1.5 sm:gap-2
+                       whitespace-nowrap">
 
                 <span>Daftar Magang Sekarang</span>
 
-                <svg class="w-4 h-4"
+                <svg class="w-4 h-4 shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24">
@@ -138,24 +215,89 @@
             </a>
 
 
+            {{-- Tombol Cek Status --}}
             <a href="{{ route('user.pendaftaran.status') }}"
-                class="w-full sm:w-auto
-                       px-6 sm:px-8
+                class="flex-1 sm:flex-none
+                       px-3.5 sm:px-8
                        py-3.5 sm:py-4
                        bg-white
                        text-slate-700
-                       font-bold text-xs sm:text-sm
+                       font-bold
+                       text-xs sm:text-sm
                        rounded-xl
                        border border-slate-200
                        shadow-sm
-                       hover:bg-slate-100
+                       hover:bg-slate-50
+                       hover:border-slate-300
+                       hover:-translate-y-0.5
                        transition-all duration-200
-                       flex items-center justify-center">
+                       flex items-center justify-center
+                       whitespace-nowrap">
 
                 Cek Status Pengajuan
 
             </a>
 
+        </div>
+
+
+        {{-- ==================== SCROLL INDICATOR ==================== --}}
+        <div class="mt-14 sm:mt-16
+                    flex flex-col items-center
+                    text-slate-400">
+
+            <span class="text-[10px] sm:text-xs
+                         font-semibold
+                         tracking-[0.18em]
+                         uppercase">
+                Jelajahi informasi magang
+            </span>
+
+            <div class="mt-3
+                        w-7 h-10
+                        rounded-full
+                        border border-slate-300
+                        bg-white/50
+                        flex justify-center
+                        pt-2
+                        shadow-sm">
+
+                <span class="w-1.5 h-1.5
+                             rounded-full
+                             bg-blue-500
+                             animate-bounce">
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {{-- ==================== BOTTOM DECORATION ==================== --}}
+
+    <div class="absolute bottom-0 left-0 right-0
+                h-24 sm:h-32
+                pointer-events-none">
+
+        {{-- garis lengkung --}}
+        <div class="absolute bottom-[-70px] sm:bottom-[-90px]
+                    left-1/2 -translate-x-1/2
+                    w-[130%] sm:w-[115%]
+                    h-40 sm:h-52
+                    rounded-[50%]
+                    bg-white/70
+                    blur-[1px]">
+        </div>
+
+        {{-- glow tipis --}}
+        <div class="absolute bottom-0 left-1/2
+                    -translate-x-1/2
+                    w-2/3 h-10
+                    bg-blue-400/10
+                    blur-2xl
+                    rounded-full">
         </div>
 
     </div>
@@ -427,140 +569,318 @@
             </div>
         </section>
 
-       {{-- ==================== DOKUMENTASI & GALERI ==================== --}}
-        <section id="dokumentasi" class="py-8 sm:py-16 px-4 sm:px-6 bg-transparent">
-            <div class="max-w-6xl mx-auto">
-                <x-section-heading eyebrow="Galeri & Kegiatan" title="Dokumentasi Aktivitas Magang">
-                    Intip keseruan suasana kerja, kolaborasi proyek, dan bimbingan langsung bersama mentor profesional.
-                </x-section-heading>
+{{-- DOKUMENTASI & GALERI --}}
+<section id="dokumentasi" class="py-8 sm:py-16 px-4 sm:px-6 bg-transparent">
 
-                {{--
-                    BARU: setiap kartu sekarang bisa diklik -> membuka
-                    lightbox (foto ukuran penuh + deskripsi lengkap,
-                    tanpa perlu halaman baru). Kartu juga dibungkus
-                    <button> (bukan <a>) supaya tetap bisa fokus/diakses
-                    keyboard, dengan efek hover ring + shadow yang lebih
-                    hidup dibanding sebelumnya (yang polos, tanpa umpan
-                    balik saat disentuh).
-                --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-                    @forelse($dokumentasis as $index => $item)
-                        <button type="button"
-                                onclick="openGaleriLightbox({{ $index }})"
-                                class="group text-left w-full rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-100/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
-                            <x-galeri-card
-                                tag="{{ $item->judul_kegiatan }}"
-                                judul="{{ $item->kategori_badge }}"
-                                :gambar="asset('storage/' . $item->foto)"
-                            >
-                                {{ $item->deskripsi }}
-                            </x-galeri-card>
-                        </button>
-                    @empty
-                        <div class="col-span-full py-10 text-center">
-                            <div class="text-4xl mb-3">📸</div>
-                            <h3 class="font-semibold text-slate-700">Belum ada dokumentasi kegiatan</h3>
-                            <p class="text-sm text-slate-500 mt-1">Dokumentasi kegiatan magang akan tampil di sini setelah diunggah admin.</p>
-                        </div>
-                    @endforelse
-                </div>
+    <div class="max-w-6xl mx-auto">
 
-                {{-- CTA — cukup sekali dipakai, jadi tidak perlu dikomponenkan --}}
-                <div class="mt-12 sm:mt-16 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-6 sm:p-12 text-center text-white shadow-xl relative overflow-hidden">
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.2),transparent_50%)] pointer-events-none"></div>
-                    <h3 class="text-xl sm:text-3xl font-extrabold relative z-10">Tertarik Bergabung Menjadi Bagian dari Kami?</h3>
-                    <p class="text-slate-300 text-xs sm:text-base mt-3 max-w-xl mx-auto relative z-10">
-                        Segera siapkan berkas pengajuan surat pengantar dari kampusmu dan pilih instansi tujuanmu sekarang juga.
+        {{-- HEADING --}}
+        <x-section-heading
+            eyebrow="Galeri & Kegiatan"
+            title="Dokumentasi Aktivitas Magang"
+        >
+            Intip keseruan suasana kerja, kolaborasi proyek, dan bimbingan langsung bersama mentor profesional.
+        </x-section-heading>
+
+
+        {{-- GALERI --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+
+            @forelse($dokumentasis as $index => $item)
+
+                <button
+                    type="button"
+                    onclick="openGaleriLightbox({{ $index }})"
+                    class="group text-left w-full rounded-2xl
+                           transition-all duration-300
+                           hover:-translate-y-1
+                           hover:shadow-xl hover:shadow-blue-100/60
+                           focus:outline-none
+                           focus:ring-2 focus:ring-blue-400
+                           focus:ring-offset-2"
+                >
+
+                    <x-galeri-card
+                        tag="{{ $item->judul_kegiatan }}"
+                        judul="{{ $item->kategori_badge }}"
+                        :gambar="asset('storage/' . $item->foto)"
+                    >
+                        {{ $item->deskripsi }}
+                    </x-galeri-card>
+
+                </button>
+
+            @empty
+
+                <div class="col-span-full py-10 text-center">
+
+                    <div class="text-4xl mb-3">
+                        📸
+                    </div>
+
+                    <h3 class="font-semibold text-slate-700">
+                        Belum ada dokumentasi kegiatan
+                    </h3>
+
+                    <p class="text-sm text-slate-500 mt-1">
+                        Dokumentasi kegiatan magang akan tampil di sini
+                        setelah diunggah admin.
                     </p>
-                    <div class="mt-6 sm:mt-8 relative z-10">
-                        <a href="{{ route('user.pendaftaran.create') }}" class="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg transition duration-200">
-                            <span>Mulai Ajukan Pendaftaran</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                        </a>
-                    </div>
+
                 </div>
 
-                {{-- Lightbox Dokumentasi --}}
-                <div id="galeriLightbox" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4">
-                    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeGaleriLightbox()"></div>
+            @endforelse
 
-                    <div class="relative bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-                        <button type="button" onclick="closeGaleriLightbox()"
-                                class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-700 flex items-center justify-center shadow-md transition">
-                            ✕
-                        </button>
+        </div>
 
-                        <div class="w-full h-64 sm:h-80 bg-slate-100 overflow-hidden shrink-0">
-                            <img id="galeriLightboxImg" src="" alt="" class="w-full h-full object-cover">
-                        </div>
 
-                        <div class="p-6 overflow-y-auto">
-                            <span id="galeriLightboxTag" class="inline-block px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold mb-3"></span>
-                            <h3 id="galeriLightboxJudul" class="text-lg font-extrabold text-slate-900 mb-2"></h3>
-                            <p id="galeriLightboxDeskripsi" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line"></p>
-                        </div>
-                    </div>
-                </div>
+        {{-- CTA --}}
+        <div
+            class="mt-12 sm:mt-16
+                   bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900
+                   rounded-3xl
+                   p-6 sm:p-12
+                   text-center
+                   text-white
+                   shadow-xl
+                   relative
+                   overflow-hidden"
+        >
 
-                @php
-                    // FIX: sebelumnya @json(...) langsung berisi
-                    // ->map(fn($item) => [...]) inline satu baris --
-                    // itu memicu bug parser Blade ("Unclosed '[' ...")
-                    // karena closure + array literal di dalam directive
-                    // satu baris membuat penghitungan kurungnya salah.
-                    // Sekarang datanya disusun dulu di sini sebagai
-                    // variabel biasa, baru @json() menerima variabel
-                    // polos -- pola ini tidak pernah bermasalah.
-                    $galeriDataUntukJs = $dokumentasis->map(function ($item) {
-                        return [
-                            'tag' => $item->judul_kegiatan,
-                            'judul' => $item->kategori_badge,
-                            'gambar' => asset('storage/' . $item->foto),
-                            'deskripsi' => $item->deskripsi,
-                        ];
-                    });
-                @endphp
-                
+            {{-- Dekorasi background --}}
+            <div
+                class="absolute inset-0
+                       bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.2),transparent_50%)]
+                       pointer-events-none"
+            ></div>
+
+
+            {{-- Judul CTA --}}
+            <h3
+                class="text-xl sm:text-3xl
+                       font-extrabold
+                       relative z-10"
+            >
+                Tertarik Bergabung Menjadi Bagian dari Kami?
+            </h3>
+
+
+            {{-- Deskripsi CTA --}}
+            <p
+                class="text-slate-300
+                       text-xs sm:text-base
+                       mt-3
+                       max-w-xl
+                       mx-auto
+                       relative z-10"
+            >
+                Segera siapkan berkas pengajuan surat pengantar dari kampusmu
+                dan pilih instansi tujuanmu sekarang juga.
+            </p>
+
+
+            {{-- Tombol CTA --}}
+            <div class="mt-6 sm:mt-8 relative z-10">
+
+                <a
+                    href="{{ route('user.pendaftaran.create') }}"
+                    class="inline-flex
+                           items-center
+                           gap-2
+                           px-6 sm:px-8
+                           py-3.5 sm:py-4
+                           bg-blue-600
+                           hover:bg-blue-500
+                           text-white
+                           font-bold
+                           text-xs sm:text-sm
+                           rounded-xl
+                           shadow-lg
+                           transition
+                           duration-200"
+                >
+
+                    <span>
+                        Mulai Ajukan Pendaftaran
+                    </span>
+
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        ></path>
+                    </svg>
+
+                </a>
+
             </div>
-        </section>
 
-                {{-- CTA — cukup sekali dipakai, jadi tidak perlu dikomponenkan --}}
-                <div class="mt-12 sm:mt-16 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-6 sm:p-12 text-center text-white shadow-xl relative overflow-hidden">
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.2),transparent_50%)] pointer-events-none"></div>
-                    <h3 class="text-xl sm:text-3xl font-extrabold relative z-10">Tertarik Bergabung Menjadi Bagian dari Kami?</h3>
-                    <p class="text-slate-300 text-xs sm:text-base mt-3 max-w-xl mx-auto relative z-10">
-                        Segera siapkan berkas pengajuan surat pengantar dari kampusmu dan pilih instansi tujuanmu sekarang juga.
-                    </p>
-                    <div class="mt-6 sm:mt-8 relative z-10">
-                        <a href="{{ route('user.pendaftaran.create') }}" class="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg transition duration-200">
-                            <span>Mulai Ajukan Pendaftaran</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                        </a>
-                    </div>
+        </div>
+
+
+        {{-- LIGHTBOX DOKUMENTASI --}}
+        <div
+            id="galeriLightbox"
+            class="hidden
+                   fixed
+                   inset-0
+                   z-[9999]
+                   flex
+                   items-start
+                   justify-center
+                   px-4
+                   pt-24
+                   pb-6
+                   overflow-y-auto"
+        >
+
+            {{-- OVERLAY --}}
+            <div
+                class="absolute
+                       inset-0
+                       bg-slate-950/80
+                       backdrop-blur-sm"
+                onclick="closeGaleriLightbox()"
+            ></div>
+
+
+            {{-- MODAL --}}
+            <div
+                class="relative
+                       w-fit
+                       max-w-[92vw]
+                       max-h-[calc(100vh-7rem)]
+                       bg-white
+                       rounded-3xl
+                       overflow-hidden
+                       shadow-2xl
+                       flex
+                       flex-col
+                       my-auto"
+            >
+
+                {{-- TOMBOL CLOSE --}}
+                <button
+                    type="button"
+                    onclick="closeGaleriLightbox()"
+                    class="absolute
+                           top-4
+                           right-4
+                           z-20
+                           w-10
+                           h-10
+                           rounded-full
+                           bg-white/90
+                           hover:bg-white
+                           text-slate-700
+                           flex
+                           items-center
+                           justify-center
+                           shadow-lg
+                           transition"
+                    aria-label="Tutup"
+                >
+                    ✕
+                </button>
+
+
+                {{-- FOTO --}}
+                <div
+                    class="flex
+                           items-center
+                           justify-center
+                           bg-slate-100"
+                >
+
+                    <img
+                        id="galeriLightboxImg"
+                        src=""
+                        alt=""
+                        class="block
+                               max-w-[92vw]
+                               max-h-[65vh]
+                               w-auto
+                               h-auto
+                               object-contain"
+                    >
+
                 </div>
 
-                {{-- Lightbox Dokumentasi --}}
-                <div id="galeriLightbox" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4">
-                    ...
-                </div>
 
-                @php
-                    $galeriDataUntukJs = $dokumentasis->map(function ($item) {
-                        return [
-                            'tag' => $item->judul_kegiatan,
-                            'judul' => $item->kategori_badge,
-                            'gambar' => asset('storage/' . $item->foto),
-                            'deskripsi' => $item->deskripsi,
-                        ];
-                    });
-                @endphp
+                {{-- INFORMASI FOTO --}}
+                <div
+                    class="p-5
+                           sm:p-6
+                           bg-white
+                           w-full
+                           overflow-y-auto"
+                >
+
+                    {{-- Tag --}}
+                    <span
+                        id="galeriLightboxTag"
+                        class="inline-block
+                               px-3
+                               py-1
+                               rounded-lg
+                               bg-blue-50
+                               text-blue-700
+                               text-xs
+                               font-bold
+                               mb-3"
+                    ></span>
+
+
+                    {{-- Judul --}}
+                    <h3
+                        id="galeriLightboxJudul"
+                        class="text-lg
+                               font-extrabold
+                               text-slate-900
+                               mb-2"
+                    ></h3>
+
+
+                    {{-- Deskripsi --}}
+                    <p
+                        id="galeriLightboxDeskripsi"
+                        class="text-sm
+                               text-slate-600
+                               leading-relaxed
+                               whitespace-pre-line"
+                    ></p>
+
+                </div>
 
             </div>
-        </section>
+
+        </div>
+
+
+        {{-- DATA GALERI UNTUK JAVASCRIPT --}}
+        @php
+            $galeriDataUntukJs = $dokumentasis->map(function ($item) {
+                return [
+                    'tag' => $item->judul_kegiatan,
+                    'judul' => $item->kategori_badge,
+                    'gambar' => asset('storage/' . $item->foto),
+                    'deskripsi' => $item->deskripsi,
+                ];
+            });
+        @endphp
+
+    </div>
+
+</section>
 
     </x-flowing-bg>
-
-    <x-footer />
 
     <x-footer />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
