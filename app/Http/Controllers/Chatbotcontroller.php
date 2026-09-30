@@ -57,18 +57,39 @@ class ChatbotController extends Controller
         // diganti lewat .env tanpa ubah kode kalau Google merilis versi baru.
         $model = config('services.gemini.model', 'gemini-3.5-flash');
 
+try {
+    // PHP cURL di komputer ini mengalami masalah DNS.
+    // Ambil IP Gemini secara dinamis agar tidak perlu hardcode IP Google.
+    $geminiHost = 'generativelanguage.googleapis.com';
+    $geminiIps = gethostbynamel($geminiHost);
+
+    if (empty($geminiIps)) {
+        throw new \RuntimeException('Tidak dapat menemukan IP Gemini melalui DNS.');
+    }
+
+    $geminiIp = $geminiIps[0];
+
+$curlResolve = [
+    "{$geminiHost}:443:{$geminiIp}",
+];
+
+    // Coba request maksimal 3 kali untuk menangani
+    // 503 (high demand), 429 (rate limit), dan timeout.
+    $maxAttempts = 3;
+    $response = null;
+
+    for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
         try {
-    $response = Http::withOptions([
-        'curl' => [
-            CURLOPT_RESOLVE => [
-                'generativelanguage.googleapis.com:443:172.217.112.4',
-            ],
-        ],
-    ])->withHeaders([
-        'x-goog-api-key' => $apiKey,
-        'Content-Type' => 'application/json',
-    ])->timeout(30)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent",
+            $response = Http::withOptions([
+                'curl' => [
+                    CURLOPT_RESOLVE => $curlResolve,
+                    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                ],
+            ])->withHeaders([
+                'x-goog-api-key' => $apiKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(15)->post(
+                "https://{$geminiHost}/v1beta/models/{$model}:generateContent",
                 [
                     'system_instruction' => [
                         'parts' => [['text' => $systemInstruction]],
@@ -80,6 +101,42 @@ class ChatbotController extends Controller
                     ],
                 ]
             );
+
+            // Berhasil → hentikan retry.
+            if ($response->successful()) {
+                break;
+            }
+
+            // Retry untuk error yang sifatnya sementara.
+            if (in_array($response->status(), [408, 429, 503])) {
+                Log::warning('Gemini API retry', [
+                    'attempt' => $attempt,
+                    'status' => $response->status(),
+                ]);
+
+                if ($attempt < $maxAttempts) {
+                    sleep($attempt * 2);
+                    continue;
+                }
+            }
+
+            // Error selain 408/429/503 tidak perlu diulang.
+            break;
+
+        } catch (\Throwable $e) {
+            Log::warning('Gemini API connection retry', [
+                'attempt' => $attempt,
+                'message' => $e->getMessage(),
+            ]);
+
+            if ($attempt < $maxAttempts) {
+                sleep($attempt * 2);
+                continue;
+            }
+
+            throw $e;
+        }
+    }
 
             if ($response->failed()) {
                 Log::error('Gemini API error', ['body' => $response->body()]);
