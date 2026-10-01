@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\UpdateProfilRequest;
 use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
@@ -10,23 +10,14 @@ class ProfileController extends Controller
     // Menampilkan halaman profil
     public function index()
     {
-        $user = Auth::user();
-
-        return view('user.profil', compact('user'));
+        return view('user.profil', ['user' => Auth::user()]);
     }
 
     // Menyimpan perubahan profil
-    public function update(Request $request)
+    public function update(UpdateProfilRequest $request)
     {
-        $user = Auth::user();
+        $request->user()->update($request->validated());
 
-        $validated = $request->validate([
-            'nim_nisn' => ['nullable', 'string', 'max:50'],
-            'instansi' => ['nullable', 'string', 'max:255'],
-            'jurusan' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $user->update($validated);
         return redirect()
             ->route('user.profil')
             ->with('success', 'Profil berhasil diperbarui.');

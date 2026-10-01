@@ -13,7 +13,10 @@ use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\DokumentasiController;
 use App\Models\PendaftaranMagang;
+use App\Http\Controllers\DokumentasiPublikController;
 
+Route::get('/dokumentasi/{dokumentasi}', [DokumentasiPublikController::class, 'show'])
+       ->name('dokumentasi.show');
 
 /*HALAMAN PUBLIK*/
 
@@ -61,7 +64,7 @@ Route::get('/', function () {
         ? round(($diterimaTahunIni / $pendaftarTahunIni) * 100)
         : 0;
 
-    $dokumentasis = \App\Models\DokumentasiMagang::latest()->take(6)->get();
+    $dokumentasis = \App\Models\DokumentasiMagang::with('fotos')->latest()->take(6)->get();
 
     return view('welcome', compact(
         'dinases',
@@ -169,11 +172,9 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', [PendaftaranController::class, 'destroy'])
                 ->name('destroy');
         });
-
 });
 
 /*admin permission*/
-
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')

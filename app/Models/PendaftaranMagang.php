@@ -4,12 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\ScopePendaftaranAdmin;   // tanpa backslash di depan
 
 class PendaftaranMagang extends Model
 {
-    use HasFactory;
+    use HasFactory, ScopePendaftaranAdmin;
 
- protected $fillable = [
+    public const STATUS_BOLEH_EDIT = ['draft', 'revisi'];
+
+    public const STATUS_BOLEH_HAPUS = ['draft', 'pending', 'revisi', 'ditolak'];
+
+    protected $fillable = [
     'user_id',
     'dinas_id',
     'instansi_bidang_id',

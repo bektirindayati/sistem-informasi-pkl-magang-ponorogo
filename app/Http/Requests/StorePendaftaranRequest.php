@@ -2,147 +2,56 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use App\Models\PendaftaranMagang;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StorePendaftaranRequest extends FormRequest
+/**
+ * Kirim pendaftaran: semua field wajib.
+ * Jika user sudah punya draft (mis. hasil auto-save), draft itu yang
+ * dikirim, bukan membuat record baru. Surat pengantar tidak wajib
+ * diunggah ulang kalau draft tersebut sudah punya.
+ */
+class StorePendaftaranRequest extends BasePendaftaranRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->pesanTerkunci() === null;
+    }
+
+    protected function failedAuthorization()
+    {
+        throw new HttpResponseException(
+            redirect()->route('user.pendaftaran.status')->with('error', $this->pesanTerkunci())
+        );
+    }
+
+    public function pendaftaran(): PendaftaranMagang
+    {
+        $terakhir = $this->pendaftaranTerakhir();
+
+        if ($terakhir && $terakhir->status === 'draft') {
+            return $terakhir;
+        }
+
+        $baru = new PendaftaranMagang();
+        $baru->user_id = $this->user()->id;
+
+        return $baru;
     }
 
     public function rules(): array
     {
-        $isDraft = $this->routeIs('user.pendaftaran.draft');
-        $isUpdate = $this->isMethod('put') || $this->isMethod('patch');
+        $suratWajib = empty($this->pendaftaran()->surat_pengantar);
 
-        $pendaftaran = null;
-
-        if ($isUpdate) {
-            $pendaftaran = PendaftaranMagang::find($this->route('id'));
-        }
-
-        $hasExistingSurat = $pendaftaran && !empty($pendaftaran->surat_pengantar);
-
-        $required = $isDraft ? 'nullable' : 'required';
-
-        return [
-            'dinas_id' => [
-                $required,
-                'integer',
-                'exists:dinases,id',
-            ],
-
-            'instansi_bidang_id' => [
-                $required,
-                'integer',
-                Rule::exists('instansi_bidangs', 'id')
-                    ->where(function ($query) {
-                        $query->where('dinas_id', $this->input('dinas_id'));
-                    }),
-            ],
-
-            'kategori' => [$required, 'string', 'max:100'],
-
-            'nama_lengkap' => [$required, 'string', 'max:255'],
-
-            'nim_nisn' => [$required, 'string', 'max:50'],
-
-            'instansi' => [$required, 'string', 'max:255'],
-
-            'jurusan' => [$required, 'string', 'max:255'],
-
-            'no_hp' => [$required, 'numeric', 'digits_between:10,15'],
-
-            'alamat' => [$required, 'string'],
-
-            'kabupaten' => [$required, 'string', 'max:255'],
-
-            'provinsi' => [$required, 'string', 'max:255'],
-
-            'tanggal_mulai' => [$required, 'date'],
-
-            'tanggal_selesai' => [
-                $required,
-                'date',
-                'after_or_equal:tanggal_mulai'
-            ],
-
-            // Surat pengantar:
-            // - Draft: boleh kosong
-            // - Pendaftaran baru: wajib
-            // - Update dengan surat yang sudah ada: tidak perlu upload ulang
-            // - Update tanpa surat: wajib upload
-            'surat_pengantar' => [
-                ($isDraft || $hasExistingSurat) ? 'nullable' : 'required',
-                'file',
-                'mimes:pdf',
-                'max:2048',
-            ],
-
-            // Proposal tetap opsional
-            'proposal' => [
-                'nullable',
-                'file',
-                'mimes:pdf',
-                'max:2048'
-            ],
-        ];
+        return array_merge($this->aturanData('required'), $this->aturanBerkas($suratWajib));
     }
 
-    public function messages(): array
+    public function dataPendaftaran(): array
     {
-        return [
-            'dinas_id.required' => 'Instansi / dinas tujuan wajib dipilih.',
-            'dinas_id.exists' => 'Instansi / dinas tujuan yang dipilih tidak tersedia.',
-
-            'instansi_bidang_id.required' => 'Bidang penempatan wajib dipilih.',
-            'instansi_bidang_id.exists' => 'Bidang penempatan yang dipilih tidak tersedia atau tidak sesuai dengan dinas tujuan.',
-
-            'kategori.required' => 'Kategori pendaftar wajib dipilih.',
-            'kategori.max' => 'Kategori pendaftar maksimal 100 karakter.',
-
-            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-            'nama_lengkap.max' => 'Nama lengkap maksimal 255 karakter.',
-
-            'nim_nisn.required' => 'NIM / NISN wajib diisi.',
-            'nim_nisn.max' => 'NIM / NISN maksimal 50 karakter.',
-
-            'instansi.required' => 'Asal instansi atau universitas wajib diisi.',
-            'instansi.max' => 'Asal instansi atau universitas maksimal 255 karakter.',
-
-            'jurusan.required' => 'Jurusan atau program studi wajib diisi.',
-            'jurusan.max' => 'Jurusan atau program studi maksimal 255 karakter.',
-
-            'no_hp.required' => 'Nomor WhatsApp / HP wajib diisi.',
-            'no_hp.numeric' => 'Nomor WhatsApp / HP harus berupa angka.',
-            'no_hp.digits_between' => 'Nomor WhatsApp / HP harus terdiri dari 10 hingga 15 digit.',
-
-            'alamat.required' => 'Alamat tempat tinggal wajib diisi.',
-
-            'kabupaten.required' => 'Kabupaten / kota wajib diisi.',
-            'kabupaten.max' => 'Kabupaten / kota maksimal 255 karakter.',
-
-            'provinsi.required' => 'Provinsi wajib diisi.',
-            'provinsi.max' => 'Provinsi maksimal 255 karakter.',
-
-            'tanggal_mulai.required' => 'Tanggal mulai magang wajib diisi.',
-            'tanggal_mulai.date' => 'Format tanggal mulai tidak valid.',
-
-            'tanggal_selesai.required' => 'Tanggal selesai magang wajib diisi.',
-            'tanggal_selesai.date' => 'Format tanggal selesai tidak valid.',
-            'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.',
-
-            'surat_pengantar.required' => 'Surat pengantar instansi wajib diunggah.',
-            'surat_pengantar.file' => 'Surat pengantar harus berupa file.',
-            'surat_pengantar.mimes' => 'Surat pengantar harus berformat PDF.',
-            'surat_pengantar.max' => 'Ukuran surat pengantar tidak boleh lebih dari 2MB.',
-
-            'proposal.file' => 'Proposal harus berupa file.',
-            'proposal.mimes' => 'Proposal magang harus berformat PDF.',
-            'proposal.max' => 'Ukuran proposal magang tidak boleh lebih dari 2MB.',
-        ];
+        return array_merge(
+            parent::dataPendaftaran(),
+            $this->dataKirim(),
+            ['user_id' => $this->user()->id]
+        );
     }
 }

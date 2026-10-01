@@ -3,61 +3,74 @@
 @section('title', 'Profil Saya')
 
 @section('content')
+<x-page>
 
-<div class="min-h-screen bg-slate-50 pb-14 px-4 sm:px-6">
-    <div class="max-w-2xl mx-auto">
+    <x-page-header
+        eyebrow="Akun"
+        title="Profil Saya"
+        :back="route('user.dashboard')"
+    >
+        Data ini otomatis terisi di formulir pendaftaran magang berikutnya.
+    </x-page-header>
 
-        <div class="mb-5">
-            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Profil Saya</h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1">Data ini otomatis terisi di formulir pendaftaran magang berikutnya.</p>
-        </div>
+    @if(session('success'))
+        <x-alert type="success"> {{ session('success') }}</x-alert>
+    @endif
+    @if(session('error'))
+        <x-alert type="error">⚠️ {{ session('error') }}</x-alert>
+    @endif
 
-        @if(session('success'))
-    <x-alert type="success"> {{ session('success') }}</x-alert>
-@endif
-
-@if(session('error'))
-    <x-alert type="error">⚠️ {{ session('error') }}</x-alert>
-@endif
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
         {{-- IDENTITAS AKUN (dari Google, tidak bisa diedit di sini) --}}
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mt-4 flex items-center gap-4">
-            @if($user->avatar)
-                <img src="{{ asset('storage/' . $user->avatar) }}" alt="Avatar" class="w-16 h-16 rounded-full object-cover border border-slate-200">
-            @else
-                <div class="w-16 h-16 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xl">
-                    {{ strtoupper(substr($user->name, 0, 1)) }}
+        <x-card class="lg:col-span-1">
+            <div class="flex items-center gap-4">
+                @if($user->avatar)
+                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="Avatar"
+                         class="w-14 h-14 rounded-full object-cover border border-slate-200 shrink-0">
+                @else
+                    <div class="w-14 h-14 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-lg shrink-0">
+                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                    </div>
+                @endif
+
+                <div class="min-w-0">
+                    <h2 class="text-base font-semibold text-slate-900 truncate">{{ $user->name }}</h2>
+                    <p class="text-sm text-slate-500 truncate">{{ $user->email }}</p>
                 </div>
-            @endif
-            <div class="min-w-0">
-                <h2 class="font-bold text-slate-900">{{ $user->name }}</h2>
-                <p class="text-xs text-slate-500 truncate">{{ $user->email }}</p>
-                <p class="text-[11px] text-slate-400 mt-1">Nama & email mengikuti akun Google yang kamu pakai login — tidak bisa diubah di sini.</p>
             </div>
-        </div>
+
+            <p class="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 leading-relaxed">
+                Nama & email mengikuti akun Google yang kamu pakai login, jadi tidak bisa diubah di sini.
+            </p>
+        </x-card>
 
         {{-- DATA UNTUK AUTO-FILL PENDAFTARAN --}}
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mt-4">
-            <h3 class="font-bold text-slate-900 text-sm mb-1">Data Akademik</h3>
-            <p class="text-xs text-slate-500 mb-4">Diisi otomatis setiap kali kamu membuka formulir pendaftaran baru — tidak perlu ketik ulang.</p>
+        <x-card class="lg:col-span-2">
+            <h2 class="text-base font-semibold text-slate-900">Data Akademik</h2>
+            <p class="text-sm text-slate-500 mt-1">
+                Diisi otomatis setiap kali kamu membuka formulir pendaftaran baru, tidak perlu ketik ulang.
+            </p>
 
-            <form action="{{ route('user.profil.update') }}" method="POST" class="space-y-4">
+            <form action="{{ route('user.profil.update') }}" method="POST" class="mt-5">
                 @csrf
                 @method('PUT')
 
-                <x-form.input name="nim_nisn" label="NIM / NISN" placeholder="Contoh: 22050974001" :value="$user->nim_nisn" />
-                <x-form.input name="instansi" label="Asal Instansi / Universitas" placeholder="Universitas Negeri Surabaya" :value="$user->instansi" />
-                <x-form.input name="jurusan" label="Jurusan / Program Studi" placeholder="S1 Teknologi Pendidikan" :value="$user->jurusan" />
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <x-form.input name="nim_nisn" label="NIM / NISN" placeholder="Contoh: 22050974001" :value="$user->nim_nisn" />
+                    <x-form.input name="jurusan" label="Jurusan / Program Studi" placeholder="S1 Teknologi Pendidikan" :value="$user->jurusan" />
 
-                <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-500/20 transition">
-                    Simpan Perubahan
-                </button>
+                    <div class="md:col-span-2">
+                        <x-form.input name="instansi" label="Asal Instansi / Universitas" placeholder="Universitas Negeri Surabaya" :value="$user->instansi" />
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-5 border-t border-slate-100">
+                    <x-button type="submit">Simpan Perubahan</x-button>
+                </div>
             </form>
-        </div>
-
-        <div class="mt-6 text-center">
-            <a href="{{ route('user.dashboard') }}" class="text-xs font-bold text-slate-500 hover:text-slate-800 transition">&larr; Kembali ke Dashboard</a>
-        </div>
+        </x-card>
     </div>
-</div>
+
+</x-page>
 @endsection

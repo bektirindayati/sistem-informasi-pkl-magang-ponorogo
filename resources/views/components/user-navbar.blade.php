@@ -60,52 +60,64 @@
                 </a>
             </div>
 
-            {{-- User Menu --}}
-            <div class="flex items-center gap-2 sm:gap-3">
+           {{-- User Menu --}}
+<div class="flex items-center gap-2 sm:gap-3">
 
-                {{-- Profil --}}
-                <a href="{{ route('user.profil') }}"
-                   class="hidden sm:flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-slate-50 transition">
+    @auth
+        {{-- Profil --}}
+        <a href="{{ route('user.profil') }}"
+           class="hidden sm:flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-slate-50 transition">
 
-                    @if(Auth::user()->avatar)
-                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}"
-                             alt="Avatar"
-                             class="w-8 h-8 rounded-full object-cover border border-slate-200">
-                    @else
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white flex items-center justify-center text-xs font-bold">
-                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                        </div>
-                    @endif
+            @if(Auth::user()->avatar)
+                <img src="{{ asset('storage/' . Auth::user()->avatar) }}"
+                     alt="Avatar"
+                     class="w-8 h-8 rounded-full object-cover border border-slate-200">
+            @else
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white flex items-center justify-center text-xs font-bold">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                </div>
+            @endif
 
-                    <div class="hidden lg:block text-left leading-tight">
-                        <div class="text-xs font-bold text-slate-800 max-w-[140px] truncate">
-                            {{ Auth::user()->name }}
-                        </div>
-                        <div class="text-[10px] text-slate-400">
-                            Pengguna
-                        </div>
-                    </div>
-                </a>
+            <div class="hidden lg:block text-left leading-tight">
+                <div class="text-xs font-bold text-slate-800 max-w-[140px] truncate">
+                    {{ Auth::user()->name }}
+                </div>
+                <div class="text-[10px] text-slate-400">
+                    Pengguna
+                </div>
+            </div>
+        </a>
 
-                {{-- Logout --}}
-                <form action="{{ route('logout') }}" method="POST" class="m-0">
-                    @csrf
+        {{-- Logout --}}
+        <form action="{{ route('logout') }}" method="POST" class="m-0">
+            @csrf
 
-                    <button type="submit"
-                            class="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
-                            title="Keluar">
+            <button type="submit"
+                    class="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                    title="Keluar">
 
-                        <svg class="w-4 h-4"
-                             fill="none"
-                             stroke="currentColor"
-                             viewBox="0 0 24 24">
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                        </svg>
-                    </button>
-                </form>
+                <svg class="w-4 h-4"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+            </button>
+        </form>
+
+    @else
+
+        {{-- Guest --}}
+        <a href="{{ route('login') }}"
+           class="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-xl
+                  text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 transition">
+            Masuk
+        </a>
+
+    @endauth
 
                 {{-- Mobile Menu Button --}}
                 <button type="button"

@@ -15,6 +15,7 @@
 
     <x-preloader />
     <x-navbar />
+    <x-ai-chatbot-modal />
 
 {{-- ==================== HERO / BERANDA ==================== --}}
 <section id="beranda"
@@ -51,45 +52,9 @@
                 pointer-events-none">
     </div>
 
-    {{-- Grid halus --}}
-    <div class="absolute inset-0
-                bg-[linear-gradient(to_right,#cbd5e1_1px,transparent_1px),
-                linear-gradient(to_bottom,#cbd5e1_1px,transparent_1px)]
-                bg-[size:3.5rem_3.5rem]
-                opacity-30
-                pointer-events-none
-                [mask-image:linear-gradient(to_bottom,black_15%,transparent_75%)]
-                [-webkit-mask-image:linear-gradient(to_bottom,black_15%,transparent_75%)]">
-    </div>
 
 
     {{-- ==================== DEKORASI ABSTRAK ==================== --}}
-
-    {{-- Lingkaran kiri --}}
-    <div class="absolute left-[7%] top-[42%]
-                hidden lg:block
-                w-5 h-5
-                rounded-full bg-blue-500/20">
-    </div>
-
-    <div class="absolute left-[11%] top-[47%]
-                hidden lg:block
-                w-2.5 h-2.5
-                rounded-full bg-cyan-500/30">
-    </div>
-
-    {{-- Lingkaran kanan --}}
-    <div class="absolute right-[9%] top-[35%]
-                hidden lg:block
-                w-7 h-7
-                rounded-full border-2 border-blue-400/20">
-    </div>
-
-    <div class="absolute right-[13%] top-[43%]
-                hidden lg:block
-                w-3 h-3
-                rounded-full bg-cyan-400/25">
-    </div>
 
 
     {{-- ==================== CONTENT ==================== --}}
@@ -141,13 +106,12 @@
             <br>
 
             <span class="bg-gradient-to-r
-                         from-blue-700
-                         via-indigo-600
-                         to-cyan-500
-                         bg-clip-text
-                         text-transparent">
-                Kabupaten Ponorogo
-            </span>
+             from-blue-600
+             to-cyan-600
+             bg-clip-text
+             text-transparent">
+    Kabupaten Ponorogo
+</span>
 
         </h1>
 
@@ -239,6 +203,116 @@
             </a>
 
         </div>
+         {{-- =====================================================
+             INFORMASI SINGKAT
+             ===================================================== --}}
+        <div class="mt-8
+                    sm:mt-10
+                    flex flex-wrap
+                    justify-center
+                    items-center
+                    gap-x-5
+                    sm:gap-x-7
+                    gap-y-3
+                    text-xs
+                    sm:text-sm
+                    text-slate-500">
+
+
+            {{-- Pendaftaran --}}
+            <div class="flex items-center gap-2">
+
+                <svg class="w-4 h-4
+                            text-blue-600
+                            shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7">
+                    </path>
+
+                </svg>
+
+                <span>
+                    Pendaftaran online
+                </span>
+
+            </div>
+
+
+            {{-- Separator --}}
+            <span class="hidden sm:block
+                         w-1 h-1
+                         rounded-full
+                         bg-cyan-300">
+            </span>
+
+
+            {{-- Informasi --}}
+            <div class="flex items-center gap-2">
+
+                <svg class="w-4 h-4
+                            text-blue-600
+                            shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622C17.176 19.29 21 14.591 21 9c0-1.042-.133-2.052-.382-3.016z">
+                    </path>
+
+                </svg>
+
+                <span>
+                    Informasi terpusat
+                </span>
+
+            </div>
+
+
+            {{-- Separator --}}
+            <span class="hidden sm:block
+                         w-1 h-1
+                         rounded-full
+                         bg-cyan-300">
+            </span>
+
+
+            {{-- Perangkat daerah --}}
+            <div class="flex items-center gap-2">
+
+                <svg class="w-4 h-4
+                            text-blue-600
+                            shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M3 21h18M5 21V9h4v12M15 21V9h4v12M7 9l5-6 5 6">
+                    </path>
+
+                </svg>
+
+                <span>
+                    Berbagai perangkat daerah
+                </span>
+
+            </div>
+
+        </div>
 
 
         {{-- ==================== SCROLL INDICATOR ==================== --}}
@@ -275,32 +349,23 @@
     </div>
 
 
-    {{-- ==================== BOTTOM DECORATION ==================== --}}
+{{-- ==================== BOTTOM DECORATION ==================== --}}
 
-    <div class="absolute bottom-0 left-0 right-0
-                h-24 sm:h-32
-                pointer-events-none">
+<div class="absolute bottom-0 left-0 right-0
+            h-24 sm:h-32
+            pointer-events-none">
 
-        {{-- garis lengkung --}}
-        <div class="absolute bottom-[-70px] sm:bottom-[-90px]
-                    left-1/2 -translate-x-1/2
-                    w-[130%] sm:w-[115%]
-                    h-40 sm:h-52
-                    rounded-[50%]
-                    bg-white/70
-                    blur-[1px]">
-        </div>
-
-        {{-- glow tipis --}}
-        <div class="absolute bottom-0 left-1/2
-                    -translate-x-1/2
-                    w-2/3 h-10
-                    bg-blue-400/10
-                    blur-2xl
-                    rounded-full">
-        </div>
-
+    {{-- Garis lengkung putih sebagai transisi ke section berikutnya --}}
+    <div class="absolute bottom-[-70px] sm:bottom-[-90px]
+                left-1/2 -translate-x-1/2
+                w-[130%] sm:w-[115%]
+                h-40 sm:h-52
+                rounded-[50%]
+                bg-white
+                blur-[1px]">
     </div>
+
+</div>
 
 </section>
 
@@ -311,7 +376,7 @@
          dan ukurannya (max-width, padding vertikal) diseragamkan supaya
          tidak lagi kelihatan seperti blok-blok terpisah.
          ==================================================================== --}}
-    <x-flowing-bg>
+    <div class="bg-white">
 
         {{-- STATISTIK MAGANG / PKL --}}
         <section class="py-8 sm:py-16 bg-transparent">
@@ -327,29 +392,93 @@
                 {{-- KARTU STATISTIK --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
 
-                    {{-- TOTAL PENDAFTAR --}}
-                    <div class="relative overflow-hidden bg-white rounded-xl border border-slate-100 shadow-sm">
+                 {{-- TOTAL PENDAFTAR --}}
+<div class="relative overflow-hidden
+            bg-white
+            rounded-2xl
+            border border-slate-200
+            shadow-[0_4px_20px_rgba(15,23,42,0.04)]
+            hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)]
+            transition-shadow duration-200">
 
-                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500"></div>
+    {{-- Aksen kiri --}}
+    <div class="absolute left-0 top-0 bottom-0
+                w-1
+                bg-gradient-to-b
+                from-blue-600
+                to-cyan-500">
+    </div>
 
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4">
+    <div class="flex flex-col
+                sm:flex-row
+                sm:items-center
+                gap-3 sm:gap-4
+                px-5 py-4">
 
-                            <div class="flex items-center gap-3 sm:contents">
-                                {{-- Icon --}}
-                                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
-                                        <circle cx="9" cy="7" r="4" stroke-width="1.8"/>
-                                        <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-                                    </svg>
-                                </div>
+        <div class="flex items-center
+                    gap-3 sm:contents">
 
-                                {{-- Judul --}}
-                                <div class="min-w-0">
-                                    <p class="text-sm font-semibold text-slate-800">Total Pendaftar</p>
-                                    <p class="text-xs text-slate-400 mt-0.5">Seluruh pengajuan</p>
-                                </div>
-                            </div>
+            {{-- Icon --}}
+            <div class="w-10 h-10
+                        sm:w-11 sm:h-11
+                        rounded-xl
+                        bg-blue-50
+                        border border-blue-100
+                        flex items-center
+                        justify-center
+                        shrink-0">
+
+                <svg class="w-5 h-5
+                            sm:w-6 sm:h-6
+                            text-blue-600"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor">
+
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
+
+                    <circle
+                        cx="9"
+                        cy="7"
+                        r="4"
+                        stroke-width="1.8"/>
+
+                    <path
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+
+                </svg>
+
+            </div>
+
+            {{-- Judul --}}
+            <div class="min-w-0">
+
+                <p class="text-sm
+                          font-semibold
+                          text-slate-800">
+
+                    Total Pendaftar
+
+                </p>
+
+                <p class="text-xs
+                          text-slate-400
+                          mt-0.5">
+
+                    Seluruh pengajuan
+
+                </p>
+
+            </div>
+
+        </div>
 
                             {{-- Nilai --}}
                             <div class="hidden sm:block h-9 w-px bg-slate-100"></div>
@@ -569,9 +698,12 @@
             </div>
         </section>
 
-{{-- DOKUMENTASI & GALERI --}}
+{{--
+    Bagian "Dokumentasi & Galeri" di halaman utama.
+    Pakai di welcome.blade.php:  @include('partials.galeri-dokumentasi')
+    Butuh variabel $dokumentasis (with('fotos')) dari route '/'.
+--}}
 <section id="dokumentasi" class="py-8 sm:py-16 px-4 sm:px-6 bg-transparent">
-
     <div class="max-w-6xl mx-auto">
 
         {{-- HEADING --}}
@@ -582,41 +714,29 @@
             Intip keseruan suasana kerja, kolaborasi proyek, dan bimbingan langsung bersama mentor profesional.
         </x-section-heading>
 
-
         {{-- GALERI --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
 
-            @forelse($dokumentasis as $index => $item)
+            @forelse($dokumentasis as $item)
 
-                <button
-                    type="button"
-                    onclick="openGaleriLightbox({{ $index }})"
-                    class="group text-left w-full rounded-2xl
-                           transition-all duration-300
-                           hover:-translate-y-1
-                           hover:shadow-xl hover:shadow-blue-100/60
-                           focus:outline-none
-                           focus:ring-2 focus:ring-blue-400
-                           focus:ring-offset-2"
-                >
+                <a href="{{ route('dokumentasi.show', $item) }}"
+                   class="block h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
 
                     <x-galeri-card
-                        tag="{{ $item->judul_kegiatan }}"
-                        judul="{{ $item->kategori_badge }}"
-                        :gambar="asset('storage/' . $item->foto)"
-                    >
-                        {{ $item->deskripsi }}
-                    </x-galeri-card>
+                        :tag="$item->kategori_badge"
+                        :judul="$item->judul_kegiatan"
+                        :gambar="$item->sampul_url"
+                        :tempat="$item->tempat_pelaksanaan"
+                        :tanggal="$item->tanggal_pelaksanaan ?? $item->created_at"
+                        :waktu="$item->created_at"
+                    />
 
-                </button>
+                </a>
 
             @empty
 
                 <div class="col-span-full py-10 text-center">
-
-                    <div class="text-4xl mb-3">
-                        📸
-                    </div>
+                    <div class="text-4xl mb-3">📸</div>
 
                     <h3 class="font-semibold text-slate-700">
                         Belum ada dokumentasi kegiatan
@@ -626,13 +746,13 @@
                         Dokumentasi kegiatan magang akan tampil di sini
                         setelah diunggah admin.
                     </p>
-
                 </div>
 
             @endforelse
 
         </div>
-
+    </div>
+</section>
 
         {{-- CTA --}}
         <div
@@ -880,7 +1000,7 @@
 
 </section>
 
-    </x-flowing-bg>
+</div>
 
     <x-footer />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

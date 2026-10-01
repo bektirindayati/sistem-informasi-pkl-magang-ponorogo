@@ -16,12 +16,9 @@
     <section class="px-4 sm:px-6">
         <div class="max-w-6xl mx-auto">
 
-            <div class="relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-white via-blue-50/80 to-cyan-50 p-5 sm:p-10 shadow-sm">
+            <div class="relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50  p-5 sm:p-10 shadow-sm">
 
-                <div class="absolute -right-20 -top-24 w-72 h-72 rounded-full bg-blue-200/30 blur-3xl pointer-events-none"></div>
-                <div class="absolute -left-20 -bottom-28 w-72 h-72 rounded-full bg-cyan-200/30 blur-3xl pointer-events-none"></div>
-
-                <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 sm:gap-6">
+    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 sm:gap-6">
 
                     <div class="max-w-2xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-blue-100 shadow-xs mb-3 sm:mb-4">
@@ -55,7 +52,7 @@
                                 </div>
                                 <div class="text-left">
                                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pengaturan Akun</p>
-                                    <p class="text-sm font-bold text-slate-800">Lengkapi Profil Saya</p>
+                                    <p class="text-sm font-bold text-slate-800">Profil Saya</p>
                                 </div>
                             </div>
                             <div class="w-8 h-8 shrink-0 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">

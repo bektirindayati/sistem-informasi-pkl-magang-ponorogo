@@ -25,42 +25,13 @@
             </a>
 
 
-            {{-- BAGIAN KANAN --}}
-            <div class="flex items-center justify-end gap-2 shrink-0">
+           {{-- BAGIAN KANAN --}}
+<div class="flex items-center justify-end gap-2 shrink-0">
 
-                {{--
-                    TOMBOL AI — HANYA di halaman utama ("/").
-                    Kalau route halaman utama kamu punya nama (mis. route('home')),
-                    lebih aman pakai: @if(request()->routeIs('home'))
-                --}}
-                @if (true)
-                    <button
-                        type="button"
-                        onclick="toggleAiChatbot()"
-                        class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl
-                               bg-gradient-to-br from-indigo-600 to-blue-600
-                               hover:from-indigo-700 hover:to-blue-700
-                               text-white flex items-center justify-center
-                               shadow-md shadow-indigo-500/25 transition-all duration-200 shrink-0"
-                        title="Tanya Asisten AI MagangHub"
-                    >
-                        <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-300 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-400 border-2 border-white"></span>
-                        </span>
+    {{-- ASISTEN AI --}}
+    <x-ai-chatbot-launcher />
 
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                  d="M12 8V4H8M12 8h4a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2v-6a2 2 0 012-2h4z" />
-                            <circle cx="9" cy="13" r="1" fill="currentColor" stroke="none" />
-                            <circle cx="15" cy="13" r="1" fill="currentColor" stroke="none" />
-                        </svg>
-                    </button>
-
-                    <x-ai-chatbot-modal />
-                @endif
-
-                @auth
+    @auth
 
                     {{-- DASHBOARD --}}
                     @if (Auth::user()->isAdmin())
