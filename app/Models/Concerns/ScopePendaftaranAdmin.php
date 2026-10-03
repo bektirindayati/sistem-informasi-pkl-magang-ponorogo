@@ -46,6 +46,27 @@ trait ScopePendaftaranAdmin
         });
     }
 
+    /**
+     * BARU — khusus "diterima & masih berjalan" TANPA ikut pending.
+     * Dipakai untuk kartu publik "Pemagang Aktif" di beranda, karena
+     * scopeAktif() di atas sengaja ikut menghitung pending (dipakai
+     * admin untuk tab "belum tuntas diproses"), sedangkan kartu publik
+     * labelnya "Status diterima" — jadi pending tidak boleh ikut.
+     * Isinya memang sengaja sama persis dengan separuh kondisi di
+     * scopeAktif() ("diterima" + belum lewat tanggal_selesai),
+     * cuma dipisah jadi scope sendiri biar bisa dipakai ulang.
+     */
+    public function scopeSedangMagang($query)
+    {
+        $hariIni = now()->toDateString();
+
+        return $query->where('status', 'diterima')
+            ->where(function ($q) use ($hariIni) {
+                $q->whereNull('tanggal_selesai')
+                  ->orWhereDate('tanggal_selesai', '>=', $hariIni);
+            });
+    }
+
     /** Diterima dan tanggal_selesai sudah lewat. */
     public function scopeSelesai($query)
     {

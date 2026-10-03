@@ -31,7 +31,7 @@
     {{-- Glow utama --}}
     <div class="absolute top-[18%] left-1/2 -translate-x-1/2
                 w-[500px] h-[500px] sm:w-[700px] sm:h-[700px]
-                bg-gradient-to-tr from-blue-400/20 via-cyan-300/15 to-sky-300/20
+                bg-gradient-to-tr via-cyan-300/15 via-cyan-300/15 via-cyan-300/15
                 rounded-full blur-[110px] sm:blur-[140px]
                 pointer-events-none">
     </div>
@@ -39,7 +39,7 @@
     {{-- Glow kiri --}}
     <div class="absolute -left-32 top-[45%]
                 w-72 h-72
-                bg-blue-400/10
+                via-cyan-300/15
                 rounded-full blur-[90px]
                 pointer-events-none">
     </div>
@@ -47,7 +47,7 @@
     {{-- Glow kanan --}}
     <div class="absolute -right-32 top-[30%]
                 w-80 h-80
-                bg-cyan-400/10
+                via-cyan-300/15
                 rounded-full blur-[100px]
                 pointer-events-none">
     </div>
@@ -378,293 +378,273 @@
          ==================================================================== --}}
     <div class="bg-white">
 
-        {{-- STATISTIK MAGANG / PKL --}}
-        <section class="py-8 sm:py-16 bg-transparent">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6">
+       {{--
+    STATISTIK MAGANG / PKL — versi dipercantik, sekarang 3 kartu.
+    Variabel yang dipakai: $totalPendaftar, $pemagangAktif, $alumniSelesai
+    (BARU), $tahunSekarang, $pendaftarTahunIni, $diterimaTahunIni,
+    $persentaseDiterima — semuanya datang dari
+    StatistikMagangService::ringkasan(). id canvas ("statistikMagangChart")
+    dan script Chart.js di bawahnya TIDAK berubah.
 
-                <x-section-heading
-                    eyebrow="Statistik Magang / PKL"
-                    title="Statistik Magang / PKL"
-                >
-                    Data pendaftaran dan pemagang pada sistem SiMagang
-                </x-section-heading>
+    Ganti seluruh blok <section> Statistik yang lama di welcome.blade.php
+    dengan isi file ini.
+--}}
+<section class="py-8 sm:py-16 bg-transparent">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
 
-                {{-- KARTU STATISTIK --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+        <x-section-heading
+            eyebrow="Statistik Magang / PKL"
+            title="Statistik Magang / PKL"
+        >
+            Data pendaftaran dan pemagang pada sistem SiMagang
+        </x-section-heading>
 
-                 {{-- TOTAL PENDAFTAR --}}
-<div class="relative overflow-hidden
-            bg-white
-            rounded-2xl
-            border border-slate-200
-            shadow-[0_4px_20px_rgba(15,23,42,0.04)]
-            hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)]
-            transition-shadow duration-200">
+        {{-- KARTU STATISTIK --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
 
-    {{-- Aksen kiri --}}
-    <div class="absolute left-0 top-0 bottom-0
-                w-1
-                bg-gradient-to-b
-                from-blue-600
-                to-cyan-500">
-    </div>
+            {{-- TOTAL PENDAFTAR --}}
+            <div class="group relative overflow-hidden
+                        bg-white
+                        rounded-2xl
+                        border border-slate-200
+                        shadow-[0_4px_20px_rgba(15,23,42,0.04)]
+                        hover:shadow-[0_10px_30px_rgba(47,91,255,0.12)]
+                        hover:-translate-y-0.5
+                        transition-all duration-200 p-5">
 
-    <div class="flex flex-col
-                sm:flex-row
-                sm:items-center
-                gap-3 sm:gap-4
-                px-5 py-4">
-
-        <div class="flex items-center
-                    gap-3 sm:contents">
-
-            {{-- Icon --}}
-            <div class="w-10 h-10
-                        sm:w-11 sm:h-11
-                        rounded-xl
-                        bg-blue-50
-                        border border-blue-100
-                        flex items-center
-                        justify-center
-                        shrink-0">
-
-                <svg class="w-5 h-5
-                            sm:w-6 sm:h-6
-                            text-blue-600"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor">
-
-                    <path
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
-
-                    <circle
-                        cx="9"
-                        cy="7"
-                        r="4"
-                        stroke-width="1.8"/>
-
-                    <path
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-
+                {{-- Watermark ikon raksasa transparan di pojok — kesan "dashboard" tanpa perlu blur --}}
+                <svg class="absolute -right-4 -bottom-4 w-28 h-28 text-[#2F5BFF]/[0.06] pointer-events-none"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-width="1.2" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
+                    <circle cx="9" cy="7" r="4" stroke-width="1.2"/>
+                    <path stroke-width="1.2" d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
                 </svg>
 
+                {{-- Aksen kiri --}}
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#2F5BFF]"></div>
+
+                <div class="relative flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl
+                                bg-[#2F5BFF]/10 border border-[#2F5BFF]/15
+                                flex items-center justify-center shrink-0
+                                group-hover:bg-[#2F5BFF]/15 transition-colors">
+                        <svg class="w-5 h-5 text-[#2F5BFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
+                            <circle cx="9" cy="7" r="4" stroke-width="1.8"/>
+                            <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-slate-800">Total Pendaftar</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Seluruh pengajuan</p>
+                    </div>
+                </div>
+
+                <div class="relative mt-4 flex items-baseline gap-2">
+                    <h3 class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">{{ $totalPendaftar }}</h3>
+                    <span class="text-xs font-semibold text-slate-400">pengajuan</span>
+                </div>
+                <p class="relative text-xs text-slate-400 mt-1.5">Tercatat di sistem</p>
             </div>
 
-            {{-- Judul --}}
-            <div class="min-w-0">
+            {{-- PEMAGANG AKTIF --}}
+            <div class="group relative overflow-hidden
+                        bg-white
+                        rounded-2xl
+                        border border-slate-200
+                        shadow-[0_4px_20px_rgba(15,23,42,0.04)]
+                        hover:shadow-[0_10px_30px_rgba(16,185,129,0.12)]
+                        hover:-translate-y-0.5
+                        transition-all duration-200 p-5">
 
-                <p class="text-sm
-                          font-semibold
-                          text-slate-800">
+                <svg class="absolute -right-4 -bottom-4 w-28 h-28 text-emerald-500/[0.07] pointer-events-none"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="9" cy="7" r="4" stroke-width="1.2"/>
+                    <path stroke-width="1.2" d="M3 21v-2a6 6 0 0112 0v2"/>
+                    <path stroke-width="1.4" d="M16 11l2 2 4-5"/>
+                </svg>
 
-                    Total Pendaftar
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
 
-                </p>
+                <div class="relative flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl
+                                bg-emerald-50 border border-emerald-100
+                                flex items-center justify-center shrink-0
+                                group-hover:bg-emerald-100 transition-colors">
+                        <svg class="w-5 h-5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="9" cy="7" r="4" stroke-width="1.8"/>
+                            <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 21v-2a6 6 0 0112 0v2"/>
+                            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 11l2 2 4-5"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-slate-800">Pemagang Aktif</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Sedang menjalani magang</p>
+                    </div>
+                </div>
 
-                <p class="text-xs
-                          text-slate-400
-                          mt-0.5">
+                <div class="relative mt-4 flex items-baseline gap-2">
+                    <h3 class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">{{ $pemagangAktif }}</h3>
+                    <span class="text-xs font-semibold text-slate-400">orang</span>
+                </div>
+                <p class="relative text-xs text-slate-400 mt-1.5">Status diterima & periode masih berjalan</p>
+            </div>
 
-                    Seluruh pengajuan
+            {{-- ALUMNI / SELESAI MAGANG --}}
+            <div class="group relative overflow-hidden
+                        bg-white
+                        rounded-2xl
+                        border border-slate-200
+                        shadow-[0_4px_20px_rgba(15,23,42,0.04)]
+                        hover:shadow-[0_10px_30px_rgba(71,85,105,0.12)]
+                        hover:-translate-y-0.5
+                        transition-all duration-200 p-5">
 
-                </p>
+                <svg class="absolute -right-4 -bottom-4 w-28 h-28 text-slate-500/[0.07] pointer-events-none"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" d="M22 10L12 5 2 10l10 5 10-5z"/>
+                    <path stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" d="M6 12v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>
+                </svg>
+
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-slate-500"></div>
+
+                <div class="relative flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl
+                                bg-slate-100 border border-slate-200
+                                flex items-center justify-center shrink-0
+                                group-hover:bg-slate-200 transition-colors">
+                        <svg class="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M22 10L12 5 2 10l10 5 10-5z"/>
+                            <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 12v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-slate-800">Alumni Magang</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Telah selesai periode</p>
+                    </div>
+                </div>
+
+                <div class="relative mt-4 flex items-baseline gap-2">
+                    <h3 class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">{{ $alumniSelesai }}</h3>
+                    <span class="text-xs font-semibold text-slate-400">orang</span>
+                </div>
+                <p class="relative text-xs text-slate-400 mt-1.5">Riwayat pemagang yang sudah tuntas</p>
+            </div>
+
+        </div>
+
+        {{-- GRAFIK --}}
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-[0_4px_20px_rgba(15,23,42,0.04)] overflow-hidden">
+
+            {{-- HEADER --}}
+            <div class="px-6 pt-5 pb-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-100">
+
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#2F5BFF]/10 border border-[#2F5BFF]/15 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-[#2F5BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h17M8 17v-5m4 5V8m4 9V5m4 12V3"/>
+                        </svg>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Perkembangan Pendaftar & Pemagang</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Perbandingan jumlah pendaftar dan pemagang aktif setiap tahun</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 text-sm text-slate-600 w-fit">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/>
+                        <path d="M16 2v4M8 2v4M3 10h18" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span class="font-medium">5 Tahun Terakhir</span>
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+
+            {{-- GRAFIK + RINGKASAN --}}
+            <div class="px-5 pb-5 pt-4">
+
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
+
+                    {{-- GRAFIK --}}
+                    <div class="lg:col-span-3 rounded-xl bg-slate-50/70 border border-slate-100 p-4">
+                        <div class="relative h-[300px]">
+                            {{-- id canvas TIDAK berubah — script Chart.js di bawah tetap jalan --}}
+                            <canvas id="statistikMagangChart"></canvas>
+                        </div>
+                    </div>
+
+                    {{-- RINGKASAN --}}
+                    <div class="relative overflow-hidden rounded-xl bg-[#2F5BFF]/[0.04] border border-[#2F5BFF]/10 p-5">
+
+                        <h4 class="text-base font-bold text-[#2F5BFF] mb-5">Ringkasan Tahun {{ $tahunSekarang }}</h4>
+
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-3 h-3 rounded-full bg-[#6385F5]"></span>
+                                <span class="text-sm text-slate-600">Pendaftar</span>
+                            </div>
+                            <span class="font-bold text-slate-800">{{ $pendaftarTahunIni }}</span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-4 border-b border-slate-200">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-3 h-3 rounded-full bg-[#F45B91]"></span>
+                                <span class="text-sm text-slate-600">Diterima</span>
+                            </div>
+                            <span class="font-bold text-slate-800">{{ $diterimaTahunIni }}</span>
+                        </div>
+
+                        {{-- Persentase --}}
+                        <div class="mt-5">
+                            <p class="text-sm font-semibold text-slate-700 mb-4">Tingkat Diterima</p>
+
+                            <div class="flex items-center gap-3">
+                                <div class="relative w-20 h-20 shrink-0">
+                                    <svg class="w-20 h-20" viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" stroke-width="9"/>
+                                        <circle
+                                            cx="50" cy="50" r="40" fill="none"
+                                            stroke="#ec4899" stroke-width="9"
+                                            stroke-linecap="round"
+                                            stroke-dasharray="251.2"
+                                            stroke-dashoffset="{{ 251.2 - (251.2 * $persentaseDiterima / 100) }}"
+                                            transform="rotate(-90 50 50)"/>
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <span class="text-sm font-bold text-pink-500">{{ $persentaseDiterima }}%</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs leading-5 text-slate-500">
+                                    {{ $diterimaTahunIni }} dari {{ $pendaftarTahunIni }} pendaftar tahun ini telah diterima.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- INFO --}}
+                <div class="mt-4 px-4 py-3 rounded-xl bg-[#2F5BFF]/[0.05] border border-[#2F5BFF]/10 flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-full bg-[#2F5BFF]/10 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-[#2F5BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 22a10 10 0 100-20 10 10 0 000 20z"/>
+                        </svg>
+                    </div>
+                    <p class="text-xs text-[#2F5BFF]">Data diperbarui secara real-time dari sistem SiMagang.</p>
+                </div>
 
             </div>
 
         </div>
 
-                            {{-- Nilai --}}
-                            <div class="hidden sm:block h-9 w-px bg-slate-100"></div>
+    </div>
+</section>
 
-                            <div class="min-w-0">
-                                <div class="flex items-baseline gap-2">
-                                    <h3 class="text-2xl font-bold text-slate-800 leading-none">{{ $totalPendaftar }}</h3>
-                                    <span class="text-xs text-slate-400">pengajuan</span>
-                                </div>
-                                <p class="text-xs text-slate-400 mt-1">Tercatat di sistem</p>
-                            </div>
-
-                            {{-- Indikator (dekoratif, disembunyikan di HP supaya tidak sesak) --}}
-                            <div class="hidden sm:flex sm:ml-auto items-end gap-1 h-7 shrink-0">
-                                <span class="w-1.5 h-2 rounded-full bg-indigo-200"></span>
-                                <span class="w-1.5 h-4 rounded-full bg-indigo-300"></span>
-                                <span class="w-1.5 h-3 rounded-full bg-indigo-300"></span>
-                                <span class="w-1.5 h-5 rounded-full bg-indigo-400"></span>
-                                <span class="w-1.5 h-7 rounded-full bg-indigo-500"></span>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    {{-- PEMAGANG AKTIF --}}
-                    <div class="relative overflow-hidden bg-white rounded-xl border border-slate-100 shadow-sm">
-
-                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
-
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-5 py-4">
-
-                            <div class="flex items-center gap-3 sm:contents">
-                                {{-- Icon --}}
-                                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <circle cx="9" cy="7" r="4" stroke-width="1.8"/>
-                                        <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 21v-2a6 6 0 0112 0v2"/>
-                                        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 11l2 2 4-5"/>
-                                    </svg>
-                                </div>
-
-                                {{-- Judul --}}
-                                <div class="min-w-0">
-                                    <p class="text-sm font-semibold text-slate-800">Pemagang Aktif</p>
-                                    <p class="text-xs text-slate-400 mt-0.5">Status diterima</p>
-                                </div>
-                            </div>
-
-                            {{-- Nilai --}}
-                            <div class="hidden sm:block h-9 w-px bg-slate-100"></div>
-
-                            <div class="min-w-0">
-                                <div class="flex items-baseline gap-2">
-                                    <h3 class="text-2xl font-bold text-slate-800 leading-none">{{ $pemagangAktif }}</h3>
-                                    <span class="text-xs text-slate-400">orang</span>
-                                </div>
-                                <p class="text-xs text-slate-400 mt-1">Pendaftar yang telah diterima</p>
-                            </div>
-
-                            {{-- Indikator --}}
-                            <div class="hidden sm:flex sm:ml-auto w-9 h-9 rounded-full bg-emerald-50 items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M5 12l4 4L19 6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </div>
-
-                {{-- GRAFIK --}}
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-
-                    {{-- HEADER --}}
-                    <div class="px-6 pt-5 pb-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-
-                        <div class="flex items-center gap-3">
-
-                            {{-- Icon --}}
-                            <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h17M8 17v-5m4 5V8m4 9V5m4 12V3"/>
-                                </svg>
-                            </div>
-
-                            <div>
-                                <h3 class="text-lg font-bold text-slate-800">Perkembangan Pendaftar & Pemagang</h3>
-                                <p class="text-xs text-slate-500 mt-0.5">Perbandingan jumlah pendaftar dan pemagang aktif setiap tahun</p>
-                            </div>
-
-                        </div>
-
-                        {{-- 5 TAHUN --}}
-                        <div class="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 text-sm text-slate-600">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/>
-                                <path d="M16 2v4M8 2v4M3 10h18" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            <span class="font-medium">5 Tahun Terakhir</span>
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
-
-                    </div>
-
-                    {{-- GRAFIK + RINGKASAN --}}
-                    <div class="px-5 pb-5">
-
-                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
-
-                            {{-- GRAFIK --}}
-                            <div class="lg:col-span-3 rounded-xl bg-slate-50 border border-slate-100 p-4">
-                                <div class="relative h-[300px]">
-                                    <canvas id="statistikMagangChart"></canvas>
-                                </div>
-                            </div>
-
-                            {{-- RINGKASAN --}}
-                            <div class="rounded-xl bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 p-5">
-
-                                <h4 class="text-base font-bold text-indigo-600 mb-5">Ringkasan Tahun {{ $tahunSekarang }}</h4>
-
-                                <div class="flex items-center justify-between pb-4 border-b border-slate-200">
-                                    <div class="flex items-center gap-2.5">
-                                        <span class="w-3 h-3 rounded-full bg-indigo-400"></span>
-                                        <span class="text-sm text-slate-600">Pendaftar</span>
-                                    </div>
-                                    <span class="font-bold text-slate-800">{{ $pendaftarTahunIni }}</span>
-                                </div>
-
-                                <div class="flex items-center justify-between py-4 border-b border-slate-200">
-                                    <div class="flex items-center gap-2.5">
-                                        <span class="w-3 h-3 rounded-full bg-pink-400"></span>
-                                        <span class="text-sm text-slate-600">Diterima</span>
-                                    </div>
-                                    <span class="font-bold text-slate-800">{{ $diterimaTahunIni }}</span>
-                                </div>
-
-                                {{-- Persentase --}}
-                                <div class="mt-5">
-                                    <p class="text-sm font-semibold text-slate-700 mb-4">Tingkat Diterima</p>
-
-                                    <div class="flex items-center gap-3">
-                                        <div class="relative w-20 h-20 shrink-0">
-                                            <svg class="w-20 h-20" viewBox="0 0 100 100">
-                                                <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" stroke-width="9"/>
-                                                <circle
-                                                    cx="50" cy="50" r="40" fill="none"
-                                                    stroke="#ec4899" stroke-width="9"
-                                                    stroke-linecap="round"
-                                                    stroke-dasharray="251.2"
-                                                    stroke-dashoffset="{{ 251.2 - (251.2 * $persentaseDiterima / 100) }}"
-                                                    transform="rotate(-90 50 50)"/>
-                                            </svg>
-                                            <div class="absolute inset-0 flex items-center justify-center">
-                                                <span class="text-sm font-bold text-pink-500">{{ $persentaseDiterima }}%</span>
-                                            </div>
-                                        </div>
-                                        <p class="text-xs leading-5 text-slate-500">Perbandingan pemagang diterima dari total pendaftar.</p>
-                                    </div>
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        {{-- INFO --}}
-                        <div class="mt-4 px-4 py-3 rounded-xl bg-blue-50 border border-blue-100 flex items-center gap-3">
-                            <div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 22a10 10 0 100-20 10 10 0 000 20z"/>
-                                </svg>
-                            </div>
-                            <p class="text-xs text-blue-700">Data diperbarui secara real-time dari sistem SiMagang.</p>
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-        </section>
-
-        {{-- INSTANSI TUJUAN --}}
+       {{-- INSTANSI TUJUAN --}}
         <section class="py-8 sm:py-16 px-4 sm:px-6 bg-transparent">
             <div class="max-w-6xl mx-auto">
 
@@ -684,6 +664,7 @@
                             :deskripsi="$dinas->deskripsi"
                             :icon="'🏢'"
                             :gambar="$dinas->gambar ?? null"
+                            :rekap="$dinas->rekap ?? null"
                         />
                     @empty
                         <div class="col-span-full py-10 text-center">
@@ -756,16 +737,17 @@
 
         {{-- CTA --}}
         <div
-            class="mt-12 sm:mt-16
-                   bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900
-                   rounded-3xl
-                   p-6 sm:p-12
-                   text-center
-                   text-white
-                   shadow-xl
-                   relative
-                   overflow-hidden"
-        >
+    class="mt-12 sm:mt-16
+           mb-12 sm:mb-16
+           bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900
+           rounded-3xl
+           p-6 sm:p-12
+           text-center
+           text-white
+           shadow-xl
+           relative
+           overflow-hidden"
+>
 
             {{-- Dekorasi background --}}
             <div

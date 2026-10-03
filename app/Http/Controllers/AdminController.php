@@ -26,18 +26,23 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        $dasar = PendaftaranMagang::untukAdmin(Auth::user())->sudahDikirim();
+        $dasar = PendaftaranMagang::untukAdmin(Auth::user())
+            ->sudahDikirim();
 
         $perStatus = (clone $dasar)
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $totalMagang  = $perStatus->sum();
-        $totalPkl     = $perStatus['diterima'] ?? 0;
-        $totalPending = ($perStatus['pending'] ?? 0) + ($perStatus['revisi'] ?? 0);
+        $totalMagang = $perStatus->sum();
+        $totalPkl = $perStatus['diterima'] ?? 0;
+        $totalPending = ($perStatus['pending'] ?? 0)
+            + ($perStatus['revisi'] ?? 0);
 
-        $pendaftarTerbaru = (clone $dasar)->latest()->take(5)->get();
+        $pendaftarTerbaru = (clone $dasar)
+            ->latest()
+            ->take(5)
+            ->get();
 
         return view('admin.dashboardadmin', compact(
             'totalMagang',
@@ -65,18 +70,28 @@ class AdminController extends Controller
     {
         $request->pendaftaran()->update($request->dataStatus());
 
-        return back()->with('success', 'Status verifikasi berkas berhasil diperbarui!');
+        return back()->with(
+            'success',
+            'Status verifikasi berkas berhasil diperbarui!'
+        );
     }
 
-    public function cetakSuratBalasan(CetakSuratBalasanRequest $request, SuratBalasanGenerator $generator)
-    {
+    public function cetakSuratBalasan(
+        CetakSuratBalasanRequest $request,
+        SuratBalasanGenerator $generator
+    ) {
         $path = $generator->buat($request->pendaftaran());
 
         if (! $path) {
-            return back()->with('error', 'File template surat tidak ditemukan di folder storage/templates/');
+            return back()->with(
+                'error',
+                'File template surat tidak ditemukan di folder storage/templates/'
+            );
         }
 
-        return response()->download($path)->deleteFileAfterSend(true);
+        return response()
+            ->download($path)
+            ->deleteFileAfterSend(true);
     }
 
     // ==================== DATA PENDAFTAR ====================
@@ -90,14 +105,24 @@ class AdminController extends Controller
 
     public function indexPendaftar(PencarianRequest $request)
     {
-        $admin  = Auth::user();
+        $admin = Auth::user();
         $search = $request->kata();
 
-        $dasar = fn () => PendaftaranMagang::latest()->untukAdmin($admin)->cariNama($search);
+        $dasar = fn () => PendaftaranMagang::latest()
+            ->untukAdmin($admin)
+            ->cariNama($search);
 
-        $pemagangAktif   = $dasar()->aktif()->get();
-        $pemagangSelesai = $dasar()->selesai()->get();
-        $pemagangDitolak = $dasar()->ditolak()->get();
+        $pemagangAktif = $dasar()
+            ->aktif()
+            ->get();
+
+        $pemagangSelesai = $dasar()
+            ->selesai()
+            ->get();
+
+        $pemagangDitolak = $dasar()
+            ->ditolak()
+            ->get();
 
         return view('admin.pendaftar.index', compact(
             'pemagangAktif',
@@ -115,28 +140,40 @@ class AdminController extends Controller
 
         $bidangs = InstansiBidang::with('dinas')
             ->latest()
-            ->when(! $admin->isSuperAdmin(), fn ($q) => $q->where('dinas_id', $admin->dinas_id))
+            ->when(
+                ! $admin->isSuperAdmin(),
+                fn ($q) => $q->where('dinas_id', $admin->dinas_id)
+            )
             ->paginate(10);
 
         $dinasList = $admin->isSuperAdmin()
             ? Dinas::orderBy('nama_dinas')->get()
             : collect();
 
-        return view('admin.instansi.index', compact('bidangs', 'dinasList'));
+        return view('admin.instansi.index', compact(
+            'bidangs',
+            'dinasList'
+        ));
     }
 
     public function storeInstansi(StoreInstansiRequest $request)
     {
         InstansiBidang::create($request->dataBidang());
 
-        return back()->with('success', 'Bidang / Instansi berhasil ditambahkan!');
+        return back()->with(
+            'success',
+            'Bidang / Instansi berhasil ditambahkan!'
+        );
     }
 
     public function destroyInstansi(DestroyInstansiRequest $request)
     {
         $request->bidang()->delete();
 
-        return back()->with('success', 'Bidang / Instansi berhasil dihapus!');
+        return back()->with(
+            'success',
+            'Bidang / Instansi berhasil dihapus!'
+        );
     }
 
     // ==================== KELOLA DINAS ====================
@@ -152,19 +189,26 @@ class AdminController extends Controller
     {
         Dinas::create($request->validated());
 
-        return redirect()->route('admin.dinas.index')->with('success', 'Dinas berhasil ditambahkan!');
+        return redirect()
+            ->route('admin.dinas.index')
+            ->with('success', 'Dinas berhasil ditambahkan!');
     }
 
     public function editDinas($id)
     {
-        return view('admin.dinas.edit', ['dinas' => Dinas::findOrFail($id)]);
+        return view('admin.dinas.edit', [
+            'dinas' => Dinas::findOrFail($id),
+        ]);
     }
 
     public function updateDinas(UpdateDinasRequest $request, $id)
     {
-        Dinas::findOrFail($id)->update($request->validated());
+        Dinas::findOrFail($id)
+            ->update($request->validated());
 
-        return redirect()->route('admin.dinas.index')->with('success', 'Dinas berhasil diperbarui!');
+        return redirect()
+            ->route('admin.dinas.index')
+            ->with('success', 'Dinas berhasil diperbarui!');
     }
 
     public function destroyDinas($id)
@@ -172,7 +216,10 @@ class AdminController extends Controller
         try {
             Dinas::findOrFail($id)->delete();
         } catch (QueryException $e) {
-            return back()->with('error', 'Dinas tidak bisa dihapus karena masih punya bidang atau pendaftaran yang terhubung. Nonaktifkan saja lewat status, atau hapus bidang/pendaftarannya dulu.');
+            return back()->with(
+                'error',
+                'Dinas tidak bisa dihapus karena masih punya bidang atau pendaftaran yang terhubung. Nonaktifkan saja lewat status, atau hapus bidang/pendaftarannya dulu.'
+            );
         }
 
         return back()->with('success', 'Dinas berhasil dihapus!');
@@ -188,14 +235,17 @@ class AdminController extends Controller
             ->latest()
             ->when($kata, fn ($q) => $q->where(function ($q) use ($kata) {
                 $q->where('name', 'like', "%{$kata}%")
-                  ->orWhere('email', 'like', "%{$kata}%");
+                    ->orWhere('email', 'like', "%{$kata}%");
             }))
             ->paginate(15)
             ->withQueryString();
 
         $dinasList = Dinas::orderBy('nama_dinas')->get();
 
-        return view('admin.pengguna.index', compact('users', 'dinasList'));
+        return view('admin.pengguna.index', compact(
+            'users',
+            'dinasList'
+        ));
     }
 
     public function updatePengguna(UpdatePenggunaRequest $request, $id)
@@ -205,9 +255,12 @@ class AdminController extends Controller
 
         DB::transaction(function () use ($user, $data) {
             $user->update($data);
-            $user->syncRoles([$data['role']]); // sinkron ke Spatie
+            $user->syncRoles([$data['role']]);
         });
 
-        return back()->with('success', "Role {$user->name} berhasil diperbarui.");
+        return back()->with(
+            'success',
+            "Role {$user->name} berhasil diperbarui."
+        );
     }
 }

@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
-use App\Models\Dinas;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\PendaftaranController;
@@ -12,73 +11,15 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\DokumentasiController;
-use App\Models\PendaftaranMagang;
 use App\Http\Controllers\DokumentasiPublikController;
+use App\Http\Controllers\HomeController;
 
 Route::get('/dokumentasi/{dokumentasi}', [DokumentasiPublikController::class, 'show'])
        ->name('dokumentasi.show');
 
 /*HALAMAN PUBLIK*/
 
-Route::get('/', function () {
-
-    $dinases = Dinas::where('status', true)
-        ->orderBy('nama_dinas')
-        ->get();
-
-    $totalPendaftar = PendaftaranMagang::count();
-
-    $pemagangAktif = PendaftaranMagang::where('status', 'diterima')
-        ->count();
-
-    $tahunSekarang = now()->year;
-    $tahunMulai = $tahunSekarang - 4;
-
-    $dataStatistik = PendaftaranMagang::selectRaw('
-            YEAR(created_at) as tahun,
-            COUNT(*) as pendaftar,
-            SUM(CASE WHEN status = "diterima" THEN 1 ELSE 0 END) as diterima
-        ')
-        ->whereYear('created_at', '>=', $tahunMulai)
-        ->groupByRaw('YEAR(created_at)')
-        ->orderBy('tahun')
-        ->get()
-        ->keyBy('tahun');
-
-    $statistikMagang = collect();
-
-    for ($tahun = $tahunMulai; $tahun <= $tahunSekarang; $tahun++) {
-        $data = $dataStatistik->get($tahun);
-        $statistikMagang->push([
-            'tahun' => $tahun,
-            'pendaftar' => $data ? (int) $data->pendaftar : 0,
-            'diterima' => $data ? (int) $data->diterima : 0,
-        ]);
-    }
-
-    $statistikTahunIni = $statistikMagang->firstWhere('tahun', $tahunSekarang);
-    $pendaftarTahunIni = $statistikTahunIni['pendaftar'];
-    $diterimaTahunIni = $statistikTahunIni['diterima'];
-
-    $persentaseDiterima = $pendaftarTahunIni > 0
-        ? round(($diterimaTahunIni / $pendaftarTahunIni) * 100)
-        : 0;
-
-    $dokumentasis = \App\Models\DokumentasiMagang::with('fotos')->latest()->take(6)->get();
-
-    return view('welcome', compact(
-        'dinases',
-        'totalPendaftar',
-        'pemagangAktif',
-        'statistikMagang',
-        'tahunSekarang',
-        'pendaftarTahunIni',
-        'diterimaTahunIni',
-        'persentaseDiterima',
-        'dokumentasis'
-    ));
-
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/informasi', function () {
     return view('user.pendaftaran.informasi');
@@ -91,7 +32,7 @@ Route::get('/login', function () {
 Route::post('/chatbot/ask', [ChatbotController::class, 'ask'])
     ->name('chatbot.ask')
     ->middleware('throttle:20,1');
-    
+
 /*GOOGLE AUTHENTICATION*/
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])
@@ -226,7 +167,7 @@ Route::middleware(['auth', 'admin'])
             });
 
         // Kelola Dinas -- sebelumnya middleware('super_admin'), sekarang permission:kelola-dinas (cuma role super_admin yang punya
-    
+
         Route::middleware(['permission:kelola-dinas'])->prefix('dinas')
             ->name('dinas.')
             ->group(function () {
@@ -253,19 +194,19 @@ Route::middleware(['auth', 'admin'])
                     ->name('update');
             });
 
-       Route::middleware(['permission:kelola-dokumentasi'])
-    ->prefix('dokumentasi')
-    ->name('dokumentasi.')
-    ->group(function () {
-        Route::get('/', [DokumentasiController::class, 'index'])
-            ->name('index');
-        Route::post('/', [DokumentasiController::class, 'store'])
-            ->name('store');
-        Route::get('/{id}/edit', [DokumentasiController::class, 'edit'])
-            ->name('edit');
-        Route::put('/{id}', [DokumentasiController::class, 'update'])
-            ->name('update');
-        Route::delete('/{id}', [DokumentasiController::class, 'destroy'])
-            ->name('destroy');
-    });
+        Route::middleware(['permission:kelola-dokumentasi'])
+            ->prefix('dokumentasi')
+            ->name('dokumentasi.')
+            ->group(function () {
+                Route::get('/', [DokumentasiController::class, 'index'])
+                    ->name('index');
+                Route::post('/', [DokumentasiController::class, 'store'])
+                    ->name('store');
+                Route::get('/{id}/edit', [DokumentasiController::class, 'edit'])
+                    ->name('edit');
+                Route::put('/{id}', [DokumentasiController::class, 'update'])
+                    ->name('update');
+                Route::delete('/{id}', [DokumentasiController::class, 'destroy'])
+                    ->name('destroy');
+            });
     });

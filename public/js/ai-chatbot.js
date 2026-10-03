@@ -1,6 +1,5 @@
 /**
  * Widget Asisten AI MagangHub.
- *
  * Riwayat percakapan disimpan di sessionStorage (per TAB browser):
  *  - tutup lalu buka panel lagi / pindah halaman / reload -> masih ada
  *  - tab baru, browser ditutup, atau perangkat lain      -> mulai baru
@@ -13,13 +12,20 @@
     const TIP_KEY = 'magangHub.chat.tip';      // status tooltip
     const MAX_MESSAGES = 20;                   // 10 tanya-jawab terakhir
 
-    const TIPS = [
-        'Bingung atau butuh bantuan? Klik saya! 👋',
-        'Bingung cara daftar magang? Tanya saya ya',
-        'Dokumen apa saja yang perlu disiapkan? Tanya saya',
-        'Mau tahu instansi yang tersedia? Tanya saya',
-    ];
-    const TIP_TIMING = { firstDelay: 4000, visibleFor: 7000, every: 30000 };
+   const TIPS = [
+    'Bingung atau butuh bantuan? Klik saya!',
+    'Bingung cara daftar magang? Tanya saya',
+    'Bingung atau butuh bantuan? Klik saya!',
+    'Dokumen apa saja yang perlu disiapkan? Tanya saya',
+    'Bingung atau butuh bantuan? Klik saya!',
+    'Mau tahu instansi yang tersedia? Tanya saya',
+];
+
+const TIP_TIMING = {
+    firstDelay: 4000,
+    visibleFor: 7000,
+    every: 10000
+};
 
     const MSG = {
         server: 'Maaf, asisten AI sedang bermasalah. Coba lagi sebentar lagi ya.',
@@ -145,7 +151,10 @@
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                 },
-                body: JSON.stringify({ message, history }),
+               body: JSON.stringify({
+    message: message,
+    history: history,
+}),
             });
             const data = await res.json().catch(() => ({}));
             const reply = data.reply || (res.status === 429 ? MSG.tooMany : MSG.server);

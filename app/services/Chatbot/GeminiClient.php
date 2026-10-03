@@ -8,7 +8,6 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use RuntimeException;
 use Throwable;
 
 /** Satu-satunya tempat yang bicara langsung dengan Gemini API. */
@@ -42,19 +41,25 @@ class GeminiClient
             $response = $this->http($apiKey)->post(
                 'https://' . self::HOST . "/v1beta/models/{$model}:generateContent",
                 [
-                    'system_instruction' => ['parts' => [['text' => $systemInstruction]]],
+                    'system_instruction' => [
+                        'parts' => [
+                            ['text' => $systemInstruction],
+                        ],
+                    ],
                     'contents' => $contents,
-                   'generationConfig' => [
-    'temperature' => 0.4,
-    'maxOutputTokens' => 2048,
-    'thinkingConfig' => [
-        'thinkingLevel' => 'minimal',
-    ],
-],
+                    'generationConfig' => [
+                        'temperature' => 0.4,
+                        'maxOutputTokens' => 2048,
+                        'thinkingConfig' => [
+                            'thinkingLevel' => 'minimal',
+                        ],
+                    ],
                 ]
             );
         } catch (Throwable $e) {
-            Log::error('Gemini API exception', ['message' => $e->getMessage()]);
+            Log::error('Gemini API exception', [
+                'message' => $e->getMessage(),
+            ]);
 
             throw new ChatbotException(
                 'Maaf, terjadi kendala koneksi ke asisten AI. Silakan coba lagi.',
@@ -74,42 +79,37 @@ class GeminiClient
             );
         }
 
-        $teks = data_get($response->json(), 'candidates.0.content.parts.0.text');
+        $teks = data_get(
+            $response->json(),
+            'candidates.0.content.parts.0.text'
+        );
 
         return filled($teks) ? trim($teks) : null;
     }
 
-  private function http(string $apiKey): PendingRequest
-{
-    return Http::withHeaders([
-        'x-goog-api-key' => $apiKey,
-    ])
-        ->acceptJson()
-        ->asJson()
-        ->timeout(20)
-        ->withOptions([
-            'curl' => [
-                CURLOPT_RESOLVE => [
-                    'generativelanguage.googleapis.com:443:172.217.119.4',
-                ],
-                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-            ],
-        ]);
-}
-
-    private function opsiResolveDns(): array
+    private function http(string $apiKey): PendingRequest
     {
-        $ips = gethostbynamel(self::HOST);
-
-        if (empty($ips)) {
-            throw new RuntimeException('Tidak dapat menemukan IP Gemini melalui DNS.');
-        }
-
-        return [
-            'curl' => [
-                CURLOPT_RESOLVE => [self::HOST . ':443:' . $ips[0]],
-                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-            ],
-        ];
+        return Http::withHeaders([
+            'x-goog-api-key' => $apiKey,
+        ])
+            ->acceptJson()
+            ->asJson()
+            ->timeout(20)
+            ->retry(
+                2,
+                1000,
+                function (Throwable $e) {
+                    return $e instanceof ConnectionException
+                        || (
+                            $e instanceof RequestException
+                            && in_array(
+                                $e->response->status(),
+                                self::STATUS_ULANG,
+                                true
+                            )
+                        );
+                },
+                throw: false
+            );
     }
 }
