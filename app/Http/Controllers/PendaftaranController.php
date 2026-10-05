@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\KelolaBerkasPendaftaran;
-use App\Http\Requests\DestroyDraftRequest;
 use App\Http\Requests\DestroyPendaftaranRequest;
 use App\Http\Requests\DraftPendaftaranRequest;
 use App\Http\Requests\EditPendaftaranRequest;
@@ -63,16 +62,6 @@ class PendaftaranController extends Controller
             'has_surat' => ! empty($pendaftaran->surat_pengantar),
             'message' => 'Draft berhasil disimpan.',
         ]);
-    }
-
-    // Hapus draft
-    public function destroyDraft(DestroyDraftRequest $request)
-    {
-        $this->hapusPendaftaran($request->pendaftaran());
-
-        return redirect()
-            ->route('user.dashboard')
-            ->with('success', 'Draft berhasil dihapus.');
     }
 
     // Kirim pendaftaran baru
@@ -135,14 +124,21 @@ class PendaftaranController extends Controller
     }
 
     // Hapus / batalkan pengajuan
-    public function destroy(DestroyPendaftaranRequest $request)
-    {
-        $this->hapusPendaftaran($request->pendaftaran());
+public function destroy(DestroyPendaftaranRequest $request)
+{
+    $pendaftaran = $request->pendaftaran();
+    $isDraft = $pendaftaran->status === 'draft';
 
-        return redirect()
+    $this->hapusPendaftaran($pendaftaran);
+
+    return $isDraft
+        ? redirect()
+            ->route('user.dashboard')
+            ->with('success', 'Draft berhasil dihapus.')
+        : redirect()
             ->route('user.pendaftaran.status')
             ->with('success', 'Pendaftaran berhasil dibatalkan.');
-    }
+}
 
     // Ambil bidang berdasarkan dinas
     public function getBidang($dinasId)

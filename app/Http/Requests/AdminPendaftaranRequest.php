@@ -6,8 +6,10 @@ use App\Http\Requests\Concerns\MemeriksaAksesDinasAdmin;
 use App\Models\PendaftaranMagang;
 use Illuminate\Foundation\Http\FormRequest;
 
-/** Induk request admin yang bekerja pada satu pendaftaran (route {id}). */
-abstract class AdminPendaftaranRequest extends FormRequest
+/**
+ * Request admin yang bekerja pada satu pendaftaran (route {id}).
+ */
+class AdminPendaftaranRequest extends FormRequest
 {
     use MemeriksaAksesDinasAdmin;
 
@@ -21,5 +23,15 @@ abstract class AdminPendaftaranRequest extends FormRequest
     protected function dinasIdTarget()
     {
         return $this->pendaftaran()->dinas_id;
+    }
+
+    protected function pesanAksesDitolak(): string
+    {
+        return 'Anda tidak memiliki akses ke pendaftaran dinas lain.';
+    }
+
+    public function rules(): array
+    {
+        return [];
     }
 }

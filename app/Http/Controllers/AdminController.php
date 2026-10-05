@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CetakSuratBalasanRequest;
+use App\Http\Requests\AdminPendaftaranRequest;
 use App\Http\Requests\DestroyInstansiRequest;
 use App\Http\Requests\PencarianRequest;
-use App\Http\Requests\ShowPendaftarRequest;
 use App\Http\Requests\StoreDinasRequest;
 use App\Http\Requests\StoreInstansiRequest;
 use App\Http\Requests\UpdateDinasRequest;
@@ -77,9 +76,9 @@ class AdminController extends Controller
     }
 
     public function cetakSuratBalasan(
-        CetakSuratBalasanRequest $request,
-        SuratBalasanGenerator $generator
-    ) {
+    AdminPendaftaranRequest $request,
+    SuratBalasanGenerator $generator
+) {
         $path = $generator->buat($request->pendaftaran());
 
         if (! $path) {
@@ -96,7 +95,7 @@ class AdminController extends Controller
 
     // ==================== DATA PENDAFTAR ====================
 
-    public function showPendaftar(ShowPendaftarRequest $request)
+    public function showPendaftar(AdminPendaftaranRequest $request)
     {
         return view('admin.pendaftar.show', [
             'pendaftaran' => $request->pendaftaran(),

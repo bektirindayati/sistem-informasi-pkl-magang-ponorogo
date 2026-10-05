@@ -92,9 +92,6 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/draft', [PendaftaranController::class, 'saveDraft'])
                 ->name('draft');
 
-            Route::delete('/draft/{id}', [PendaftaranController::class, 'destroyDraft'])
-                ->name('draft.destroy');
-
             Route::get('/status', [PendaftaranController::class, 'status'])
                 ->name('status');
 

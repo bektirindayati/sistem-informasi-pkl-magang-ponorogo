@@ -542,11 +542,11 @@
 
                 @if($bisaHapusDraft)
                 <form id="hapusDraftForm"
-                      action="{{ route('user.pendaftaran.draft.destroy', $pendaftaran->id) }}"
-                      method="POST"
-                      class="hidden">
-                    @csrf
-                    @method('DELETE')
+      action="{{ route('user.pendaftaran.destroy', $pendaftaran->id) }}"
+      method="POST"
+      class="hidden">
+    @csrf
+    @method('DELETE')
                 </form>
                 @endif
             </div>
