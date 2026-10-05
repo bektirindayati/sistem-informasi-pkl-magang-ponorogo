@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Pendaftaran;
 
 use App\Models\PendaftaranMagang;
 use Illuminate\Http\Exceptions\HttpResponseException;

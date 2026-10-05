@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Admin\Instansi;
 
 use App\Http\Requests\Concerns\MemeriksaAksesDinasAdmin;
 use App\Models\InstansiBidang;

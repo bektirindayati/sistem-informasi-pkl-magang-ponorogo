@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UpdateProfilRequest;
+use App\Http\Requests\Profil\UpdateProfilRequest;
 use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller

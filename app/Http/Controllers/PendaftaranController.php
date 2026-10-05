@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\KelolaBerkasPendaftaran;
-use App\Http\Requests\DestroyPendaftaranRequest;
-use App\Http\Requests\DraftPendaftaranRequest;
-use App\Http\Requests\EditPendaftaranRequest;
-use App\Http\Requests\StorePendaftaranRequest;
-use App\Http\Requests\UpdatePendaftaranRequest;
+use App\Http\Requests\Pendaftaran\DestroyPendaftaranRequest;
+use App\Http\Requests\Pendaftaran\DraftPendaftaranRequest;
+use App\Http\Requests\Pendaftaran\EditPendaftaranRequest;
+use App\Http\Requests\Pendaftaran\StorePendaftaranRequest;
+use App\Http\Requests\Pendaftaran\UpdatePendaftaranRequest;
 use App\Models\Dinas;
 use App\Models\InstansiBidang;
 use App\Models\PendaftaranMagang;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Admin\Dokumentasi;
 
 /** Tambah dokumentasi: minimal 1 foto, tiap foto punya uraian. */
 class StoreDokumentasiRequest extends BaseDokumentasiRequest

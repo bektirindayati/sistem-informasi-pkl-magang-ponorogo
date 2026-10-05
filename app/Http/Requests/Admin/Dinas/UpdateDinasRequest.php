@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Admin\Dinas;
 
 /**
  * Ubah data dinas. Saat ini aturannya sama dengan StoreDinasRequest;

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreDokumentasiRequest;
-use App\Http\Requests\UpdateDokumentasiRequest;
+use App\Http\Requests\Admin\Dokumentasi\StoreDokumentasiRequest;
+use App\Http\Requests\Admin\Dokumentasi\UpdateDokumentasiRequest;
 use App\Models\DokumentasiMagang;
 use App\Services\DokumentasiService;
 

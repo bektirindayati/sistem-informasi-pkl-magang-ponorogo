@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AdminPendaftaranRequest;
-use App\Http\Requests\DestroyInstansiRequest;
-use App\Http\Requests\PencarianRequest;
-use App\Http\Requests\StoreDinasRequest;
-use App\Http\Requests\StoreInstansiRequest;
-use App\Http\Requests\UpdateDinasRequest;
-use App\Http\Requests\UpdatePenggunaRequest;
-use App\Http\Requests\UpdateStatusRequest;
+use App\Http\Requests\Admin\Pendaftar\AdminPendaftaranRequest;
+use App\Http\Requests\Admin\Instansi\DestroyInstansiRequest;
+use App\Http\Requests\Admin\PencarianRequest;
+use App\Http\Requests\Admin\Dinas\StoreDinasRequest;
+use App\Http\Requests\Admin\Instansi\StoreInstansiRequest;
+use App\Http\Requests\Admin\Dinas\UpdateDinasRequest;
+use App\Http\Requests\Admin\Pengguna\UpdatePenggunaRequest;
+use App\Http\Requests\Admin\Pendaftar\UpdateStatusRequest;
 use App\Models\Dinas;
 use App\Models\InstansiBidang;
 use App\Models\PendaftaranMagang;
