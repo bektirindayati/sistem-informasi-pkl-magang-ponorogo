@@ -18,6 +18,11 @@ class Dinas extends Model
         'status',
     ];
 
+    public function scopeAktif($query)
+    {
+        return $query->where('status', 1);
+    }
+
     public function bidang()
     {return $this->hasMany(InstansiBidang::class, 'dinas_id');}
 

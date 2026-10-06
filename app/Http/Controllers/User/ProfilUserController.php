@@ -1,19 +1,21 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Profil\UpdateProfilRequest;
 use Illuminate\Support\Facades\Auth;
 
-class ProfileController extends Controller
+/** Profil akademik pengguna (dipakai auto-fill form pendaftaran). */
+class ProfilUserController extends Controller
 {
-    // Menampilkan halaman profil
     public function index()
     {
-        return view('user.profil', ['user' => Auth::user()]);
+        return view('user.profil', [
+            'user' => Auth::user(),
+        ]);
     }
 
-    // Menyimpan perubahan profil
     public function update(UpdateProfilRequest $request)
     {
         $request->user()->update($request->validated());

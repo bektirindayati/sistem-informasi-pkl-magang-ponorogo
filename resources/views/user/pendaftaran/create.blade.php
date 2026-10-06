@@ -27,6 +27,40 @@
 @section('content')
 @php
     $isEdit = isset($pendaftaran) && $pendaftaran;
+    $user = Auth::user();
+
+$defaultNamaLengkap = $pendaftaran->nama_lengkap
+    ?? $user->nama_lengkap
+    ?? $user->name
+    ?? '';
+
+$defaultNimNisn = $pendaftaran->nim_nisn
+    ?? $user->nim_nisn
+    ?? '';
+
+$defaultInstansi = $pendaftaran->instansi
+    ?? $user->instansi
+    ?? '';
+
+$defaultJurusan = $pendaftaran->jurusan
+    ?? $user->jurusan
+    ?? '';
+
+$defaultNoHp = $pendaftaran->no_hp
+    ?? $user->no_hp
+    ?? '';
+
+$defaultAlamat = $pendaftaran->alamat
+    ?? $user->alamat
+    ?? '';
+
+$defaultKabupaten = $pendaftaran->kabupaten
+    ?? $user->kabupaten
+    ?? '';
+
+$defaultProvinsi = $pendaftaran->provinsi
+    ?? $user->provinsi
+    ?? '';
 
     $tglMulaiVal = $isEdit && $pendaftaran->tanggal_mulai
         ? \Carbon\Carbon::parse($pendaftaran->tanggal_mulai)->format('Y-m-d')
@@ -272,7 +306,7 @@
                                     name="nama_lengkap"
                                     label="Nama Lengkap"
                                     required
-                                    :value="$pendaftaran->nama_lengkap ?? (Auth::user()->name ?? '')"
+                                    :value="$defaultNamaLengkap"
                                 />
                                 <x-form.input
                                     name="nim_nisn"
@@ -305,7 +339,7 @@
                                         required
                                         placeholder="Contoh: 081234567890"
                                         inputmode="numeric"
-                                        :value="$pendaftaran->no_hp ?? null"
+                                        :value="$defaultNoHp"
                                         oninput="this.value=this.value.replace(/[^0-9]/g,'');"
                                     />
                                 </div>
@@ -315,7 +349,7 @@
                                         label="Alamat Tempat Tinggal"
                                         required
                                         placeholder="Jl. Ketintang No. 156, RT/RW, Desa/Kelurahan"
-                                        :value="$pendaftaran->alamat ?? null"
+                                        :value="$defaultAlamat"
                                     />
                                 </div>
 
@@ -327,7 +361,7 @@
                                     required
                                     list="list-kabupaten"
                                     placeholder="Contoh: Ponorogo"
-                                    :value="$pendaftaran->kabupaten ?? null"
+                                    :value="$defaultKabupaten"
                                     oninput="autoFillProvinsi(this.value)"
                                 />
                                 <datalist id="list-kabupaten">
@@ -356,7 +390,7 @@
                                     required
                                     readonly
                                     placeholder="Jawa Timur"
-                                    :value="$pendaftaran->provinsi ?? null"
+                                    :value="$defaultProvinsi"
                                 />
                             </div>
                         </div>

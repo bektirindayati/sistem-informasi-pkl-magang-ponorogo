@@ -30,11 +30,15 @@ return new class extends Migration
             // Admin dinas terikat ke satu dinas; user biasa & super admin kosong
             $table->foreignId('dinas_id')->nullable()->constrained('dinases')->nullOnDelete();
 
-            // Profil akademik, dipakai untuk auto-fill form pendaftaran
+           // Profil pengguna, dipakai sebagai data default untuk form pendaftaran
+            $table->string('nama_lengkap')->nullable();
             $table->string('nim_nisn')->nullable();
             $table->string('instansi')->nullable();
             $table->string('jurusan')->nullable();
-
+            $table->string('no_hp', 20)->nullable();
+            $table->text('alamat')->nullable();
+            $table->string('kabupaten')->nullable();
+            $table->string('provinsi')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

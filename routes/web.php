@@ -1,209 +1,166 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardAdminController;
+use App\Http\Controllers\Admin\DokumentasiAdminController;
+use App\Http\Controllers\Admin\InstansiAdminController;
+use App\Http\Controllers\Admin\PendaftarAdminController;
+use App\Http\Controllers\Admin\SuratBalasanAdminController;
+use App\Http\Controllers\Admin\VerifikasiAdminController;
+use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Publik\BerandaController;
+use App\Http\Controllers\Publik\ChatbotController;
+use App\Http\Controllers\Publik\DokumentasiPublikController;
+use App\Http\Controllers\SuperAdmin\DinasSuperAdminController;
+use App\Http\Controllers\SuperAdmin\PenggunaSuperAdminController;
+use App\Http\Controllers\User\DashboardUserController;
+use App\Http\Controllers\User\PendaftaranUserController;
+use App\Http\Controllers\User\ProfilUserController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 
-use App\Http\Controllers\ChatbotController;
-use App\Http\Controllers\GoogleAuthController;
-use App\Http\Controllers\PendaftaranController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\UserDashboardController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Admin\DokumentasiController;
-use App\Http\Controllers\DokumentasiPublikController;
-use App\Http\Controllers\HomeController;
+/*
+|--------------------------------------------------------------------------
+| HALAMAN PUBLIK
+|--------------------------------------------------------------------------
+*/
+Route::get('/', BerandaController::class)->name('home');
+Route::view('/informasi', 'user.pendaftaran.informasi')->name('informasi');
+Route::view('/login', 'auth.login')->name('login');
 
 Route::get('/dokumentasi/{dokumentasi}', [DokumentasiPublikController::class, 'show'])
-       ->name('dokumentasi.show');
-
-/*HALAMAN PUBLIK*/
-
-Route::get('/', [HomeController::class, 'index'])->name('home');
-
-Route::get('/informasi', function () {
-    return view('user.pendaftaran.informasi');
-})->name('informasi');
-
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
+    ->name('dokumentasi.show');
 
 Route::post('/chatbot/ask', [ChatbotController::class, 'ask'])
     ->name('chatbot.ask')
     ->middleware('throttle:20,1');
 
-/*GOOGLE AUTHENTICATION*/
-
-Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])
-    ->name('auth.google');
-
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
-
-
 /*
 |--------------------------------------------------------------------------
-| LOGOUT
+| AUTENTIKASI
 |--------------------------------------------------------------------------
 */
-
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect()->route('home');
-})->name('logout');
+Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+Route::post('/logout', LogoutController::class)->name('logout');
 
 /*
 |--------------------------------------------------------------------------
 | USER / PENDAFTAR
 |--------------------------------------------------------------------------
 */
+Route::middleware('auth')->group(function () {
 
-Route::middleware(['auth'])->group(function () {
+    Route::get('/user/dashboard', DashboardUserController::class)->name('user.dashboard');
 
-    Route::get('/user/dashboard', [UserDashboardController::class, 'index'])
-        ->name('user.dashboard');
+    Route::controller(ProfilUserController::class)->group(function () {
+        Route::get('/user/profil', 'index')->name('user.profil');
+        Route::put('/user/profil', 'update')->name('user.profil.update');
+    });
 
-    Route::get('/user/profil', [ProfileController::class, 'index'])
-        ->name('user.profil');
+    Route::view('/dinas/kominfo', 'user.dinas.kominfo')->name('user.dinas.kominfo');
 
-    Route::put('/user/profil', [ProfileController::class, 'update'])
-        ->name('user.profil.update');
-
-    Route::get('/dinas/kominfo', function () {
-        return view('user.dinas.kominfo');
-    })->name('user.dinas.kominfo');
-
-
-    // ==============================
-    // PENDAFTARAN USER
-    // ==============================
     Route::prefix('user/pendaftaran')
         ->name('user.pendaftaran.')
+        ->controller(PendaftaranUserController::class)
         ->group(function () {
+            Route::get('/daftar', 'create')->name('create');
+            Route::post('/daftar', 'store')->name('store');
 
-            Route::get('/daftar', [PendaftaranController::class, 'create'])
-                ->name('create');
+            Route::post('/draft', 'saveDraft')->name('draft');
+            Route::delete('/draft/{id}', 'destroyDraft')->name('draft.destroy');
 
-            Route::post('/daftar', [PendaftaranController::class, 'store'])
-                ->name('store');
+            Route::get('/status', 'status')->name('status');
+            Route::get('/riwayat', 'riwayat')->name('riwayat');
+            Route::get('/bidang/{dinasId}', 'getBidang')->name('bidang');
 
-            Route::post('/draft', [PendaftaranController::class, 'saveDraft'])
-                ->name('draft');
-
-            Route::get('/status', [PendaftaranController::class, 'status'])
-                ->name('status');
-
-            Route::get('/riwayat', [PendaftaranController::class, 'riwayat'])
-                ->name('riwayat');
-
-            Route::get('/bidang/{dinasId}', [PendaftaranController::class, 'getBidang'])
-                ->name('bidang');
-
-            Route::get('/{id}/edit', [PendaftaranController::class, 'edit'])
-                ->name('edit');
-
-            Route::put('/{id}', [PendaftaranController::class, 'update'])
-                ->name('update');
-
-            Route::delete('/{id}', [PendaftaranController::class, 'destroy'])
-                ->name('destroy');
+            Route::get('/{id}/edit', 'edit')->name('edit');
+            Route::put('/{id}', 'update')->name('update');
+            Route::delete('/{id}', 'destroy')->name('destroy');
         });
 });
 
-/*admin permission*/
+/*
+|--------------------------------------------------------------------------
+| ADMIN (admin dinas & super admin) -- akses diatur lewat permission
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
 
-        Route::middleware(['permission:lihat-dashboard'])->group(function () {
-            Route::get('/dashboard', [AdminController::class, 'dashboard'])
-                ->name('dashboard');
-        });
+        Route::get('/dashboard', DashboardAdminController::class)
+            ->middleware('permission:lihat-dashboard')
+            ->name('dashboard');
 
-        Route::middleware(['permission:lihat-pendaftar'])
+        // Data pendaftar
+        Route::middleware('permission:lihat-pendaftar')
             ->prefix('pendaftar')
             ->name('pendaftar.')
+            ->controller(PendaftarAdminController::class)
             ->group(function () {
-                Route::get('/', [AdminController::class, 'indexPendaftar'])
-                    ->name('index');
-                Route::get('/{id}', [AdminController::class, 'showPendaftar'])
-                    ->name('show');
+                Route::get('/', 'index')->name('index');
+                Route::get('/{id}', 'show')->name('show');
             });
 
-        // Cetak surat balasan: bagian dari alur verifikasi (surat baru
-        // relevan setelah status diterima), jadi disamakan gerbangnya
-        // dengan permission verifikasi-pendaftar.
-        Route::middleware(['permission:verifikasi-pendaftar'])->group(function () {
-            Route::get('/pendaftaran/{id}/cetak-surat', [AdminController::class, 'cetakSuratBalasan'])
+        // Verifikasi berkas + cetak surat balasan (surat relevan setelah diterima)
+        Route::middleware('permission:verifikasi-pendaftar')->group(function () {
+            Route::get('/pendaftaran/{id}/cetak-surat', SuratBalasanAdminController::class)
                 ->name('pendaftar.download');
+
+            Route::prefix('verifikasi')
+                ->name('verifikasi.')
+                ->controller(VerifikasiAdminController::class)
+                ->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::put('/{id}', 'update')->name('update');
+                });
         });
 
-        Route::middleware(['permission:verifikasi-pendaftar'])
-            ->prefix('verifikasi')
-            ->name('verifikasi.')
-            ->group(function () {
-                Route::get('/', [AdminController::class, 'verifikasiBerkas'])
-                    ->name('index');
-                Route::put('/{id}', [AdminController::class, 'updateStatus'])
-                    ->name('update');
-            });
-
-        Route::middleware(['permission:kelola-instansi'])
+        // Bidang instansi
+        Route::middleware('permission:kelola-instansi')
             ->prefix('instansi')
             ->name('instansi.')
+            ->controller(InstansiAdminController::class)
             ->group(function () {
-                Route::get('/', [AdminController::class, 'kelolaInstansi'])
-                    ->name('index');
-                Route::post('/', [AdminController::class, 'storeInstansi'])
-                    ->name('store');
-                Route::delete('/{id}', [AdminController::class, 'destroyInstansi'])
-                    ->name('destroy');
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+                Route::delete('/{id}', 'destroy')->name('destroy');
             });
 
-        // Kelola Dinas -- sebelumnya middleware('super_admin'), sekarang permission:kelola-dinas (cuma role super_admin yang punya
-
-        Route::middleware(['permission:kelola-dinas'])->prefix('dinas')
-            ->name('dinas.')
-            ->group(function () {
-                Route::get('/', [AdminController::class, 'kelolaDinas'])
-                    ->name('index');
-                Route::post('/', [AdminController::class, 'storeDinas'])
-                    ->name('store');
-                Route::get('/{id}/edit', [AdminController::class, 'editDinas'])
-                    ->name('edit');
-                Route::put('/{id}', [AdminController::class, 'updateDinas'])
-                    ->name('update');
-                Route::delete('/{id}', [AdminController::class, 'destroyDinas'])
-                    ->name('destroy');
-            });
-
-        // Kelola Admin -- sebelumnya middleware('super_admin'), sekarang
-        // permission:kelola-admin.
-        Route::middleware(['permission:kelola-admin'])->prefix('pengguna')
-            ->name('pengguna.')
-            ->group(function () {
-                Route::get('/', [AdminController::class, 'kelolaPengguna'])
-                    ->name('index');
-                Route::put('/{id}', [AdminController::class, 'updatePengguna'])
-                    ->name('update');
-            });
-
-        Route::middleware(['permission:kelola-dokumentasi'])
+        // Dokumentasi kegiatan
+        Route::middleware('permission:kelola-dokumentasi')
             ->prefix('dokumentasi')
             ->name('dokumentasi.')
+            ->controller(DokumentasiAdminController::class)
             ->group(function () {
-                Route::get('/', [DokumentasiController::class, 'index'])
-                    ->name('index');
-                Route::post('/', [DokumentasiController::class, 'store'])
-                    ->name('store');
-                Route::get('/{id}/edit', [DokumentasiController::class, 'edit'])
-                    ->name('edit');
-                Route::put('/{id}', [DokumentasiController::class, 'update'])
-                    ->name('update');
-                Route::delete('/{id}', [DokumentasiController::class, 'destroy'])
-                    ->name('destroy');
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::delete('/{id}', 'destroy')->name('destroy');
+            });
+
+        // ---- Khusus super admin (permission hanya dimiliki role super_admin) ----
+
+        Route::middleware('permission:kelola-dinas')
+            ->prefix('dinas')
+            ->name('dinas.')
+            ->controller(DinasSuperAdminController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::delete('/{id}', 'destroy')->name('destroy');
+            });
+
+        Route::middleware('permission:kelola-admin')
+            ->prefix('pengguna')
+            ->name('pengguna.')
+            ->controller(PenggunaSuperAdminController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::put('/{id}', 'update')->name('update');
             });
     });

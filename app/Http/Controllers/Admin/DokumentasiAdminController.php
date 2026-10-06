@@ -8,14 +8,15 @@ use App\Http\Requests\Admin\Dokumentasi\UpdateDokumentasiRequest;
 use App\Models\DokumentasiMagang;
 use App\Services\DokumentasiService;
 
-class DokumentasiController extends Controller
+/** Kelola dokumentasi kegiatan (foto + uraian) yang tampil di halaman utama. */
+class DokumentasiAdminController extends Controller
 {
     /** Daftar dokumentasi + form tambah baru. */
     public function index()
     {
         return view('admin.dokumentasi.index', [
             'dokumentasis' => $this->daftar(),
-            'editItem' => null,
+            'editItem'     => null,
         ]);
     }
 
@@ -33,7 +34,7 @@ class DokumentasiController extends Controller
     {
         return view('admin.dokumentasi.index', [
             'dokumentasis' => $this->daftar(),
-            'editItem' => DokumentasiMagang::with('fotos')->findOrFail($id),
+            'editItem'     => DokumentasiMagang::with('fotos')->findOrFail($id),
         ]);
     }
 

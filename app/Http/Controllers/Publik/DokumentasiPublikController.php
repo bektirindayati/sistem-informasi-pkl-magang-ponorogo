@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Publik;
 
+use App\Http\Controllers\Controller;
 use App\Models\DokumentasiMagang;
 
 /** Halaman detail dokumentasi untuk pengunjung (tanpa login). */

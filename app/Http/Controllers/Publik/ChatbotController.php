@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Publik;
 
 use App\Exceptions\ChatbotException;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Chatbot\AskChatbotRequest;
 use App\Services\Chatbot\ChatbotService;
 use Illuminate\Http\JsonResponse;
