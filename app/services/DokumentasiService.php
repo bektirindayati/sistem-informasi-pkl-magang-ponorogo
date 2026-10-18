@@ -54,7 +54,7 @@ class DokumentasiService
 
     private function tambahFoto(DokumentasiMagang $dokumentasi, array $fotoBaru): void
     {
-        $urutan = (int) $dokumentasi->fotos()->reorder()->max('urutan');
+        $urutan = (int) $dokumentasi->fotos()->max('urutan');
 
         foreach ($fotoBaru as $item) {
             $dokumentasi->fotos()->create([

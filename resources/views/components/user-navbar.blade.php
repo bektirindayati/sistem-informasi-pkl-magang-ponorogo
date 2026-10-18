@@ -2,11 +2,18 @@
 
 @php
     $isDokumentasi = request()->routeIs('dokumentasi.show');
+
+    // Kelas link navigasi (desktop & mobile) dikumpulkan di sini supaya tidak berulang
+    $aktif    = 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300';
+    $nonaktif = 'text-slate-600 hover:bg-slate-50 hover:text-blue-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-blue-400';
+    $nonaktifMobile = 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800';
 @endphp
 
-<div class="fixed top-0 left-0 right-0 z-50 px-3 sm:px-4 pt-3 sm:pt-4">
 
-    <nav class="max-w-7xl mx-auto bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl shadow-sm transition-all duration-300">
+<div class="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 pt-3 sm:pt-4">
+
+    <nav class="w-full max-w-6xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/80 rounded-2xl shadow-sm transition-all duration-300">
+
 
         <div class="h-16 px-4 sm:px-5 flex items-center justify-between gap-3">
 
@@ -15,23 +22,17 @@
                class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
 
                 <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform shrink-0">
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white"
-                         fill="none"
-                         stroke="currentColor"
-                         viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 6v12m-6-6h12"/>
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m-6-6h12"/>
                     </svg>
                 </div>
 
                 <div class="block leading-tight">
-                    <div class="font-extrabold text-slate-900 text-sm tracking-tight">
+                    <div class="font-extrabold text-slate-900 dark:text-white text-sm tracking-tight">
                         SiMagang
                     </div>
 
-                    <div class="text-[10px] text-blue-600 font-semibold">
+                    <div class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
                         Kabupaten Ponorogo
                     </div>
                 </div>
@@ -45,13 +46,17 @@
 
                 <div class="flex items-center gap-2 sm:gap-3">
 
+                    {{-- Tombol mode gelap / terang --}}
+                    <x-theme-toggle />
+
                     {{-- Masuk --}}
                     <a href="{{ route('login') }}"
                        class="inline-flex items-center justify-center
                               px-3 sm:px-4 py-2 rounded-xl
                               text-sm font-bold
-                              text-blue-600 bg-blue-50
-                              hover:bg-blue-100 transition">
+                              text-blue-600 bg-blue-50 hover:bg-blue-100
+                              dark:text-blue-300 dark:bg-blue-500/15 dark:hover:bg-blue-500/25
+                              transition">
                         Masuk
                     </a>
 
@@ -68,25 +73,19 @@
 
                     <a href="{{ route('user.dashboard') }}"
                        class="px-4 py-2 rounded-xl text-sm font-bold transition
-                       {{ request()->routeIs('user.dashboard')
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600' }}">
+                       {{ request()->routeIs('user.dashboard') ? $aktif : $nonaktif }}">
                         Dashboard
                     </a>
 
                     <a href="{{ route('user.pendaftaran.status') }}"
                        class="px-4 py-2 rounded-xl text-sm font-bold transition
-                       {{ request()->routeIs('user.pendaftaran.status')
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600' }}">
+                       {{ request()->routeIs('user.pendaftaran.status') ? $aktif : $nonaktif }}">
                         Status Pengajuan
                     </a>
 
                     <a href="{{ route('user.pendaftaran.riwayat') }}"
                        class="px-4 py-2 rounded-xl text-sm font-bold transition
-                       {{ request()->routeIs('user.pendaftaran.riwayat')
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-blue-600' }}">
+                       {{ request()->routeIs('user.pendaftaran.riwayat') ? $aktif : $nonaktif }}">
                         Riwayat
                     </a>
 
@@ -96,17 +95,20 @@
                 {{-- User Menu --}}
                 <div class="flex items-center gap-2 sm:gap-3">
 
+                    {{-- Tombol mode gelap / terang --}}
+                    <x-theme-toggle />
+
                     @auth
 
                         {{-- Profil --}}
                         <a href="{{ route('user.profil') }}"
-                           class="hidden sm:flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-slate-50 transition">
+                           class="hidden sm:flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition">
 
                             @if(Auth::user()->avatar)
 
                                 <img src="{{ asset('storage/' . Auth::user()->avatar) }}"
                                      alt="Avatar"
-                                     class="w-8 h-8 rounded-full object-cover border border-slate-200">
+                                     class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-600">
 
                             @else
 
@@ -118,11 +120,11 @@
 
                             <div class="hidden lg:block text-left leading-tight">
 
-                                <div class="text-xs font-bold text-slate-800 max-w-[140px] truncate">
+                                <div class="text-xs font-bold text-slate-800 dark:text-slate-100 max-w-[140px] truncate">
                                     {{ Auth::user()->name }}
                                 </div>
 
-                                <div class="text-[10px] text-slate-400">
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500">
                                     Pengguna
                                 </div>
 
@@ -136,22 +138,16 @@
                             @csrf
 
                             <button type="submit"
-                                    class="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                                    class="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl
+                                           text-slate-400 hover:text-rose-600 hover:bg-rose-50
+                                           dark:hover:text-rose-400 dark:hover:bg-rose-500/10 transition"
                                     title="Keluar">
 
-                                <svg class="w-4 h-4"
-                                     fill="none"
-                                     stroke="currentColor"
-                                     viewBox="0 0 24 24">
-
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round"
                                           stroke-linejoin="round"
                                           stroke-width="2"
-                                          d="M17 16l4-4m0 0l-4-4m4
-                                             4H7m6 4v1a3 3 0 01-3
-                                             3H6a3 3 0 01-3-3V7a3
-                                             3 0 013-3h4a3 3 0 013 3v1"/>
-
+                                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                 </svg>
 
                             </button>
@@ -163,8 +159,9 @@
                         <a href="{{ route('login') }}"
                            class="hidden sm:inline-flex items-center justify-center
                                   px-4 py-2 rounded-xl
-                                  text-sm font-bold text-blue-600
-                                  bg-blue-50 hover:bg-blue-100 transition">
+                                  text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100
+                                  dark:text-blue-300 dark:bg-blue-500/15 dark:hover:bg-blue-500/25
+                                  transition">
                             Masuk
                         </a>
 
@@ -174,32 +171,17 @@
                     {{-- Mobile Menu Button --}}
                     <button type="button"
                             id="user-mobile-menu-button"
-                            class="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shrink-0">
+                            class="md:hidden w-9 h-9 rounded-xl flex items-center justify-center
+                                   text-slate-600 hover:bg-slate-100
+                                   dark:text-slate-300 dark:hover:bg-slate-800
+                                   transition shrink-0">
 
-                        <svg id="user-mobile-menu-open"
-                             class="w-5 h-5"
-                             fill="none"
-                             stroke="currentColor"
-                             viewBox="0 0 24 24">
-
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M4 6h16M4 12h16M4 18h16"/>
-
+                        <svg id="user-mobile-menu-open" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
 
-                        <svg id="user-mobile-menu-close"
-                             class="hidden w-5 h-5"
-                             fill="none"
-                             stroke="currentColor"
-                             viewBox="0 0 24 24">
-
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M6 6l12 12M6 18L18 6"/>
-
+                        <svg id="user-mobile-menu-close" class="hidden w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M6 18L18 6"/>
                         </svg>
 
                     </button>
@@ -219,49 +201,43 @@
         @if (!$isDokumentasi)
 
             <div id="user-mobile-menu"
-                 class="hidden md:hidden border-t border-slate-100">
+                 class="hidden md:hidden border-t border-slate-100 dark:border-slate-700">
 
                 <div class="px-4 py-4 space-y-1">
 
                     <a href="{{ route('user.dashboard') }}"
                        class="block px-4 py-3 rounded-xl text-sm font-bold
-                       {{ request()->routeIs('user.dashboard')
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-slate-600 hover:bg-slate-50' }}">
+                       {{ request()->routeIs('user.dashboard') ? $aktif : $nonaktifMobile }}">
                         Dashboard
                     </a>
 
                     <a href="{{ route('user.pendaftaran.status') }}"
                        class="block px-4 py-3 rounded-xl text-sm font-bold
-                       {{ request()->routeIs('user.pendaftaran.status')
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-slate-600 hover:bg-slate-50' }}">
+                       {{ request()->routeIs('user.pendaftaran.status') ? $aktif : $nonaktifMobile }}">
                         Status Pengajuan
                     </a>
 
                     <a href="{{ route('user.pendaftaran.riwayat') }}"
                        class="block px-4 py-3 rounded-xl text-sm font-bold
-                       {{ request()->routeIs('user.pendaftaran.riwayat')
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-slate-600 hover:bg-slate-50' }}">
+                       {{ request()->routeIs('user.pendaftaran.riwayat') ? $aktif : $nonaktifMobile }}">
                         Riwayat
                     </a>
 
                     <a href="{{ route('user.profil') }}"
                        class="block px-4 py-3 rounded-xl text-sm font-bold
-                       {{ request()->routeIs('user.profil')
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-slate-600 hover:bg-slate-50' }}">
+                       {{ request()->routeIs('user.profil') ? $aktif : $nonaktifMobile }}">
                         Profil Saya
                     </a>
 
-                    <div class="pt-2 border-t border-slate-100">
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
 
                         <form action="{{ route('logout') }}" method="POST">
                             @csrf
 
                             <button type="submit"
-                                    class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-rose-600 hover:bg-rose-50 transition">
+                                    class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold
+                                           text-rose-600 hover:bg-rose-50
+                                           dark:text-rose-400 dark:hover:bg-rose-500/10 transition">
                                 Keluar
                             </button>
 

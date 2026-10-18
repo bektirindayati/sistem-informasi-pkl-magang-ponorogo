@@ -1,41 +1,163 @@
-{{--Komponen: <x-preloader />
-    Preloader animasi saat halaman dimuat. Tidak menerima props —
-    cukup dipanggil di awal <body> pada layout mana pun yang butuh preloader.--}}
-<div id="preloader" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-50 transition-opacity duration-700 ease-out overflow-hidden">
-    <div class="absolute w-[700px] h-[700px] bg-gradient-to-tr from-blue-200/50 via-cyan-200/40 to-sky-200/50 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none opacity-60"></div>
+{{-- 
+    Komponen: <x-preloader />
+    Preloader animasi saat halaman dimuat.
+--}}
 
-    <div class="relative flex flex-col items-center z-10">
-        <div class="relative flex items-center justify-center p-10">
-            <div class="absolute inset-0 rounded-full border-4 border-slate-200/80 border-t-cyan-500 border-r-blue-600 animate-spin"></div>
-            <div class="h-32 w-32 md:h-40 md:w-40 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-black text-6xl md:text-7xl shadow-xl relative z-10">
-                M
-            </div>
-        </div>
-        <div class="mt-10 flex flex-col items-center text-center px-4">
-            <h2 class="text-3xl md:text-4xl font-extrabold tracking-[0.1em] text-slate-900">MagangHub</h2>
-            <p class="text-sm md:text-base text-blue-600 font-bold tracking-wide mt-2">Portal Pendaftaran Magang Terpadu</p>
-            <div class="mt-8 flex items-center gap-2.5 px-5 py-2 rounded-full bg-white border border-slate-200 shadow-md">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
-                </span>
-                <span class="text-xs font-bold text-slate-700">Memuat halaman...</span>
-            </div>
-        </div>
-    </div>
+<div
+    id="preloader"
+    class="fixed inset-0 z-[100] flex items-center justify-center
+           bg-slate-50
+           transition-opacity duration-700 ease-out
+           overflow-hidden"
+>
+
+    {{-- SOFT BACKGROUND GLOW --}}
+    <div
+        class="absolute top-1/2 left-1/2
+               -translate-x-1/2 -translate-y-1/2
+               w-[420px] h-[420px] sm:w-[560px] sm:h-[560px]
+               rounded-full
+               bg-gradient-to-br from-blue-200/40 via-cyan-200/30 to-transparent
+               blur-[100px]
+               pointer-events-none"
+    ></div>
+
+    {{-- CONTENT --}}
+    <div class="relative z-10 flex flex-col items-center text-center px-6">
+
+        {{-- LOGO --}}
+        <div class="relative flex items-center justify-center">
+
+            {{-- OUTER SOFT RING --}}
+            <div
+                class="absolute
+                       h-28 w-28 sm:h-32 sm:w-32
+                       rounded-full
+                       border border-blue-200/70
+                       animate-ping"
+                style="animation-duration: 2.2s;"
+            ></div>
+
+            {{-- SPINNER --}}
+            <div
+                class="absolute
+                       h-28 w-28 sm:h-32 sm:w-32
+                       rounded-full
+                       border-[3px]
+                       border-slate-200
+                       border-t-blue-600
+                       border-r-cyan-500
+                       animate-spin"
+                style="animation-duration: 1.5s;"
+            ></div>
+
+            {{-- LOGO CORE --}}
+            <div
+    class="relative
+           h-20 w-20 sm:h-24 sm:w-24
+           rounded-[26px]
+           bg-white
+           flex items-center justify-center
+           overflow-hidden
+           shadow-xl shadow-blue-500/20"
+>
+    <img
+        src="{{ asset('images/logo-simantara.jpg') }}"
+        alt="Logo SIMANTARA"
+        class="w-full h-full object-contain"
+    >
 </div>
 
-{{-- Script preloader disatukan di sini supaya x-preloader benar-benar plug-and-play --}}
+        </div>
+
+
+        {{-- BRAND --}}
+        <div class="mt-10">
+
+            <h2
+                class="text-3xl sm:text-4xl
+                       font-extrabold
+                       tracking-[0.08em]
+                       text-slate-900"
+            >
+                SIMANTARA
+            </h2>
+
+            <p
+                class="mt-2
+                       text-xs sm:text-sm
+                       font-semibold
+                       tracking-wide
+                       text-blue-600"
+            >
+                Sistem Informasi Magang Terintegrasi
+            </p>
+
+            <p
+                class="mt-0.5
+                       text-xs sm:text-sm
+                       font-medium
+                       text-slate-400"
+            >
+                Kabupaten Ponorogo
+            </p>
+
+        </div>
+
+
+        {{-- LOADING STATUS --}}
+        <div class="mt-8 flex items-center gap-2.5">
+
+            <span class="relative flex h-2 w-2">
+
+                <span
+                    class="absolute inline-flex
+                           h-full w-full
+                           rounded-full
+                           bg-blue-400
+                           opacity-60
+                           animate-ping"
+                ></span>
+
+                <span
+                    class="relative inline-flex
+                           h-2 w-2
+                           rounded-full
+                           bg-blue-600"
+                ></span>
+
+            </span>
+
+            <span
+                class="text-[11px] sm:text-xs
+                       font-semibold
+                       text-slate-500"
+            >
+                Memuat halaman...
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{{-- Script preloader --}}
 @once
 <script>
     window.addEventListener('load', () => {
         const preloader = document.getElementById('preloader');
+
         if (preloader) {
             setTimeout(() => {
                 preloader.classList.add('opacity-0');
-                setTimeout(() => { preloader.style.display = 'none'; }, 700);
-            }, 1000);
+
+                setTimeout(() => {
+                    preloader.style.display = 'none';
+                }, 700);
+
+            }, 900);
         }
     });
 </script>

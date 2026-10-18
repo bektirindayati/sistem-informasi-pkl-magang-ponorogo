@@ -5,8 +5,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', 'Dashboard Pengguna') - SiMagang</title>
+
+    {{--
+        Tema: pakai partial 'theme-script' SAJA (bukan 'tailwind-tema'),
+        karena layout ini memuat Tailwind lewat Vite, bukan CDN.
+        Harus sebelum @vite supaya halaman tidak berkedip terang.
+    --}}
+    @include('partials.theme-script')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -24,37 +32,29 @@
     @stack('styles')
 </head>
 
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+<body class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased">
 
-    {{--
-        Navbar sekarang lewat komponen <x-user-navbar />, bukan ditulis
-        inline di sini -- konsisten dengan <x-navbar /> yang dipakai di
-        halaman publik (welcome.blade.php). Isi & gaya navbar (pill
-        mengambang) ada di resources/views/components/user-navbar.blade.php.
-    --}}
+    {{-- Navbar user (pill mengambang) --}}
     <x-user-navbar />
 
 
     {{-- Main Content --}}
-    {{-- pt-24 sm:pt-28 -> menyamai jarak yang dipakai di halaman Beranda
-         publik untuk navbar mengambang serupa, supaya konten tidak
-         ketiban navbar. --}}
     <main class="min-h-screen pt-24 sm:pt-28">
         @yield('content')
     </main>
 
 
     {{-- Footer --}}
-    <footer class="bg-white border-t border-slate-200">
+    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
             <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
 
-                <p class="text-xs text-slate-400 text-center sm:text-left">
+                <p class="text-xs text-slate-400 dark:text-slate-500 text-center sm:text-left">
                     © {{ date('Y') }} SiMagang Kabupaten Ponorogo
                 </p>
 
-                <p class="text-xs text-slate-400">
+                <p class="text-xs text-slate-400 dark:text-slate-500">
                     Portal Pendaftaran PKL & Magang
                 </p>
 

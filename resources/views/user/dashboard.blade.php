@@ -4,71 +4,102 @@
 
 @section('content')
 
-<div class="min-h-screen bg-slate-50/50 pb-16">
+<div class="min-h-screen bg-slate-50/50 dark:bg-transparent pb-16 transition-colors duration-300">
 
-    {{-- Hero Dashboard --}}
-    {{--
-        FIX: pt-6 sm:pt-8 di sini dihapus -- jarak dari navbar sekarang
-        sudah diurus oleh <main class="pt-24 sm:pt-28"> di layout
-        (navbar sudah mengambang, bukan menempel tepi lagi), jadi
-        section ini cukup punya jarak samping saja.
-    --}}
-    <section class="px-4 sm:px-6">
-        <div class="max-w-6xl mx-auto">
+    
+{{-- Hero Dashboard --}}
+<section class="px-4 sm:px-6">
+    <div class="max-w-6xl mx-auto">
+        <div class="relative overflow-hidden rounded-3xl
+            border border-blue-100 dark:border-slate-700
+            bg-gradient-to-br from-blue-50 via-white to-cyan-50
+           dark:bg-none dark:bg-slate-800
+            p-5 sm:p-10 shadow-sm transition-colors duration-300">
 
-            <div class="relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50  p-5 sm:p-10 shadow-sm">
+            <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 sm:gap-6">
 
-    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 sm:gap-6">
-
-                    <div class="max-w-2xl">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-blue-100 shadow-xs mb-3 sm:mb-4">
-                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                            <span class="text-[11px] sm:text-xs font-bold text-blue-700 tracking-wide uppercase">
-                                Dashboard Pengguna
-                            </span>
-                        </div>
-
-                        <h1 class="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-800 leading-tight">
-                            Selamat datang,
-                            <span class="bg-gradient-to-r from-blue-700 via-cyan-600 to-sky-500 bg-clip-text text-transparent">
-                                {{ $user->name }}
-                            </span>
-                        </h1>
-
-                        <p class="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl">
-                            Kelola pendaftaran PKL / magang, pantau status pengajuan, dan temukan instansi tujuan yang tersedia dengan mudah.
-                        </p>
+                <div class="max-w-2xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full
+                        bg-white dark:bg-slate-800
+                        border border-blue-100 dark:border-slate-700
+                        mb-3 sm:mb-4">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                        <span class="text-[11px] sm:text-xs font-bold text-blue-700 dark:text-blue-300 tracking-wide uppercase">
+                            Dashboard Pengguna
+                        </span>
                     </div>
 
-                    {{-- Tombol Cepat Lengkapi Profil --}}
-                    <div class="shrink-0">
-                        <a href="{{ route('user.profil') }}"
-                           class="group flex items-center justify-between gap-4 bg-white/90 hover:bg-white border border-blue-200/80 rounded-2xl p-4 shadow-xs hover:shadow-md hover:border-blue-300 transition-all">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                    </svg>
-                                </div>
-                                <div class="text-left">
-                                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pengaturan Akun</p>
-                                    <p class="text-sm font-bold text-slate-800">Profil Saya</p>
-                                </div>
-                            </div>
-                            <div class="w-8 h-8 shrink-0 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    <h1 class="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight
+                        text-slate-800 dark:text-slate-100 leading-tight">
+                        Selamat datang,
+                        <span class="bg-gradient-to-r from-blue-700 via-cyan-600 to-sky-500
+                            dark:from-blue-400 dark:via-cyan-300 dark:to-sky-300
+                            bg-clip-text text-transparent">
+                            {{ $user->name }}
+                        </span>
+                    </h1>
+
+                    <p class="mt-2.5 sm:mt-3 text-sm sm:text-base
+                        text-slate-600 dark:text-slate-300
+                        leading-relaxed max-w-xl">
+                        Kelola pendaftaran PKL / magang, pantau status pengajuan, dan temukan instansi tujuan yang tersedia dengan mudah.
+                    </p>
+                </div>
+
+                {{-- Tombol Profil --}}
+                <div class="shrink-0">
+                    <a href="{{ route('user.profil') }}"
+                        class="group flex items-center justify-between gap-4
+                        bg-white/90 dark:bg-slate-800/90
+                        hover:bg-white dark:hover:bg-slate-800
+                        border border-blue-200/80 dark:border-slate-700
+                        rounded-2xl p-4 shadow-sm hover:shadow-md
+                        hover:border-blue-300 dark:hover:border-blue-500
+                        transition-all">
+
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl
+                                bg-blue-50 dark:bg-blue-950
+                                text-blue-600 dark:text-blue-400
+                                flex items-center justify-center shrink-0
+                                group-hover:bg-blue-600 group-hover:text-white
+                                transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                 </svg>
                             </div>
-                        </a>
-                    </div>
 
+                            <div class="text-left">
+                                <p class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                    Pengaturan Akun
+                                </p>
+                                <p class="text-sm font-bold text-slate-800 dark:text-slate-100">
+                                    Profil Saya
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="w-8 h-8 shrink-0 rounded-full
+                            bg-slate-50 dark:bg-slate-700
+                            flex items-center justify-center
+                            text-slate-400 dark:text-slate-300
+                            group-hover:bg-blue-50 dark:group-hover:bg-blue-950
+                            group-hover:text-blue-600 dark:group-hover:text-blue-400
+                            transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+                    </a>
                 </div>
 
             </div>
-
         </div>
-    </section>
+    </div>
+</section>
+
 
     {{-- Peringatan Lengkapi Profil --}}
     @php
@@ -117,7 +148,12 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 
                 {{-- Status Pendaftaran --}}
-                <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-xs hover:shadow-md transition-shadow overflow-hidden flex flex-col justify-between">
+                <div class="lg:col-span-2
+            dark:bg-slate-800
+            rounded-3xl
+            border border-slate-200 dark:border-slate-700
+            shadow-xs hover:shadow-md transition-shadow
+            overflow-hidden flex flex-col justify-between">
 
                     @if (!$pendaftaran)
                         <div class="p-5 sm:p-7">
@@ -287,8 +323,13 @@
                 </div>
 
                 {{-- Aksi Utama --}}
-                <div class="relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-5 sm:p-7 shadow-xs flex flex-col justify-between">
-                    <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-blue-200/30 blur-2xl"></div>
+                <div class="relative overflow-hidden rounded-3xl
+            border border-blue-100 dark:border-slate-700
+            bg-gradient-to-br from-blue-50 via-white to-cyan-50
+            dark:from-slate-900 dark:via-slate-900 dark:to-blue-950
+            p-5 sm:p-7 shadow-xs flex flex-col justify-between
+            transition-colors duration-300">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-blue-200/30 dark:bg-blue-500/10 blur-2xl"></div>
 
                     <div class="relative z-10">
                         <div class="flex items-center gap-2">
@@ -521,47 +562,161 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                @forelse ($dinases as $dinas)
-                    <div class="group bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-4 sm:p-5 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/50 transition">
-                        <div class="flex items-start gap-3 sm:gap-4">
-                            <div class="w-10 h-10 sm:w-11 sm:h-11 shrink-0 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M12 9h.01M15 9h.01"/>
-                                </svg>
-                            </div>
+               @forelse ($dinases as $dinas)
 
-                            <div class="min-w-0 flex-1">
-                                <h3 class="font-bold text-sm text-slate-800 leading-snug group-hover:text-blue-700 transition">
-                                    {{ $dinas->nama_dinas }}
-                                </h3>
+    <div
+        class="group
+               bg-white
+               border border-slate-200
+               rounded-2xl
+               p-4
+               hover:border-blue-200
+               hover:shadow-md hover:shadow-blue-100/40
+               transition-all duration-200"
+    >
+        <div class="flex items-start gap-3">
 
-                                @if ($dinas->deskripsi)
-                                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed line-clamp-2">
-                                        {{ $dinas->deskripsi }}
-                                    </p>
-                                @else
-                                    <p class="text-xs text-slate-400 mt-1.5">
-                                        Informasi instansi tersedia melalui sistem.
-                                    </p>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="col-span-full bg-white border border-dashed border-slate-300 rounded-3xl p-10 text-center">
-                        <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18M5 21V7l7-4 7 4v14"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-slate-700">
-                            Belum ada instansi tersedia
-                        </h3>
-                        <p class="text-sm text-slate-500 mt-1">
-                            Silakan cek kembali nanti.
-                        </p>
-                    </div>
-                @endforelse
+            {{-- Ikon --}}
+            <div
+                class="w-9 h-9
+                       shrink-0
+                       rounded-xl
+                       bg-blue-50
+                       text-blue-600
+                       flex items-center justify-center"
+            >
+                <svg
+                    class="w-4.5 h-4.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.8"
+                        d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M12 9h.01M15 9h.01"
+                    />
+                </svg>
+            </div>
+
+            {{-- Informasi instansi --}}
+            <div class="min-w-0 flex-1">
+
+                <h3
+                    class="font-bold
+                           text-sm
+                           text-slate-800
+                           leading-snug
+                           line-clamp-2
+                           group-hover:text-blue-700
+                           transition-colors"
+                >
+                    {{ $dinas->nama_dinas }}
+                </h3>
+
+                @if ($dinas->deskripsi)
+                    <p
+                        class="text-xs
+                               text-slate-500
+                               mt-1
+                               leading-relaxed
+                               line-clamp-2"
+                    >
+                        {{ $dinas->deskripsi }}
+                    </p>
+                @else
+                    <p class="text-xs text-slate-400 mt-1">
+                        Informasi instansi tersedia melalui sistem.
+                    </p>
+                @endif
+
+            </div>
+        </div>
+
+        {{-- Tombol daftar --}}
+        <div class="mt-3 pt-3 border-t border-slate-100">
+
+            <a
+                href="{{ route('user.pendaftaran.create') }}"
+                class="inline-flex
+                       items-center
+                       gap-1
+                       text-xs
+                       font-bold
+                       text-blue-600
+                       hover:text-blue-700
+                       transition-colors"
+            >
+                Daftar Sekarang
+
+                <svg
+                    class="w-3.5 h-3.5
+                           transition-transform duration-200
+                           group-hover:translate-x-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                    />
+                </svg>
+            </a>
+
+        </div>
+    </div>
+
+@empty
+
+    <div
+        class="col-span-full
+               bg-white
+               border border-dashed border-slate-300
+               rounded-2xl
+               p-8
+               text-center"
+    >
+        <div
+            class="w-11 h-11
+                   mx-auto
+                   rounded-xl
+                   bg-slate-50
+                   text-slate-400
+                   flex items-center justify-center
+                   mb-3"
+        >
+            <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                    d="M3 21h18M5 21V7l7-4 7 4v14"
+                />
+            </svg>
+        </div>
+
+        <h3 class="font-bold text-sm text-slate-700">
+            Belum ada instansi tersedia
+        </h3>
+
+        <p class="text-xs text-slate-500 mt-1">
+            Silakan cek kembali nanti.
+        </p>
+    </div>
+
+@endforelse
             </div>
 
         </div>

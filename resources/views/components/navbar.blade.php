@@ -1,50 +1,87 @@
 {{-- Komponen: <x-navbar /> --}}
 
-<div class="fixed top-0 left-0 right-0 z-50 px-3 sm:px-4 pt-3 sm:pt-4">
+<div class="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 pt-3 sm:pt-4">
 
-    <nav class="max-w-6xl mx-auto bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl shadow-sm transition-all duration-300">
+    <nav class="w-full max-w-6xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/80 rounded-2xl shadow-sm transition-all duration-300">
 
         <div class="px-3 sm:px-5 py-2.5 flex items-center justify-between gap-3">
 
             {{-- LOGO --}}
             <a href="{{ url('/') }}" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
 
-                <div class="h-9 w-9 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-black text-lg sm:text-2xl shadow-md group-hover:scale-105 transition-transform shrink-0">
-                    M
+                {{-- Logo SIMANTARA (kotak tetap putih agar logo ber-latar putih tetap rapi di mode gelap) --}}
+                <div
+                    class="h-9 w-9 sm:h-12 sm:w-12
+                           rounded-xl
+                           bg-white
+                           border border-slate-200 dark:border-slate-600
+                           flex items-center justify-center
+                           overflow-hidden
+                           shadow-sm
+                           group-hover:scale-105
+                           transition-transform
+                           shrink-0"
+                >
+                    <img
+                        src="{{ asset('images/logo-simantara.jpg') }}"
+                        alt="Logo SIMANTARA"
+                        class="w-full h-full object-contain"
+                    >
                 </div>
 
+                {{-- Nama aplikasi --}}
                 <div class="flex flex-col">
-                    <span class="text-[15px] sm:text-lg font-extrabold text-slate-900 leading-tight tracking-tight">
-                        MagangHub
+                    <span
+                        class="text-[15px] sm:text-lg
+                               font-extrabold
+                               text-slate-900 dark:text-white
+                               leading-tight
+                               tracking-tight"
+                    >
+                        SIMANTARA
                     </span>
 
-                    <span class="hidden sm:block text-[10px] sm:text-xs text-blue-600 font-semibold">
-                        Portal Pendaftaran Magang Terpadu
+                    <span
+                        class="hidden sm:block
+                               text-[10px] sm:text-xs
+                               text-blue-600 dark:text-blue-400
+                               font-semibold"
+                    >
+                        Sistem Informasi Magang Terintegrasi
                     </span>
                 </div>
             </a>
 
 
-           {{-- BAGIAN KANAN --}}
-<div class="flex items-center justify-end gap-2 shrink-0">
+            {{-- BAGIAN KANAN --}}
+            <div class="flex items-center justify-end gap-2 shrink-0">
 
-    {{-- ASISTEN AI --}}
-    <x-ai-chatbot-launcher />
+                {{-- TOMBOL MODE GELAP / TERANG --}}
+                <x-theme-toggle />
 
-    @auth
+                {{-- ASISTEN AI --}}
+                <x-ai-chatbot-launcher />
+
+                @auth
 
                     {{-- DASHBOARD --}}
                     @if (Auth::user()->isAdmin())
 
                         <a href="{{ route('admin.dashboard') }}"
-                           class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition">
+                           class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold
+                                  text-blue-600 hover:text-blue-700 hover:bg-blue-50
+                                  dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-500/10
+                                  rounded-xl transition">
                             Dashboard
                         </a>
 
                     @else
 
                         <a href="{{ route('user.dashboard') }}"
-                           class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition">
+                           class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold
+                                  text-blue-600 hover:text-blue-700 hover:bg-blue-50
+                                  dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-500/10
+                                  rounded-xl transition">
                             Dashboard
                         </a>
 
@@ -52,7 +89,11 @@
 
 
                     {{-- PROFIL USER --}}
-                    <div class="flex items-center gap-2 bg-slate-100/80 border border-slate-200 py-1 sm:py-1.5 px-2 sm:px-3 rounded-[14px] sm:rounded-2xl">
+                    <div class="flex items-center gap-2
+                                bg-slate-100/80 dark:bg-slate-800/80
+                                border border-slate-200 dark:border-slate-700
+                                py-1 sm:py-1.5 px-2 sm:px-3
+                                rounded-[14px] sm:rounded-2xl">
 
                         <div class="flex items-center gap-2.5">
 
@@ -61,7 +102,7 @@
                                 <img
                                     src="{{ asset('storage/' . Auth::user()->avatar) }}"
                                     alt="Avatar"
-                                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-blue-200 shrink-0"
+                                    class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-blue-200 dark:border-blue-500/40 shrink-0"
                                 >
 
                             @else
@@ -75,11 +116,11 @@
 
                             <div class="hidden sm:flex flex-col text-left">
 
-                                <span class="text-xs font-bold text-slate-800 leading-tight">
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
                                     {{ Auth::user()->name }}
                                 </span>
 
-                                <span class="text-[10px] text-blue-600 font-semibold">
+                                <span class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
                                     {{ Auth::user()->isAdmin() ? 'Administrator' : 'Peserta Magang' }}
                                 </span>
 
@@ -96,7 +137,11 @@
                             <button
                                 type="submit"
                                 title="Keluar"
-                                class="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 transition shadow-xs flex items-center justify-center"
+                                class="p-1.5 sm:p-2 rounded-lg sm:rounded-xl
+                                       bg-white hover:bg-red-50 text-slate-500 hover:text-red-600
+                                       dark:bg-slate-900 dark:hover:bg-red-500/10 dark:text-slate-400 dark:hover:text-red-400
+                                       border border-slate-200 dark:border-slate-700
+                                       transition shadow-xs flex items-center justify-center"
                             >
 
                                 <svg

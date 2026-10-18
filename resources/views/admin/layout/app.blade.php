@@ -7,8 +7,12 @@
 
     <title>@yield('page-title', 'Dashboard Admin') - SIMAGANG Diskominfo</title>
 
-    {{-- Tailwind CSS --}}
+    {{-- Tema (harus sebelum Tailwind): cegah layar berkedip + fungsi toggleTheme() --}}
+    @include('partials.theme-script')
+
+    {{-- Tailwind CSS + konfigurasi dark mode (config WAJIB tepat setelah script CDN) --}}
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
 
     {{-- Google Font --}}
     <link
@@ -38,7 +42,7 @@
     @stack('styles')
 </head>
 
-<body class="bg-slate-100 text-slate-800 antialiased flex h-screen overflow-hidden">
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-200 antialiased flex h-screen overflow-hidden">
 
     {{-- SIDEBAR --}}
     <x-admin.sidebar />
@@ -47,7 +51,7 @@
     {{-- AREA UTAMA --}}
     <div class="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
 
-        {{-- TOPBAR--}}
+        {{-- TOPBAR --}}
         <x-admin.topbar />
 
 

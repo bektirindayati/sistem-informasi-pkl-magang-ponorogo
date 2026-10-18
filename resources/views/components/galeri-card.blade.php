@@ -103,14 +103,14 @@
         <h3
             title="{{ $judul }}"
             class="text-[16px] sm:text-[17px]
-                   font-extrabold
-                   leading-snug
-                   tracking-[-0.01em]
-                   text-slate-900
-                   line-clamp-3
-                   break-words
-                   transition-colors duration-200
-                   group-hover:text-blue-700"
+       font-extrabold
+       leading-snug
+       tracking-[-0.01em]
+       text-slate-900
+       line-clamp-2
+       break-words
+       transition-colors duration-200
+       group-hover:text-blue-700"
         >
             {{ $judul }}
         </h3>

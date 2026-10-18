@@ -57,4 +57,9 @@ class PendaftaranMagang extends Model
     {
         return $this->belongsTo(InstansiBidang::class, 'instansi_bidang_id');
     }
+
+    public function suratBalasan()
+{
+    return $this->hasOne(SuratBalasan::class, 'pendaftaran_magang_id');
+}
 }

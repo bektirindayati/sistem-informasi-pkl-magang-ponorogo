@@ -11,12 +11,19 @@ class Dinas extends Model
 
     protected $table = 'dinases';
 
-    protected $fillable = [
-        'nama_dinas',
-        'deskripsi',
-        'alamat',
-        'status',
-    ];
+protected $fillable = [
+    'nama_dinas',
+    'deskripsi',
+    'alamat',
+    'status',
+    'logo',
+    'telepon',
+    'email',
+    'website',
+    'nama_pejabat',
+    'jabatan_pejabat',
+    'nip_pejabat',
+];
 
     public function scopeAktif($query)
     {

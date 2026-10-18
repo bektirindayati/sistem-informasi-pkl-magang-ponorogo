@@ -12,21 +12,18 @@ class DraftPendaftaranRequest extends BasePendaftaranRequest
     }
 
     public function pendaftaran(): PendaftaranMagang
-    {
-        $terakhir = $this->pendaftaranTerakhir();
+{
+    $terakhir = $this->pendaftaranTerakhir();
 
-        // Jika sudah punya draft, gunakan draft yang sama.
-        if ($terakhir && $terakhir->status === 'draft') {
-            return $terakhir;
-        }
-
-        // Jika belum punya draft, buat record baru.
-        $baru = new PendaftaranMagang();
-        $baru->user_id = $this->user()->id;
-        $baru->status = 'draft';
-
-        return $baru;
+    if ($terakhir?->status === 'draft') {
+        return $terakhir;
     }
+
+    return new PendaftaranMagang([
+        'user_id' => $this->user()->id,
+        'status'  => 'draft',
+    ]);
+}
 
     public function rules(): array
     {

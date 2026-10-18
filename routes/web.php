@@ -16,6 +16,7 @@ use App\Http\Controllers\SuperAdmin\PenggunaSuperAdminController;
 use App\Http\Controllers\User\DashboardUserController;
 use App\Http\Controllers\User\PendaftaranUserController;
 use App\Http\Controllers\User\ProfilUserController;
+use App\Http\Controllers\User\SuratBalasanUserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -59,6 +60,9 @@ Route::middleware('auth')->group(function () {
 
     Route::view('/dinas/kominfo', 'user.dinas.kominfo')->name('user.dinas.kominfo');
 
+    Route::get('/user/pendaftaran/{id}/surat-balasan', SuratBalasanUserController::class)
+        ->name('user.pendaftaran.surat');
+
     Route::prefix('user/pendaftaran')
         ->name('user.pendaftaran.')
         ->controller(PendaftaranUserController::class)
@@ -67,7 +71,6 @@ Route::middleware('auth')->group(function () {
             Route::post('/daftar', 'store')->name('store');
 
             Route::post('/draft', 'saveDraft')->name('draft');
-            Route::delete('/draft/{id}', 'destroyDraft')->name('draft.destroy');
 
             Route::get('/status', 'status')->name('status');
             Route::get('/riwayat', 'riwayat')->name('riwayat');
@@ -105,7 +108,20 @@ Route::middleware(['auth', 'admin'])
 
         // Verifikasi berkas + cetak surat balasan (surat relevan setelah diterima)
         Route::middleware('permission:verifikasi-pendaftar')->group(function () {
-            Route::get('/pendaftaran/{id}/cetak-surat', SuratBalasanAdminController::class)
+            Route::prefix('pendaftaran/{id}/surat')
+                ->name('surat.')
+                ->controller(SuratBalasanAdminController::class)
+                ->group(function () {
+                    Route::get('/', 'show')->name('show');
+                    Route::put('/', 'update')->name('update');
+                    Route::get('/pratinjau', 'pratinjau')->name('pratinjau');
+                    Route::post('/terbitkan', 'terbitkan')->name('terbitkan');
+                    Route::post('/tarik', 'tarik')->name('tarik');
+                });
+
+            // Kompatibilitas: view lama yang masih memakai route ini diarahkan ke halaman surat.
+            // Hapus setelah semua blade memakai admin.surat.show.
+            Route::get('/pendaftaran/{id}/cetak-surat', [SuratBalasanAdminController::class, 'show'])
                 ->name('pendaftar.download');
 
             Route::prefix('verifikasi')

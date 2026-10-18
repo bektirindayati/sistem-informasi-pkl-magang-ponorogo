@@ -9,11 +9,11 @@
 
 @php
     $circleClass = $variant === 'blue'
-        ? 'w-7 h-7 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20'
-        : 'w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600';
+        ? 'w-7 h-7 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 dark:shadow-none'
+        : 'w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300';
 @endphp
 
-<h2 class="text-base font-extrabold text-slate-900 mb-5 flex items-center gap-2.5">
+<h2 class="text-base font-extrabold text-slate-900 dark:text-white mb-5 flex items-center gap-2.5">
     <span class="{{ $circleClass }} flex items-center justify-center text-xs sm:text-sm font-bold shrink-0">{{ $number }}</span>
     {{ $slot }}
 </h2>

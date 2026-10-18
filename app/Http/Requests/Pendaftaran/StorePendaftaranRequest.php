@@ -26,18 +26,17 @@ class StorePendaftaranRequest extends BasePendaftaranRequest
     }
 
     public function pendaftaran(): PendaftaranMagang
-    {
-        $terakhir = $this->pendaftaranTerakhir();
+{
+    $terakhir = $this->pendaftaranTerakhir();
 
-        if ($terakhir && $terakhir->status === 'draft') {
-            return $terakhir;
-        }
-
-        $baru = new PendaftaranMagang();
-        $baru->user_id = $this->user()->id;
-
-        return $baru;
+    if ($terakhir?->status === 'draft') {
+        return $terakhir;
     }
+
+    return new PendaftaranMagang([
+        'user_id' => $this->user()->id,
+    ]);
+}
 
     public function rules(): array
     {

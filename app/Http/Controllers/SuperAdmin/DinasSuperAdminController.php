@@ -12,30 +12,20 @@ use Illuminate\Database\QueryException;
 class DinasSuperAdminController extends Controller
 {
     public function index()
-    {
-        return view('admin.dinas.index', [
+    {return view('admin.dinas.index', [
             'dinasList' => Dinas::latest()->paginate(10),
-        ]);
-    }
+        ]);}
 
     public function store(StoreDinasRequest $request)
-    {
-        Dinas::create($request->validated());
-
-        return redirect()->route('admin.dinas.index')->with('success', 'Dinas berhasil ditambahkan!');
-    }
+    { Dinas::create($request->validated());
+    return redirect()->route('admin.dinas.index')->with('success', 'Dinas berhasil ditambahkan!');}
 
     public function edit($id)
-    {
-        return view('admin.dinas.edit', ['dinas' => Dinas::findOrFail($id)]);
-    }
+    {return view('admin.dinas.edit', ['dinas' => Dinas::findOrFail($id)]);}
 
     public function update(UpdateDinasRequest $request, $id)
-    {
-        Dinas::findOrFail($id)->update($request->validated());
-
-        return redirect()->route('admin.dinas.index')->with('success', 'Dinas berhasil diperbarui!');
-    }
+    {Dinas::findOrFail($id)->update($request->validated());
+    return redirect()->route('admin.dinas.index')->with('success', 'Dinas berhasil diperbarui!');}
 
     public function destroy($id)
     {

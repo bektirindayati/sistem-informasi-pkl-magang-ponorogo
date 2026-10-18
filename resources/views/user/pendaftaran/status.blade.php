@@ -144,10 +144,14 @@
                                 <p class="text-sm text-slate-500 mt-1 leading-relaxed">Pengajuan magang/PKL kamu telah disetujui oleh instansi tujuan.</p>
                             </div>
                         </div>
-                        @if($pendaftaran->surat_balasan ?? null)
-                            <x-button :href="asset('storage/' . $pendaftaran->surat_balasan)" target="_blank" variant="success" class="mt-5">
-                                Unduh Surat Balasan
+                        @if($pendaftaran->suratBalasan?->sudahTerbit())
+                            <x-button :href="route('user.pendaftaran.surat', $pendaftaran->id)" variant="success" class="mt-5">
+                                Unduh Surat Balasan (PDF)
                             </x-button>
+                        @else
+                            <p class="mt-4 text-xs text-slate-400">
+                                Surat balasan sedang disiapkan admin. Tombol unduh akan muncul di sini setelah surat diterbitkan.
+                            </p>
                         @endif
 
                     @elseif($status === 'ditolak')

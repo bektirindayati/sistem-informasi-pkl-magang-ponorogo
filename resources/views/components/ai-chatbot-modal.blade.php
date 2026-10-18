@@ -10,7 +10,8 @@
     aria-label="Asisten MagangHub"
     class="hidden fixed top-24 right-3 sm:right-6 z-[95]
            w-[92vw] max-w-sm h-[70vh] max-h-[560px]
-           bg-white rounded-2xl shadow-2xl border border-slate-200
+           bg-white dark:bg-slate-900 rounded-2xl shadow-2xl
+           border border-slate-200 dark:border-slate-700
            flex flex-col overflow-hidden"
 >
     {{-- HEADER --}}
@@ -43,9 +44,9 @@
 
     {{-- AREA PESAN (anak pertama = sapaan, tidak ikut terhapus saat reset) --}}
     <div id="aiChatbotMessages" aria-live="polite"
-         class="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50 text-sm">
+         class="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50 dark:bg-slate-950 text-sm">
         <div class="flex">
-            <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%] text-slate-700 shadow-sm">
+            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%] text-slate-700 dark:text-slate-200 shadow-sm">
                 Halo! 👋 Saya asisten AI MagangHub. Tanyakan apa saja seputar
                 alur pendaftaran PKL/Magang, dokumen yang dibutuhkan, atau
                 instansi yang tersedia.
@@ -55,16 +56,18 @@
 
     {{-- INPUT --}}
     <form id="aiChatbotForm" data-endpoint="{{ route('chatbot.ask') }}"
-          class="shrink-0 border-t border-slate-200 p-3 flex items-center gap-2 bg-white">
+          class="shrink-0 border-t border-slate-200 dark:border-slate-700 p-3 flex items-center gap-2 bg-white dark:bg-slate-900">
         <input
             id="aiChatbotInput"
             type="text"
             maxlength="1000"
             autocomplete="off"
             placeholder="Tulis pertanyaanmu..."
-            class="flex-1 text-sm px-3.5 py-2.5 rounded-xl border border-slate-200
-                   focus:outline-none focus:ring-2 focus:ring-blue-400 text-slate-700
-                   disabled:bg-slate-100"
+            class="flex-1 text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600
+                   bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100
+                   placeholder-slate-400 dark:placeholder-slate-500
+                   focus:outline-none focus:ring-2 focus:ring-blue-400
+                   disabled:bg-slate-100 dark:disabled:bg-slate-700"
         />
         <button
             type="submit"
@@ -89,13 +92,13 @@
 
 <template id="aiTplBot">
     <div class="flex">
-        <div data-text class="whitespace-pre-line bg-white border border-slate-200 text-slate-700 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%] shadow-sm"></div>
+        <div data-text class="whitespace-pre-line bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%] shadow-sm"></div>
     </div>
 </template>
 
 <template id="aiTplTyping">
     <div class="flex">
-        <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-3.5 py-2.5 shadow-sm">
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-sm px-3.5 py-2.5 shadow-sm">
             <span class="inline-flex gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style="animation-delay:0ms"></span>
                 <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style="animation-delay:150ms"></span>
