@@ -4,100 +4,117 @@
 
 @section('content')
 @php
-    $jumlah  = $dokumentasi->fotos->count();
-    $tanggal = \Carbon\Carbon::parse($dokumentasi->tanggal_pelaksanaan ?? $dokumentasi->created_at)->timezone('Asia/Jakarta');
-    $jam     = $dokumentasi->created_at?->copy()->timezone('Asia/Jakarta');
-
-    // Data lama (sebelum ada uraian per foto) masih punya satu deskripsi umum.
-    $deskripsiLama = filled($dokumentasi->deskripsi ?? null)
-        && $dokumentasi->fotos->every(fn ($foto) => blank($foto->uraian));
+    $fotos   = $dokumentasi->fotos;
+    $jumlah  = $fotos->count();
+    $tanggal = $dokumentasi->tanggal_pelaksanaan;
 @endphp
 
 <x-page>
 
     {{-- BREADCRUMB --}}
-    <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-        <a href="{{ route('home') }}" class="hover:text-blue-600 transition">Beranda</a>
-        <span class="text-slate-300">/</span>
-        <a href="{{ route('home') }}#dokumentasi" class="hover:text-blue-600 transition">Dokumentasi</a>
-
-        @if($dokumentasi->kategori_badge)
-            <span class="text-slate-300">/</span>
-            <span class="text-xs font-semibold uppercase tracking-wide text-blue-600">{{ $dokumentasi->kategori_badge }}</span>
-        @endif
+    <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-300">
+        <a href="{{ route('home') }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Beranda</a>
+        <span class="text-slate-300 dark:text-slate-600">/</span>
+        <a href="{{ route('home') }}#dokumentasi" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Dokumentasi</a>
+        <span class="text-slate-300 dark:text-slate-600">/</span>
+        <span class="max-w-[14rem] sm:max-w-xs truncate font-medium text-slate-700 dark:text-slate-100">
+            {{ $dokumentasi->judul_kegiatan }}
+        </span>
     </nav>
 
-    <article class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+    <article class="mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white
+                    dark:border-slate-800 dark:bg-slate-900">
 
-        {{-- HEADER (rata tengah) --}}
-        <header class="px-5 sm:px-10 pt-8 sm:pt-10 pb-7 text-center border-b border-slate-200">
-            <h1 class="max-w-4xl mx-auto text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 leading-snug break-words">
+        {{-- HEADER --}}
+        <header class="border-b border-slate-200 px-5 pb-6 pt-7 dark:border-slate-800 sm:px-10 sm:pt-9">
+
+            @if($dokumentasi->kategori_badge)
+                <span class="inline-block max-w-full truncate rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold
+                             uppercase tracking-wide text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
+                    {{ $dokumentasi->kategori_badge }}
+                </span>
+            @endif
+
+            <h1 class="mt-3 break-words text-2xl font-extrabold leading-snug tracking-tight text-slate-900
+                       dark:text-white sm:text-3xl lg:text-4xl">
                 {{ $dokumentasi->judul_kegiatan }}
             </h1>
 
-            <div class="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-600">
+            <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-600 dark:text-slate-200">
+                <span class="inline-flex items-center gap-2">
+                    <svg class="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    {{ $tanggal->translatedFormat('l, j F Y') }}
+                </span>
 
                 @if($dokumentasi->tempat_pelaksanaan)
                     <span class="inline-flex items-center gap-2">
-                        <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/>
+                        <svg class="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                  d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/>
                         </svg>
                         {{ $dokumentasi->tempat_pelaksanaan }}
                     </span>
                 @endif
 
-                <span class="inline-flex items-center gap-2">
-                    <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    {{ $tanggal->translatedFormat('j F Y') }}
-                </span>
-
-                @if($jam)
+                @if($jumlah > 0)
                     <span class="inline-flex items-center gap-2">
-                        <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <svg class="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                  d="M4 16l4-4a3 3 0 014 0l4 4m-2-2l1-1a3 3 0 014 0l2 2M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z"/>
                         </svg>
-                        {{ $jam->format('H:i') }} WIB
+                        {{ $jumlah }} foto
                     </span>
                 @endif
             </div>
         </header>
 
         {{-- ISI: FOTO + URAIAN --}}
-        <div class="px-5 sm:px-10 py-8 sm:py-10">
-
-            @if($deskripsiLama)
-                <p class="mb-10 text-[15px] sm:text-base text-slate-700 leading-8 text-justify whitespace-pre-line break-words">{{ $dokumentasi->deskripsi }}</p>
-            @endif
-
+        <div class="px-5 py-8 sm:px-10 sm:py-10">
             @if($jumlah > 0)
                 <div class="space-y-10">
-                    @foreach($dokumentasi->fotos as $i => $foto)
+                    @foreach($fotos as $i => $foto)
                         <section class="space-y-5">
-                            <figure class="bg-slate-100 rounded-md overflow-hidden">
-                                <img src="{{ $foto->url }}"
-                                     alt="{{ $dokumentasi->judul_kegiatan }} - foto {{ $i + 1 }}"
-                                     loading="{{ $i === 0 ? 'eager' : 'lazy' }}"
-                                     class="block w-full h-auto max-h-[640px] object-contain">
+                            <figure class="relative overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200
+                                           dark:bg-slate-800 dark:ring-slate-700">
+                                <button type="button"
+                                        data-lightbox="{{ $foto->url }}"
+                                        aria-label="Perbesar foto {{ $i + 1 }}"
+                                        class="block w-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                                    <img src="{{ $foto->url }}"
+                                         alt="{{ $dokumentasi->judul_kegiatan }} - foto {{ $i + 1 }}"
+                                         loading="{{ $i === 0 ? 'eager' : 'lazy' }}"
+                                         class="mx-auto block max-h-[70vh] w-full object-contain">
+                                </button>
+
+                                @if($jumlah > 1)
+                                    <figcaption class="pointer-events-none absolute bottom-3 right-3 rounded-full bg-slate-900/70
+                                                       px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+                                        {{ $i + 1 }} / {{ $jumlah }}
+                                    </figcaption>
+                                @endif
                             </figure>
 
                             @if($foto->uraian)
-                                <p class="text-[15px] sm:text-base text-slate-700 leading-8 text-justify whitespace-pre-line break-words">{{ $foto->uraian }}</p>
+                                <p class="mx-auto max-w-3xl whitespace-pre-line break-words text-base leading-8
+                                          text-slate-700 dark:text-slate-100">{{ $foto->uraian }}</p>
                             @endif
                         </section>
                     @endforeach
                 </div>
             @else
                 <div class="py-14 text-center">
-                    <div class="text-4xl mb-3">📷</div>
-                    <p class="text-sm text-slate-400">Belum ada foto untuk kegiatan ini.</p>
+                    <div class="mb-3 text-4xl">📷</div>
+                    <p class="text-sm text-slate-400 dark:text-slate-300">Belum ada foto untuk kegiatan ini.</p>
                 </div>
             @endif
         </div>
 
         {{-- FOOTER ARTIKEL --}}
-        <footer class="px-5 sm:px-10 py-5 border-t border-slate-200 bg-slate-50 flex justify-center">
+        <footer class="flex justify-center border-t border-slate-200 bg-slate-50 px-5 py-5
+                       dark:border-slate-800 dark:bg-slate-950/50 sm:px-10">
             <x-button :href="route('home') . '#dokumentasi'" variant="secondary" size="sm">
                 Kembali ke Galeri
             </x-button>
@@ -106,20 +123,21 @@
 
     {{-- KEGIATAN LAINNYA --}}
     @if($lainnya->isNotEmpty())
-        <section class="space-y-4 pt-4">
-            <h2 class="text-lg font-semibold text-slate-900">Dokumentasi lainnya</h2>
+        <section class="space-y-4 pt-6">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Dokumentasi lainnya</h2>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 @foreach($lainnya as $item)
                     <a href="{{ route('dokumentasi.show', $item) }}"
-                       class="block h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+                       class="block h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
+                              focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950">
                         <x-galeri-card
                             :tag="$item->kategori_badge"
                             :judul="$item->judul_kegiatan"
                             :gambar="$item->sampul_url"
                             :tempat="$item->tempat_pelaksanaan"
-                            :tanggal="$item->tanggal_pelaksanaan ?? $item->created_at"
-                            :waktu="$item->created_at"
+                            :tanggal="$item->tanggal_pelaksanaan"
+                            :ringkasan="$item->ringkasan"
                         />
                     </a>
                 @endforeach
@@ -127,5 +145,42 @@
         </section>
     @endif
 
+    {{-- LIGHTBOX FOTO --}}
+    <dialog id="lightbox"
+            class="m-auto max-h-[92vh] max-w-[94vw] overflow-visible bg-transparent p-0
+                   backdrop:bg-slate-950/85 backdrop:backdrop-blur-sm">
+        <form method="dialog">
+            <button class="absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full
+                           bg-white/90 text-slate-700 shadow-lg transition hover:bg-white
+                           dark:bg-slate-900/90 dark:text-white dark:hover:bg-slate-900"
+                    aria-label="Tutup">✕</button>
+        </form>
+        <img id="lightboxImg" src="" alt="" class="block max-h-[88vh] max-w-[94vw] rounded-xl object-contain">
+    </dialog>
+
 </x-page>
-@endsection
+
+<script>
+(() => {
+    const dialog = document.getElementById('lightbox');
+    const gambar = document.getElementById('lightboxImg');
+    if (!dialog || !gambar) return;
+
+    document.querySelectorAll('[data-lightbox]').forEach(tombol => {
+        tombol.addEventListener('click', () => {
+            gambar.src = tombol.dataset.lightbox;
+            dialog.showModal();
+            document.documentElement.style.overflow = 'hidden';
+        });
+    });
+
+    // Klik area gelap di luar foto = tutup (Esc sudah ditangani browser)
+    dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+
+    dialog.addEventListener('close', () => {
+        gambar.removeAttribute('src');
+        document.documentElement.style.overflow = '';
+    });
+})();
+</script>
+@endsection 

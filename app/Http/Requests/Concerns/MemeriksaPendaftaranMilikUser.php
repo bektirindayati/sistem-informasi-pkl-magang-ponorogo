@@ -4,10 +4,6 @@ namespace App\Http\Requests\Concerns;
 
 use App\Models\PendaftaranMagang;
 
-/**
- * Dipakai request yang bekerja pada pendaftaran tertentu (route {id}):
- * memastikan pendaftaran milik user yang login DAN statusnya diizinkan.
- */
 trait MemeriksaPendaftaranMilikUser
 {
     private ?PendaftaranMagang $pendaftaranDimuat = null;
@@ -18,22 +14,27 @@ trait MemeriksaPendaftaranMilikUser
     /** Pesan 403 jika statusnya tidak diizinkan. */
     abstract protected function pesanStatusDitolak(): string;
 
+    /** Mendukung route {id} dan route surat balasan {pendaftaran}. */
     public function pendaftaran(): PendaftaranMagang
     {
-        return $this->pendaftaranDimuat ??= PendaftaranMagang::findOrFail($this->route('id'));
+        return $this->pendaftaranDimuat ??= PendaftaranMagang::findOrFail(
+            $this->route('id') ?? $this->route('pendaftaran')
+        );
     }
 
     public function authorize(): bool
     {
-        $pendaftaran = $this->pendaftaran();
-
         return $this->milikUser()
-            && in_array($pendaftaran->status, $this->statusDiizinkan(), true);
+            && in_array($this->pendaftaran()->status, $this->statusDiizinkan(), true);
     }
 
     protected function failedAuthorization()
     {
-        abort(403, $this->milikUser() ? $this->pesanStatusDitolak() : '');
+        // Milik orang lain dibuat 404 supaya keberadaan data tidak bocor.
+        abort(
+            $this->milikUser() ? 403 : 404,
+            $this->milikUser() ? $this->pesanStatusDitolak() : ''
+        );
     }
 
     private function milikUser(): bool

@@ -6,7 +6,7 @@
 <div
     id="preloader"
     class="fixed inset-0 z-[100] flex items-center justify-center
-           bg-slate-50
+           bg-slate-50 dark:bg-slate-950
            transition-opacity duration-700 ease-out
            overflow-hidden"
 >
@@ -17,7 +17,9 @@
                -translate-x-1/2 -translate-y-1/2
                w-[420px] h-[420px] sm:w-[560px] sm:h-[560px]
                rounded-full
-               bg-gradient-to-br from-blue-200/40 via-cyan-200/30 to-transparent
+               bg-gradient-to-br
+               from-blue-200/40 via-cyan-200/30 to-transparent
+               dark:from-blue-600/10 dark:via-cyan-500/10 dark:to-transparent
                blur-[100px]
                pointer-events-none"
     ></div>
@@ -34,6 +36,7 @@
                        h-28 w-28 sm:h-32 sm:w-32
                        rounded-full
                        border border-blue-200/70
+                       dark:border-cyan-400/20
                        animate-ping"
                 style="animation-duration: 2.2s;"
             ></div>
@@ -47,29 +50,32 @@
                        border-slate-200
                        border-t-blue-600
                        border-r-cyan-500
+                       dark:border-slate-700
+                       dark:border-t-cyan-400
+                       dark:border-r-blue-500
                        animate-spin"
                 style="animation-duration: 1.5s;"
             ></div>
 
             {{-- LOGO CORE --}}
             <div
-    class="relative
-           h-20 w-20 sm:h-24 sm:w-24
-           rounded-[26px]
-           bg-white
-           flex items-center justify-center
-           overflow-hidden
-           shadow-xl shadow-blue-500/20"
->
-    <img
-        src="{{ asset('images/logo-simantara.jpg') }}"
-        alt="Logo SIMANTARA"
-        class="w-full h-full object-contain"
-    >
-</div>
+                class="relative
+                       h-20 w-20 sm:h-24 sm:w-24
+                       rounded-[26px]
+                       bg-white
+                       flex items-center justify-center
+                       overflow-hidden
+                       shadow-xl shadow-blue-500/20
+                       dark:shadow-cyan-500/10"
+            >
+                <img
+                    src="{{ asset('images/logo-simantara.png') }}"
+                    alt="Logo SIMANTARA"
+                    class="w-full h-full object-contain"
+                >
+            </div>
 
         </div>
-
 
         {{-- BRAND --}}
         <div class="mt-10">
@@ -78,7 +84,7 @@
                 class="text-3xl sm:text-4xl
                        font-extrabold
                        tracking-[0.08em]
-                       text-slate-900"
+                       text-slate-900 dark:text-white"
             >
                 SIMANTARA
             </h2>
@@ -88,7 +94,7 @@
                        text-xs sm:text-sm
                        font-semibold
                        tracking-wide
-                       text-blue-600"
+                       text-blue-600 dark:text-cyan-400"
             >
                 Sistem Informasi Magang Terintegrasi
             </p>
@@ -97,13 +103,12 @@
                 class="mt-0.5
                        text-xs sm:text-sm
                        font-medium
-                       text-slate-400"
+                       text-slate-500 dark:text-slate-400"
             >
                 Kabupaten Ponorogo
             </p>
 
         </div>
-
 
         {{-- LOADING STATUS --}}
         <div class="mt-8 flex items-center gap-2.5">
@@ -114,7 +119,7 @@
                     class="absolute inline-flex
                            h-full w-full
                            rounded-full
-                           bg-blue-400
+                           bg-blue-400 dark:bg-cyan-400
                            opacity-60
                            animate-ping"
                 ></span>
@@ -123,7 +128,7 @@
                     class="relative inline-flex
                            h-2 w-2
                            rounded-full
-                           bg-blue-600"
+                           bg-blue-600 dark:bg-cyan-400"
                 ></span>
 
             </span>
@@ -131,7 +136,7 @@
             <span
                 class="text-[11px] sm:text-xs
                        font-semibold
-                       text-slate-500"
+                       text-slate-500 dark:text-slate-400"
             >
                 Memuat halaman...
             </span>
@@ -141,7 +146,6 @@
     </div>
 
 </div>
-
 
 {{-- Script preloader --}}
 @once

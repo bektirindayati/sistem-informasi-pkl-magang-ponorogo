@@ -15,10 +15,26 @@ class AdminPendaftaranRequest extends FormRequest
 
     private ?PendaftaranMagang $dimuat = null;
 
-    public function pendaftaran(): PendaftaranMagang
-    {
-        return $this->dimuat ??= PendaftaranMagang::findOrFail($this->route('id'));
+   
+
+public function pendaftaran(): PendaftaranMagang
+{
+    if ($this->dimuat !== null) {
+        return $this->dimuat;
     }
+
+    $parameter = $this->route('id') ?? $this->route('pendaftaran');
+
+    abort_if($parameter === null, 404, 'Parameter pendaftaran tidak ditemukan.');
+
+    if ($parameter instanceof PendaftaranMagang) {
+        return $this->dimuat = $parameter;
+    }
+
+    return $this->dimuat = PendaftaranMagang::findOrFail($parameter);
+}
+
+
 
     protected function dinasIdTarget()
     {

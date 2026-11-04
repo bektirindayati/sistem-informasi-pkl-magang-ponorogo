@@ -11,8 +11,8 @@
         onclick="toggleAiChatbot()"
         aria-controls="aiChatbotPanel"
         aria-expanded="false"
-        aria-label="Buka Asisten AI MagangHub"
-        title="Tanya Asisten AI MagangHub"
+        aria-label="Buka Asisten AI SIMANTARA"
+        title="Tanya Asisten AI SIMANTARA"
         class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl
                bg-gradient-to-br from-indigo-600 to-blue-600
                hover:from-indigo-700 hover:to-blue-700

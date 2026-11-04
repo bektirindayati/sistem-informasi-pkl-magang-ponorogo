@@ -30,7 +30,9 @@ class StoreDinasRequest extends FormRequest
             'nama_pejabat'    => ['nullable', 'string', 'max:255'],
             'jabatan_pejabat' => ['nullable', 'string', 'max:255'],
             'pangkat_pejabat' => ['nullable', 'string', 'max:100'],
+            'golongan_pejabat'=> ['nullable', 'string', 'max:20'],
             'nip_pejabat'     => ['nullable', 'string', 'max:50'],
+
 
             // Checkbox HTML tidak mengirim apa pun jika tidak dicentang, makanya
             // form memakai hidden input bernilai 0. 'boolean' menerima 0/1.

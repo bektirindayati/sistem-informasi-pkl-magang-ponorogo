@@ -2,65 +2,64 @@
 
 @section('title', 'Formulir Pendaftaran')
 
-@push('styles')
-<link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
->
-<style>
-    body {
-        font-family: 'Inter', sans-serif;
-    }
-    .form-section {
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        background: #ffffff;
-        padding: 20px;
-    }
 
-    .form-section + .form-section {
-        margin-top: 18px;
-    }
-</style>
+@push('styles')
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Kartu formulir - mode terang */
+        .form-section {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            background-color: #ffffff;
+            padding: 20px;
+            transition:
+                background-color 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+        .form-section + .form-section {
+            margin-top: 18px;
+        }
+
+        /* Kartu formulir - mode gelap */
+        html.dark .form-section {
+            background-color: #142544;
+            border-color: #304467;
+        }
+
+        /* Teks pendukung dalam kartu */
+        html.dark .form-section .text-slate-500 {
+            color: #b7c5da;
+        }
+
+        html.dark .form-section .text-slate-400 {
+            color: #a9bad2;
+        }
+
+        /* Pastikan teks utama tetap terbaca */
+        html.dark .form-section .text-slate-800 {
+            color: #f1f5f9;
+        }
+    </style>
 @endpush
 
 @section('content')
 @php
-    $isEdit = isset($pendaftaran) && $pendaftaran;
-    $user = Auth::user();
+    $isEdit = isset($pendaftaran);
+    $user   = auth()->user();
 
-$defaultNamaLengkap = $pendaftaran->nama_lengkap
-    ?? $user->nama_lengkap
-    ?? $user->name
-    ?? '';
+    // Data pendaftaran diutamakan; kalau kolomnya kosong, ambil dari profil.
+    $isi = fn (string $kolom) => $pendaftaran?->{$kolom} ?? $user->{$kolom};
 
-$defaultNimNisn = $pendaftaran->nim_nisn
-    ?? $user->nim_nisn
-    ?? '';
-
-$defaultInstansi = $pendaftaran->instansi
-    ?? $user->instansi
-    ?? '';
-
-$defaultJurusan = $pendaftaran->jurusan
-    ?? $user->jurusan
-    ?? '';
-
-$defaultNoHp = $pendaftaran->no_hp
-    ?? $user->no_hp
-    ?? '';
-
-$defaultAlamat = $pendaftaran->alamat
-    ?? $user->alamat
-    ?? '';
-
-$defaultKabupaten = $pendaftaran->kabupaten
-    ?? $user->kabupaten
-    ?? '';
-
-$defaultProvinsi = $pendaftaran->provinsi
-    ?? $user->provinsi
-    ?? '';
+    $namaLengkap = $isi('nama_lengkap') ?? $user->name;
 
     $tglMulaiVal = $isEdit && $pendaftaran->tanggal_mulai
         ? \Carbon\Carbon::parse($pendaftaran->tanggal_mulai)->format('Y-m-d')
@@ -69,60 +68,57 @@ $defaultProvinsi = $pendaftaran->provinsi
     $tglSelesaiVal = $isEdit && $pendaftaran->tanggal_selesai
         ? \Carbon\Carbon::parse($pendaftaran->tanggal_selesai)->format('Y-m-d')
         : null;
+    
+    $tglPengantarVal = $isEdit && $pendaftaran->tanggal_surat_pengantar
+    ? \Carbon\Carbon::parse($pendaftaran->tanggal_surat_pengantar)->format('Y-m-d')
+    : null;
 
-    // AUTO-FILL: untuk pendaftaran BARU (belum ada $pendaftaran sama
-    // sekali), pakai data dari Profil user kalau sudah pernah diisi.
-    // Untuk draft/edit yang sudah punya datanya sendiri, data
-    // $pendaftaran tetap diutamakan (tidak ditimpa data profil).
-    $defaultNimNisn = $pendaftaran->nim_nisn ?? (Auth::user()->nim_nisn ?? null);
-    $defaultInstansi = $pendaftaran->instansi ?? (Auth::user()->instansi ?? null);
-    $defaultJurusan = $pendaftaran->jurusan ?? (Auth::user()->jurusan ?? null);
+    $dinasTerpilih = old('dinas_id', $pendaftaran?->dinas_id);
 
-    // Dipakai oleh JS validasi: apakah file surat pengantar wajib diisi
-    // ulang (hanya wajib untuk pendaftaran baru / belum pernah ada file).
-    $hasSuratPengantar = $isEdit && $pendaftaran->surat_pengantar;
-
-    // Tombol "Hapus Draft" hanya relevan saat mengedit draft milik sendiri.
-    $bisaHapusDraft = $isEdit && $pendaftaran->status === 'draft';
+    // Draft: boleh simpan & hapus. Revisi: hanya boleh dikirim ulang.
+    $isDraft           = $isEdit && $pendaftaran->status === 'draft';
+    $bisaSimpanDraft   = ! $isEdit || $isDraft;
+    $hasSuratPengantar = $isEdit && filled($pendaftaran->surat_pengantar);
 @endphp
-<div class="min-h-screen bg-slate-50 py-8 sm:py-10 px-4 sm:px-6">
+<div class="min-h-screen bg-slate-50 dark:bg-slate-900/50 py-8 sm:py-10 px-4 sm:px-6">
     <div class="max-w-4xl mx-auto">
         {{-- MAIN CARD --}}
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            {{-- HEADER --}}
-            <div class="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 sm:px-8 py-7">
-                <div class="flex items-start gap-4">
-                    <div class="hidden sm:flex w-12 h-12 rounded-xl bg-white/15 items-center justify-center shrink-0">
-                        <svg
-                            class="w-6 h-6 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"
-                            />
-                        </svg>
-                    </div>
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+           
+{{-- HEADER --}}
+<div class="bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-600
+            dark:from-[#172554] dark:via-[#1e3a6b] dark:to-[#164e63]
+            px-6 sm:px-8 py-7">
 
-                    <div>
-                        <div class="inline-flex items-center px-2.5 py-1 rounded-full bg-white/15 text-white text-[11px] font-semibold uppercase tracking-wide mb-2">
-                            Portal Magang Resmi
-                        </div>
+    <div class="flex items-start gap-4">
+        <div class="hidden sm:flex w-12 h-12 rounded-xl
+                    bg-white/15 dark:bg-white/10
+                    items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
+            </svg>
+        </div>
 
-                        <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                            Formulir Pendaftaran
-                        </h1>
-
-                        <p class="mt-1.5 text-sm text-indigo-100 max-w-2xl leading-relaxed">
-                            Lengkapi data diri, instansi tujuan, periode magang,
-                            dan berkas persyaratan dengan benar.
-                        </p>
-                    </div>
-                </div>
+        <div>
+            <div class="inline-flex items-center px-2.5 py-1 rounded-full
+                        bg-white/15 text-white text-[11px] font-semibold
+                        uppercase tracking-wide mb-2">
+                Portal Magang Resmi
             </div>
+
+            <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                Formulir Pendaftaran
+            </h1>
+
+            <p class="mt-1.5 text-sm text-blue-50
+                      max-w-2xl leading-relaxed">
+                Lengkapi data diri, instansi tujuan, periode magang,
+                dan berkas persyaratan dengan benar.
+            </p>
+        </div>
+    </div>
+</div>
 
 
             {{-- FORM AREA --}}
@@ -130,29 +126,14 @@ $defaultProvinsi = $pendaftaran->provinsi
 
                 {{-- ERROR DARI SERVER (setelah submit) --}}
                 @if ($errors->any())
-                    <div class="mb-5 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm">
-
+                    <div class="mb-5 p-4 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded-xl text-rose-700 dark:text-rose-300 text-sm">
                         <div class="flex items-start gap-3">
-
-                            <svg
-                                class="w-5 h-5 mt-0.5 shrink-0"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                                />
+                            <svg class="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
-
                             <div>
-                                <p class="font-semibold">
-                                    Mohon periksa kembali formulir Anda.
-                                </p>
-
+                                <p class="font-semibold">Mohon periksa kembali formulir Anda.</p>
                                 <ul class="mt-1 list-disc list-inside text-xs space-y-0.5">
                                     @foreach ($errors->all() as $error)
                                         <li>{{ $error }}</li>
@@ -164,16 +145,14 @@ $defaultProvinsi = $pendaftaran->provinsi
                 @endif
 
                 {{-- ERROR DARI JS (real-time, sebelum submit) --}}
-                <div id="clientErrorBox" class="hidden mb-5 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm">
+                <div id="clientErrorBox" class="hidden mb-5 p-4 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded-xl text-rose-700 dark:text-rose-300 text-sm">
                     <div class="flex items-start gap-3">
                         <svg class="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                         <div>
-                            <p class="font-semibold">
-                                Mohon periksa kembali formulir Anda.
-                            </p>
+                            <p class="font-semibold">Mohon periksa kembali formulir Anda.</p>
                             <ul id="clientErrorList" class="mt-1 list-disc list-inside text-xs space-y-0.5"></ul>
                         </div>
                     </div>
@@ -196,28 +175,16 @@ $defaultProvinsi = $pendaftaran->provinsi
                     {{-- INSTANSI TUJUAN --}}
                     <div class="form-section">
                         <div class="flex items-center gap-3 mb-4">
-                            <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                                <svg
-                                    class="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 4h1m4 0h1"
-                                    />
+                            <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 4h1m4 0h1" />
                                 </svg>
                             </div>
 
                             <div>
-                                <h2 class="text-sm font-bold text-slate-800">
-                                    Instansi Tujuan
-                                </h2>
-
-                                <p class="text-xs text-slate-500 mt-0.5">
+                                <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Instansi Tujuan</h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                     Tentukan instansi dan bidang penempatan magang.
                                 </p>
                             </div>
@@ -231,27 +198,23 @@ $defaultProvinsi = $pendaftaran->provinsi
                                 label="Instansi / Dinas Tujuan"
                                 id="dinasTujuan"
                                 required
-                                onchange="updateBidang()"
+                                onchange="gantiDinas()"
                                 hint="Pilih instansi tujuan magang."
                             >
-                                <option
-                                    value=""
-                                    disabled
-                                    {{ old('dinas_id', $pendaftaran->dinas_id ?? '') ? '' : 'selected' }}
-                                >
+                                <option value="" disabled @selected(blank($dinasTerpilih))>
                                     -- Pilih Instansi --
                                 </option>
                                 @foreach ($dinases as $dinas)
                                     <option
                                         value="{{ $dinas->id }}"
-                                        {{ old('dinas_id', $pendaftaran->dinas_id ?? '') == $dinas->id ? 'selected' : '' }}
+                                        @selected((string) $dinasTerpilih === (string) $dinas->id)
                                     >
                                         {{ $dinas->nama_dinas }}
                                     </option>
                                 @endforeach
                             </x-form.select>
 
-                            {{-- BIDANG --}}
+                            {{-- BIDANG (diisi JavaScript; sengaja tidak ada yang terpilih otomatis) --}}
                             <x-form.select
                                 name="instansi_bidang_id"
                                 label="Bidang Penempatan"
@@ -259,44 +222,26 @@ $defaultProvinsi = $pendaftaran->provinsi
                                 required
                                 hint="Pilih bidang yang sesuai."
                             >
-                                <option value="" disabled selected>
-                                    -- Pilih instansi terlebih dahulu --
-                                </option>
+                                <option value="" selected>-- Pilih instansi terlebih dahulu --</option>
                             </x-form.select>
                         </div>
                     </div>
 
                     {{-- SECTION 1 --}}
                     <div class="form-section">
-                        <x-step-heading
-                            number="1"
-                            variant="indigo"
-                        >
+                        <x-step-heading number="1" variant="indigo">
                             Informasi Akademik & Data Diri
                         </x-step-heading>
                         <div class="mt-4 space-y-4">
 
-                            {{-- KATEGORI --}}
-                            <x-form.select
-                                name="kategori"
-                                label="Kategori Pendaftar"
-                                required
-                            >
-                                <option value="">
-                                    -- Pilih Kategori --
-                                </option>
-                                <option
-                                    value="Mahasiswa"
-                                    {{ old('kategori', $pendaftaran->kategori ?? null) == 'Mahasiswa' ? 'selected' : '' }}
-                                >
-                                    Mahasiswa (Magang Kuliah)
-                                </option>
-                                <option
-                                    value="Siswa (SMK/Sederajat)"
-                                    {{ old('kategori', $pendaftaran->kategori ?? null) == 'Siswa (SMK/Sederajat)' ? 'selected' : '' }}
-                                >
-                                    Siswa (SMK/Sederajat)
-                                </option>
+                            {{-- KATEGORI (default dari profil) --}}
+                            <x-form.select name="kategori" label="Kategori Pendaftar" required>
+                                <option value="">-- Pilih Kategori --</option>
+                                @foreach (\App\Models\PendaftaranMagang::KATEGORI as $nilai => $label)
+                                    <option value="{{ $nilai }}" @selected(old('kategori', $isi('kategori')) === $nilai)>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
                             </x-form.select>
 
                             {{-- DATA AKADEMIK --}}
@@ -306,30 +251,28 @@ $defaultProvinsi = $pendaftaran->provinsi
                                     name="nama_lengkap"
                                     label="Nama Lengkap"
                                     required
-                                    :value="$defaultNamaLengkap"
+                                    :value="$namaLengkap"
                                 />
                                 <x-form.input
                                     name="nim_nisn"
-                                    id="nim_nisn"
                                     label="NIM / NISN"
                                     required
                                     placeholder="Contoh: 22050974001"
-                                    :value="$defaultNimNisn"
-                                    oninput="this.classList.remove('border-rose-500','bg-rose-50/30');"
+                                    :value="$isi('nim_nisn')"
                                 />
                                 <x-form.input
                                     name="instansi"
                                     label="Asal Instansi / Universitas"
                                     required
                                     placeholder="Universitas Negeri Surabaya"
-                                    :value="$defaultInstansi"
+                                    :value="$isi('instansi')"
                                 />
                                 <x-form.input
                                     name="jurusan"
                                     label="Jurusan / Program Studi"
                                     required
                                     placeholder="S1 Teknologi Pendidikan"
-                                    :value="$defaultJurusan"
+                                    :value="$isi('jurusan')"
                                 />
                                 <div class="md:col-span-2">
                                     <x-form.input
@@ -339,7 +282,7 @@ $defaultProvinsi = $pendaftaran->provinsi
                                         required
                                         placeholder="Contoh: 081234567890"
                                         inputmode="numeric"
-                                        :value="$defaultNoHp"
+                                        :value="$isi('no_hp')"
                                         oninput="this.value=this.value.replace(/[^0-9]/g,'');"
                                     />
                                 </div>
@@ -349,60 +292,22 @@ $defaultProvinsi = $pendaftaran->provinsi
                                         label="Alamat Tempat Tinggal"
                                         required
                                         placeholder="Jl. Ketintang No. 156, RT/RW, Desa/Kelurahan"
-                                        :value="$defaultAlamat"
+                                        :value="$isi('alamat')"
                                     />
                                 </div>
 
-                                {{-- KABUPATEN --}}
-                                <x-form.input
-                                    name="kabupaten"
-                                    id="input-kabupaten"
-                                    label="Kabupaten / Kota"
-                                    required
-                                    list="list-kabupaten"
-                                    placeholder="Contoh: Ponorogo"
-                                    :value="$defaultKabupaten"
-                                    oninput="autoFillProvinsi(this.value)"
-                                />
-                                <datalist id="list-kabupaten">
-                                    @foreach ([
-                                        'Surabaya',
-                                        'Sidoarjo',
-                                        'Gresik',
-                                        'Mojokerto',
-                                        'Malang',
-                                        'Ponorogo',
-                                        'Madiun',
-                                        'Kediri',
-                                        'Jember',
-                                        'Banyuwangi'
-                                    ] as $kab)
-
-                                        <option value="{{ $kab }}">
-                                    @endforeach
-                                </datalist>
-
-                                {{-- PROVINSI --}}
-                                <x-form.input
-                                    name="provinsi"
-                                    id="input-provinsi"
-                                    label="Provinsi"
-                                    required
-                                    readonly
-                                    placeholder="Jawa Timur"
-                                    :value="$defaultProvinsi"
+                                {{-- PROVINSI -> KABUPATEN/KOTA (bertingkat, dari config/wilayah.php) --}}
+                                <x-form.wilayah
+                                    :provinsi="$isi('provinsi')"
+                                    :kabupaten="$isi('kabupaten')"
                                 />
                             </div>
                         </div>
                     </div>
 
-
                     {{-- SECTION 2 --}}
                     <div class="form-section">
-                        <x-step-heading
-                            number="2"
-                            variant="indigo"
-                        >
+                        <x-step-heading number="2" variant="indigo">
                             Periode Pelaksanaan Magang
                         </x-step-heading>
                         <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -414,9 +319,7 @@ $defaultProvinsi = $pendaftaran->provinsi
                                 required
                                 min="{{ date('Y-m-d') }}"
                                 :value="$tglMulaiVal"
-                                onchange="
-                                    document.getElementById('tanggal_selesai').min=this.value;
-                                "
+                                onchange="document.getElementById('tanggal_selesai').min=this.value;"
                             />
                             <x-form.input
                                 type="date"
@@ -431,32 +334,20 @@ $defaultProvinsi = $pendaftaran->provinsi
 
                     {{-- SECTION 3 --}}
                     <div class="form-section">
-                        <x-step-heading
-                            number="3"
-                            variant="indigo"
-                        >
+                        <x-step-heading number="3" variant="indigo">
                             Unggah Berkas Persyaratan
                         </x-step-heading>
                         <div class="mt-3 mb-4 ml-0 sm:ml-10">
-                            <div class="flex items-start gap-2 text-xs text-slate-500">
-                                <svg
-                                    class="w-4 h-4 mt-0.5 text-indigo-500 shrink-0"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M13 16h-1v-4h-1m1-8h.01M12 20a8 8 0 100-16 8 8 0 000 16z"
-                                    />
+                            <div class="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                <svg class="w-4 h-4 mt-0.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-8h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
                                 </svg>
                                 <p>
                                     Format file wajib
-                                    <strong class="text-slate-700">PDF</strong>
+                                    <strong class="text-slate-700 dark:text-slate-200">PDF</strong>
                                     dengan ukuran maksimal
-                                    <strong class="text-slate-700">2MB</strong>
+                                    <strong class="text-slate-700 dark:text-slate-200">2MB</strong>
                                     per file.
                                     @if($isEdit)
                                         <span class="block mt-1">
@@ -466,250 +357,252 @@ $defaultProvinsi = $pendaftaran->provinsi
                                 </p>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
+                        
+{{-- DATA SURAT PENGANTAR (dipakai mengisi surat balasan) --}}
+<div class="mb-5">
+    <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-3">
+        Data Surat Pengantar
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <x-form.input
+            name="nomor_surat_pengantar"
+            label="Nomor Surat Pengantar"
+            required
+            placeholder="Contoh: B/20069/UN38.I.1/TU.00/2026"
+            :value="old('nomor_surat_pengantar', $pendaftaran?->nomor_surat_pengantar)"
+        />
+
+        <x-form.input
+            type="date"
+            name="tanggal_surat_pengantar"
+            id="tanggal_surat_pengantar"
+            label="Tanggal Surat Pengantar"
+            required
+            max="{{ date('Y-m-d') }}"
+            :value="old('tanggal_surat_pengantar', $tglPengantarVal)"
+        />
+
+        <x-form.input
+            name="jabatan_penerima"
+            label="Pengirim Surat"
+            required
+            placeholder="Contoh: Direktur Pendidikan dan Transformasi Pendidikan"
+            hint="Jabatan pejabat kampus/sekolah yang menandatangani surat pengantar; surat balasan ditujukan kepadanya."
+            :value="old('jabatan_penerima', $pendaftaran?->jabatan_penerima)"
+        />
+
+        <x-form.input
+            name="kota_tujuan"
+            label="Kota Kampus / Sekolah"
+            required
+            placeholder="Contoh: Surabaya"
+            :value="old('kota_tujuan', $pendaftaran?->kota_tujuan)"
+        />
+    </div>
+</div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <x-form.file
                                 name="surat_pengantar"
                                 label="Surat Pengantar Instansi"
-                                required
+                                :required="! $hasSuratPengantar"
                                 accept=".pdf"
-                                :hint="$isEdit && $pendaftaran->surat_pengantar
-                                    ? 'File saat ini: '.$pendaftaran->surat_pengantar
-                                : null"
-                                />
+                                :hint="$hasSuratPengantar ? 'File saat ini: '.basename($pendaftaran->surat_pengantar) : null"
+                            />
                             <x-form.file
                                 name="proposal"
                                 label="Proposal Magang"
                                 accept=".pdf"
-                                :hint="$isEdit && $pendaftaran->proposal
-                                    ? 'File saat ini: '.$pendaftaran->proposal
-                                : null"
-                                />
+                                :hint="$isEdit && filled($pendaftaran->proposal) ? 'File saat ini: '.basename($pendaftaran->proposal) : null"
+                            />
                         </div>
                     </div>
-{{-- ACTION --}}
-<div class="pt-5 border-t border-slate-200">
 
-    <div class="flex flex-col sm:flex-row items-center 
-    justify-between gap-4">
+
+{{-- ACTION --}}
+<div class="pt-5 border-t border-slate-200 dark:border-slate-700">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
         {{-- KEMBALI --}}
         <a
             href="{{ route('user.dashboard') }}"
-            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3
+                   text-sm font-semibold rounded-xl
+                   text-slate-600 bg-transparent
+                   hover:text-slate-900 hover:bg-slate-100
+                   dark:text-slate-200 dark:bg-slate-800/60
+                   dark:hover:text-white dark:hover:bg-slate-700
+                   focus-visible:outline-none focus-visible:ring-2
+                   focus-visible:ring-blue-500 dark:focus-visible:ring-cyan-500
+                   transition-colors duration-200"
         >
-            <svg
-                class="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-
             Kembali ke Dashboard
         </a>
-                            {{-- BUTTON --}}
-                            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
 
-                                @if($bisaHapusDraft)
-                                {{-- HAPUS DRAFT --}}
-                                <button
-                                    type="button"
-                                    onclick="hapusDraft()"
-                                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-white text-rose-600 border border-rose-200 hover:border-rose-300 hover:bg-rose-50 rounded-xl font-semibold transition text-sm"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <polyline points="3 6 5 6 21 6"/>
-                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                    </svg>
-                                    Hapus Draft
-                                </button>
-                                @endif
+        {{-- KELOMPOK TOMBOL AKSI --}}
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
 
-                                {{-- DRAFT --}}
-                               <button
-    type="button"
-    id="btnSimpanDraft"
-    onclick="simpanDraft()"
-    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 border border-slate-300 hover:border-indigo-300 hover:bg-indigo-50 rounded-xl font-semibold transition"
->
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2">
-        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/>
-        <polyline points="17 21 17 13 7 13 7 21"/>
-        <polyline points="7 3 7 8 15 8"/>
-    </svg>
-    <span id="textSimpanDraft">Simpan Draft</span>
-</button>
-                                {{-- KIRIM --}}
-                                <button
-                                    type="button"
-                                    onclick="konfirmasiKirim()"
-                                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-sm hover:shadow-md transition"
-                                >
-                                    <svg
-                                        class="w-4 h-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M5 12h14m-6-6l6 6-6 6"
-                                        />
-                                    </svg>Kirim Pendaftaran
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+            @if($isDraft)
+                {{-- HAPUS DRAFT --}}
+                <button
+                    type="button"
+                    onclick="hapusDraft()"
+                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3
+                           bg-white text-rose-600 border border-rose-200
+                           hover:bg-rose-50 hover:border-rose-300
+                           dark:bg-slate-800 dark:text-rose-400 dark:border-rose-500/30
+                           dark:hover:bg-rose-500/10 dark:hover:border-rose-500/50
+                           rounded-xl font-semibold transition-colors duration-200 text-sm
+                           focus-visible:outline-none focus-visible:ring-2
+                           focus-visible:ring-rose-500"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    Hapus Draft
+                </button>
+            @endif
+
+            @if($bisaSimpanDraft)
+                {{-- SIMPAN DRAFT --}}
+                <button
+                    type="button"
+                    id="btnSimpanDraft"
+                    onclick="simpanDraft()"
+                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3
+                           bg-white text-slate-700 border border-slate-300
+                           hover:bg-indigo-50 hover:border-indigo-300
+                           dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600
+                           dark:hover:bg-slate-700 dark:hover:text-white dark:hover:border-cyan-500/50
+                           rounded-xl font-semibold transition-colors duration-200 text-sm
+                           focus-visible:outline-none focus-visible:ring-2
+                           focus-visible:ring-blue-500 dark:focus-visible:ring-cyan-500"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    <span id="textSimpanDraft">Simpan Draft</span>
+                </button>
+            @endif
+
+            {{-- KIRIM --}}
+            <button
+                type="button"
+                onclick="konfirmasiKirim()"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3
+                       bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm
+                       rounded-xl shadow-sm hover:shadow-md transition
+                       focus-visible:outline-none focus-visible:ring-2
+                       focus-visible:ring-indigo-500 focus-visible:ring-offset-2
+                       dark:focus-visible:ring-offset-slate-900"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M5 12h14m-6-6l6 6-6 6" />
+                </svg>
+                {{ $isEdit && $pendaftaran->status === 'revisi' ? 'Kirim Ulang' : 'Kirim Pendaftaran' }}
+            </button>
+
+        </div>
+    </div>
+</div>
+
                 </form>
 
-                @if($bisaHapusDraft)
-                <form id="hapusDraftForm"
-      action="{{ route('user.pendaftaran.destroy', $pendaftaran->id) }}"
-      method="POST"
-      class="hidden">
-    @csrf
-    @method('DELETE')
-                </form>
+                @if($isDraft)
+                    <form id="hapusDraftForm"
+                          action="{{ route('user.pendaftaran.destroy', $pendaftaran->id) }}"
+                          method="POST"
+                          class="hidden">
+                        @csrf
+                        @method('DELETE')
+                    </form>
                 @endif
             </div>
         </div>
 
         {{-- FOOTER INFO --}}
         <div class="mt-4 text-center">
-
+            @if($bisaSimpanDraft)
+                <p id="autosaveStatus" class="text-xs text-slate-400 mb-1"></p>
+            @endif
             <p class="text-xs text-slate-400">
                 Pastikan seluruh data dan dokumen yang Anda masukkan sudah benar sebelum dikirim.
             </p>
         </div>
     </div>
 </div>
-
 @endsection
 
 @push('scripts')
-
 <script>
-    // KONTEKS FORM (untuk validasi JS)//
-    const isEditForm = @json($isEdit);
-    const hasSuratPengantar = @json($hasSuratPengantar);
+    // ==========================================
+    // KONTEKS FORM
+    // ==========================================
+    const URL_BIDANG    = @json(url('user/pendaftaran/bidang'));
+    const URL_DRAFT     = @json(route('user.pendaftaran.draft'));
+    const URL_DASHBOARD = @json(route('user.dashboard'));
+    const AUTOSAVE_AKTIF = @json($bisaSimpanDraft);   // revisi tidak boleh membuat draft baru
+    let hasSuratPengantar = @json($hasSuratPengantar);
 
-    // BIDANG INSTANSI//
-    function updateBidang(selectedBidangId = null) {
-
+    // ==========================================
+    // BIDANG INSTANSI
+    // ==========================================
+    async function updateBidang(terpilih = null) {
         const dinasId = document.getElementById('dinasTujuan').value;
-        const divisiSelect = document.getElementById('pilihanDivisi');
+        const select  = document.getElementById('pilihanDivisi');
+        const isi = teks => { select.innerHTML = `<option value="" selected>${teks}</option>`; };
 
-        divisiSelect.innerHTML = '';
+        if (!dinasId) return isi('-- Pilih instansi terlebih dahulu --');
+        isi('Memuat bidang...');
 
-        if (!dinasId) {
-            divisiSelect.innerHTML =
-                '<option value="" disabled selected>-- Pilih instansi terlebih dahulu --</option>';
-            return;
+        try {
+            const res = await fetch(`${URL_BIDANG}/${dinasId}`, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('Gagal mengambil data bidang.');
+            const data = await res.json();
+
+            // Dinas diganti lagi saat menunggu respons -> abaikan hasil lama.
+            if (document.getElementById('dinasTujuan').value !== dinasId) return;
+
+            if (!data.length) return isi('Tidak ada bidang tersedia');
+
+            // Placeholder tetap terpilih; bidang baru dipilih hanya jika ada nilai tersimpan.
+            isi('-- Pilih Bidang / Divisi Tujuan --');
+            data.forEach(b => select.add(
+                new Option(b.nama_bidang, b.id, false, terpilih !== null && String(b.id) === String(terpilih))
+            ));
+        } catch (error) {
+            console.error(error);
+            isi('Gagal memuat bidang');
         }
-
-        divisiSelect.innerHTML =
-            '<option value="" disabled selected>Memuat bidang...</option>';
-
-        fetch(`/user/pendaftaran/bidang/${dinasId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Gagal mengambil data bidang.');
-                }
-                return response.json();
-            })
-            .then(data => {
-
-                divisiSelect.innerHTML =
-                    '<option value="" disabled>-- Pilih Bidang / Divisi Tujuan --</option>';
-
-                data.forEach(bidang => {
-                    const option = document.createElement('option');
-                    option.value = bidang.id;
-                    option.textContent = bidang.nama_bidang;
-                    if (selectedBidangId && selectedBidangId == bidang.id) {
-                        option.selected = true;
-                    }
-                    divisiSelect.appendChild(option);
-                });
-
-                if (data.length === 0) {
-                    divisiSelect.innerHTML =
-                        '<option value="" disabled selected>Tidak ada bidang tersedia</option>';
-                }
-
-                // Select ini dibuat ulang tiap kali dinas berganti, jadi
-                // listener auto-save & validasi lama ikut hilang.
-                // Pasang ulang di sini.
-                divisiSelect.addEventListener('change', () => {
-                    validateField('instansi_bidang_id');
-                    scheduleAutoSave();
-                });
-
-            })
-            .catch(error => {
-                console.error(error);
-                divisiSelect.innerHTML =
-                    '<option value="" disabled selected>Gagal memuat bidang</option>';
-            });
     }
 
-    // DATA WILAYAH//
-    const dataWilayah = {
-        "Surabaya": "Jawa Timur",
-        "Sidoarjo": "Jawa Timur",
-        "Gresik": "Jawa Timur",
-        "Mojokerto": "Jawa Timur",
-        "Malang": "Jawa Timur",
-        "Ponorogo": "Jawa Timur",
-        "Madiun": "Jawa Timur",
-        "Kediri": "Jawa Timur",
-        "Jember": "Jawa Timur",
-        "Banyuwangi": "Jawa Timur"
-    };
-
-    // AUTOFILL PROVINSI//
-    function autoFillProvinsi(kabupaten) {
-        const inputProvinsi = document.getElementById('input-provinsi');
-        if (inputProvinsi) {
-            inputProvinsi.value = dataWilayah[kabupaten] || "";
-        }
-        validateField('provinsi');
+    // Dipanggil saat user mengganti dinas.
+    function gantiDinas() {
+        updateBidang().then(() => {
+            document.getElementById('pilihanDivisi')
+                .dispatchEvent(new Event('change', { bubbles: true }));
+        });
     }
 
-    // SAAT HALAMAN SELESAI DIMUAT//
-    document.addEventListener("DOMContentLoaded", function () {
-        const selectedDinas =
-            "{{ old('dinas_id', $pendaftaran->dinas_id ?? '') }}";
-        const selectedBidang =
-            "{{ old('instansi_bidang_id', $pendaftaran->instansi_bidang_id ?? '') }}";
-
-        if (selectedDinas) {
-            const dinasElement = document.getElementById('dinasTujuan');
-            if (dinasElement) {
-                dinasElement.value = selectedDinas;
-                updateBidang(selectedBidang);
-            }
-        }
-
-        const inputKabupaten = document.getElementById('input-kabupaten');
-        if (inputKabupaten && inputKabupaten.value) {
-            autoFillProvinsi(inputKabupaten.value);
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('dinasTujuan').value) {
+            updateBidang(@json(old('instansi_bidang_id', $pendaftaran?->instansi_bidang_id)));
         }
 
         initValidasiRealtime();
-        initAutoSave();
+        if (AUTOSAVE_AKTIF) initAutoSave();
     });
 
     // ==========================================
@@ -725,10 +618,14 @@ $defaultProvinsi = $pendaftaran->provinsi
         jurusan: 'Jurusan / Program Studi',
         no_hp: 'No. WhatsApp / HP Aktif',
         alamat: 'Alamat Tempat Tinggal',
-        kabupaten: 'Kabupaten / Kota',
         provinsi: 'Provinsi',
+        kabupaten: 'Kabupaten / Kota',
         tanggal_mulai: 'Tanggal Mulai Magang',
         tanggal_selesai: 'Tanggal Selesai Magang',
+        nomor_surat_pengantar: 'Nomor Surat Pengantar',
+        tanggal_surat_pengantar: 'Tanggal Surat Pengantar',
+        jabatan_penerima: 'Jabatan Penerima Surat',
+        kota_tujuan: 'Kota Kampus / Sekolah',
         surat_pengantar: 'Surat Pengantar Instansi',
         proposal: 'Proposal Magang',
     };
@@ -764,22 +661,55 @@ $defaultProvinsi = $pendaftaran->provinsi
             return null;
         },
         alamat: v => v.trim() ? null : 'Alamat tempat tinggal wajib diisi.',
-        kabupaten: v => v.trim() ? null : 'Kabupaten / kota wajib diisi.',
-        provinsi: v => v.trim() ? null : 'Provinsi wajib terisi (pilih kabupaten/kota terlebih dahulu).',
-        tanggal_mulai: v => v ? null : 'Tanggal mulai magang wajib diisi.',
+        provinsi: v => v.trim() ? null : 'Provinsi wajib diisi.',
+
+kabupaten: (v, form) => {
+    if (!v.trim()) return 'Kabupaten / kota wajib diisi.';
+
+    const cocok = window.kabupatenCocok
+        ? window.kabupatenCocok(
+            form.elements['provinsi'].value,
+            v
+        )
+        : true;
+
+    return cocok
+        ? null
+        : 'Kabupaten / kota tidak sesuai dengan provinsi yang dipilih.';
+},
+               tanggal_mulai: v => v ? null : 'Tanggal mulai magang wajib diisi.',
+
         tanggal_selesai: (v, form) => {
             if (!v) return 'Tanggal selesai magang wajib diisi.';
-            const mulai = form.elements['tanggal_mulai'] ? form.elements['tanggal_mulai'].value : '';
-            if (mulai && v < mulai) return 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.';
+
+            const mulai = form.elements['tanggal_mulai']
+                ? form.elements['tanggal_mulai'].value
+                : '';
+
+            if (mulai && v < mulai) {
+                return 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.';
+            }
+
             return null;
         },
+
+        nomor_surat_pengantar: v =>
+            v.trim() ? null : 'Nomor surat pengantar wajib diisi.',
+
+        tanggal_surat_pengantar: v =>
+            v ? null : 'Tanggal surat pengantar wajib diisi.',
+
+        jabatan_penerima: v =>
+            v.trim() ? null : 'Jabatan penerima surat wajib diisi.',
+
+        kota_tujuan: v =>
+            v.trim() ? null : 'Kota kampus / sekolah wajib diisi.',
     };
 
-    // surat_pengantar WAJIB untuk pendaftaran baru / belum pernah ada file.
-    // Saat edit dengan file lama sudah ada, boleh dikosongkan (tidak wajib upload ulang).
-    // proposal SELALU opsional, apa pun kondisinya.
+    // Surat pengantar wajib selama belum pernah ada file (baru maupun draft tanpa surat).
+    // Proposal SELALU opsional.
     function isSuratPengantarRequired() {
-        return !isEditForm && !hasSuratPengantar;
+        return !hasSuratPengantar;
     }
 
     function validateFile(input, required) {
@@ -804,7 +734,7 @@ $defaultProvinsi = $pendaftaran->provinsi
         if (!err) {
             err = document.createElement('p');
             err.dataset.clientError = name;
-            err.className = 'mt-1 text-xs text-rose-600 font-medium';
+            err.className = 'mt-1 text-xs text-rose-600 dark:text-rose-400 font-medium';
             el.insertAdjacentElement('afterend', err);
         }
         err.textContent = message;
@@ -839,9 +769,7 @@ $defaultProvinsi = $pendaftaran->provinsi
         const value = el.value || '';
 
         // Field belum disentuh & masih kosong -> jangan tampilkan status apa pun dulu.
-        if (value.trim() === '' && !el.dataset.touched) {
-            return true;
-        }
+        if (value.trim() === '' && !el.dataset.touched) return true;
         el.dataset.touched = '1';
 
         const msg = validators[name](value, form);
@@ -870,9 +798,24 @@ $defaultProvinsi = $pendaftaran->provinsi
         document.getElementById('clientErrorBox').classList.add('hidden');
     }
 
-    // strict = true  -> dipakai sebelum "Kirim Pendaftaran" (semua wajib diisi)
-    // strict = false -> dipakai sebelum "Simpan Draft" (field kosong dilewati,
-    //                   tapi field yang SUDAH diisi tetap dicek formatnya)
+    // Cek satu input file; mengembalikan pesan error atau null.
+    function cekBerkas(form, name, required, errors) {
+        const input = form.elements[name];
+        if (!input) return;
+
+        const msg = validateFile(input, required);
+        if (msg) {
+            showFieldError(name, msg);
+            errors.push({ field: name, label: fieldLabels[name], message: msg });
+        } else if (input.files.length > 0) {
+            showFieldSuccess(name);
+        } else {
+            clearFieldState(name);
+        }
+    }
+
+    // strict = true  -> sebelum "Kirim" (semua wajib diisi)
+    // strict = false -> sebelum "Simpan Draft" (kosong dilewati, yang terisi tetap dicek formatnya)
     function validateForm(strict) {
         const form = document.getElementById('pendaftaranForm');
         const errors = [];
@@ -898,34 +841,8 @@ $defaultProvinsi = $pendaftaran->provinsi
             }
         });
 
-        // SURAT PENGANTAR: wajib hanya saat kirim (strict) & memang belum ada file.
-        const suratInput = form.elements['surat_pengantar'];
-        if (suratInput) {
-            const required = strict && isSuratPengantarRequired();
-            const msg = validateFile(suratInput, required);
-            if (msg) {
-                showFieldError('surat_pengantar', msg);
-                errors.push({ field: 'surat_pengantar', label: fieldLabels.surat_pengantar, message: msg });
-            } else if (suratInput.files.length > 0) {
-                showFieldSuccess('surat_pengantar');
-            } else {
-                clearFieldState('surat_pengantar');
-            }
-        }
-
-        // PROPOSAL: selalu opsional.
-        const proposalInput = form.elements['proposal'];
-        if (proposalInput) {
-            const msg = validateFile(proposalInput, false);
-            if (msg) {
-                showFieldError('proposal', msg);
-                errors.push({ field: 'proposal', label: fieldLabels.proposal, message: msg });
-            } else if (proposalInput.files.length > 0) {
-                showFieldSuccess('proposal');
-            } else {
-                clearFieldState('proposal');
-            }
-        }
+        cekBerkas(form, 'surat_pengantar', strict && isSuratPengantarRequired(), errors);
+        cekBerkas(form, 'proposal', false, errors);
 
         if (errors.length) {
             showErrorSummary(errors);
@@ -936,9 +853,7 @@ $defaultProvinsi = $pendaftaran->provinsi
         return { valid: errors.length === 0, errors };
     }
 
-    // Validasi setiap field terjadi saat: mengetik/memilih (input/change)
-    // DAN saat pindah ke field lain (blur) — jadi field sebelumnya
-    // langsung ketahuan benar/salah begitu user pindah pertanyaan.
+    // Validasi saat mengetik/memilih (input/change) DAN saat pindah field (blur).
     function initValidasiRealtime() {
         const form = document.getElementById('pendaftaranForm');
         if (!form) return;
@@ -957,7 +872,6 @@ $defaultProvinsi = $pendaftaran->provinsi
             el.addEventListener('change', () => {
                 const required = name === 'surat_pengantar' && isSuratPengantarRequired();
                 const msg = validateFile(el, required);
-                el.dataset.touched = '1';
                 if (msg) {
                     showFieldError(name, msg);
                 } else if (el.files.length > 0) {
@@ -970,221 +884,172 @@ $defaultProvinsi = $pendaftaran->provinsi
     }
 
     // ==========================================
-    // AUTO-SAVE DRAFT (silent, background)
+    // SIMPAN DRAFT (auto-save & manual lewat satu fungsi)
     // ==========================================
+    const berkasBerubah = new Set();   // file hanya dikirim jika baru dipilih
+    let adaPerubahan = false;
     let autoSaveTimer = null;
     let autoSaveInFlight = false;
     let autoSaveQueued = false;
+    let autoSaveDisabled = false;
+    let autoSavePromise = null;
+
+    function kirimDraft() {
+        const form = document.getElementById('pendaftaranForm');
+        const formData = new FormData(form);
+        formData.delete('_method');
+
+        const dikirim = [...berkasBerubah];
+        ['surat_pengantar', 'proposal'].forEach(n => {
+            if (!berkasBerubah.has(n)) formData.delete(n);
+        });
+
+        return fetch(URL_DRAFT, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': form.elements['_token'].value,
+                'Accept': 'application/json',
+            },
+        }).then(async res => {
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) {
+                const pesanValidasi = data.errors ? Object.values(data.errors)[0][0] : null;
+                throw new Error(pesanValidasi || data.message || 'Draft gagal disimpan.');
+            }
+            dikirim.forEach(n => berkasBerubah.delete(n));
+            hasSuratPengantar = hasSuratPengantar || data.has_surat;
+            return data;
+        });
+    }
 
     function scheduleAutoSave() {
+        adaPerubahan = true;
         clearTimeout(autoSaveTimer);
         autoSaveTimer = setTimeout(autoSaveDraft, 1200);
     }
 
     function autoSaveDraft() {
-        if (autoSaveInFlight) {
-            autoSaveQueued = true;
-            return;
-        }
-
-        const form = document.getElementById('pendaftaranForm');
-        if (!form) return;
+        if (autoSaveDisabled) return;
+        if (!adaPerubahan && berkasBerubah.size === 0) return;   // tidak ada yang perlu disimpan
+        if (autoSaveInFlight) { autoSaveQueued = true; return; }
 
         const statusEl = document.getElementById('autosaveStatus');
-        const csrfInput = form.querySelector('input[name="_token"]');
-        const csrfToken = csrfInput ? csrfInput.value : '';
-        if (!csrfToken) return;
-
-        const formData = new FormData(form);
-        formData.delete('_method');
-
         autoSaveInFlight = true;
+        adaPerubahan = false;
         if (statusEl) statusEl.textContent = 'Menyimpan...';
 
-        fetch("{{ route('user.pendaftaran.draft') }}", {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'Accept': 'application/json'
-            }
-        })
-        .then(async response => {
-            const data = await response.json().catch(() => ({}));
-            if (!response.ok || !data.success) {
-                throw new Error(data.message || 'Gagal menyimpan otomatis.');
-            }
-            return data;
-        })
-        .then(() => {
-            if (statusEl) {
-                const jam = new Date().toLocaleTimeString('id-ID', {
-                    hour: '2-digit', minute: '2-digit'
-                });
-                statusEl.textContent = `Tersimpan otomatis pukul ${jam}`;
-            }
-        })
-        .catch(error => {
-            console.error('AUTO-SAVE ERROR:', error);
-            if (statusEl) statusEl.textContent = 'Gagal menyimpan otomatis.';
-        })
-        .finally(() => {
-            autoSaveInFlight = false;
-            if (autoSaveQueued) {
-                autoSaveQueued = false;
-                autoSaveDraft();
-            }
-        });
+        autoSavePromise = kirimDraft()
+            .then(() => {
+                if (statusEl) {
+                    const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    statusEl.textContent = `Tersimpan otomatis pukul ${jam}`;
+                }
+            })
+            .catch(error => {
+                console.error('AUTO-SAVE ERROR:', error);
+                adaPerubahan = true;
+                if (statusEl) statusEl.textContent = 'Gagal menyimpan otomatis.';
+            })
+            .finally(() => {
+                autoSaveInFlight = false;
+                if (autoSaveQueued) {
+                    autoSaveQueued = false;
+                    autoSaveDraft();
+                }
+            });
     }
 
     function initAutoSave() {
-    const form = document.getElementById('pendaftaranForm');
-    if (!form) return;
+        const form = document.getElementById('pendaftaranForm');
+        if (!form) return;
 
-    // ==========================================
-    // AUTO-SAVE SAAT DATA BERUBAH
-    // ==========================================
-    const fields = form.querySelectorAll(
-        'input:not([type="file"]), select, textarea'
-    );
+        form.querySelectorAll('input:not([type="file"]):not([type="hidden"]), select, textarea').forEach(el => {
+            const evt = (el.tagName === 'SELECT' || el.type === 'date') ? 'change' : 'input';
+            el.addEventListener(evt, scheduleAutoSave);
 
-    fields.forEach(el => {
-        const evt =
-            (el.tagName === 'SELECT' || el.type === 'date')
-                ? 'change'
-                : 'input';
-
-        el.addEventListener(evt, scheduleAutoSave);
-    });
-
-    // ==========================================
-    // AUTO-SAVE SAAT PINDAH DARI FIELD
-    // ==========================================
-    fields.forEach(el => {
-        el.addEventListener('blur', () => {
-            clearTimeout(autoSaveTimer);
-            autoSaveDraft();
-        });
-    });
-
-    // ==========================================
-    // AUTO-SAVE FILE
-    // ==========================================
-    ['surat_pengantar', 'proposal'].forEach(name => {
-        const el = form.elements[name];
-
-        if (el) {
-            el.addEventListener('change', () => {
+            // Pindah field -> simpan segera (hanya bila ada perubahan).
+            el.addEventListener('blur', () => {
                 clearTimeout(autoSaveTimer);
                 autoSaveDraft();
             });
-        }
-    });
-}
+        });
 
-    // KIRIM PENDAFTARAN//
-    function konfirmasiKirim() {
-        const hasil = validateForm(true);
-
-        if (!hasil.valid) {
-            alert('Masih ada data yang belum sesuai ketentuan. Silakan periksa keterangan berwarna merah pada formulir.');
-            return;
-        }
-
-        const yakin = confirm(
-            "Yakin data yang kamu isi sudah benar? Setelah dikirim, data tidak bisa diedit lagi selama proses verifikasi."
-        );
-        if (!yakin) return;
-
-        const form = document.getElementById('pendaftaranForm');
-        if (!form) {
-            alert('Form pendaftaran tidak ditemukan!');
-            return;
-        }
-        form.submit();
+        ['surat_pengantar', 'proposal'].forEach(name => {
+            const el = form.elements[name];
+            if (!el) return;
+            el.addEventListener('change', () => {
+                if (el.files.length) berkasBerubah.add(name);
+                clearTimeout(autoSaveTimer);
+                autoSaveDraft();
+            });
+        });
     }
 
-    // SIMPAN DRAFT (manual)//
-    function simpanDraft() {
-        const hasil = validateForm(false);
-
-        if (!hasil.valid) {
+    // ==========================================
+    // AKSI TOMBOL
+    // ==========================================
+    async function simpanDraft() {
+        if (!validateForm(false).valid) {
             alert('Ada isian yang formatnya belum sesuai. Silakan periksa keterangan berwarna merah pada formulir sebelum menyimpan draft.');
             return;
         }
 
         clearTimeout(autoSaveTimer);
 
+        // file yang dipilih tapi belum terkirim ikut disimpan
         const form = document.getElementById('pendaftaranForm');
+        ['surat_pengantar', 'proposal'].forEach(n => {
+            if (form.elements[n] && form.elements[n].files.length) berkasBerubah.add(n);
+        });
+
         const button = document.getElementById('btnSimpanDraft');
         const text = document.getElementById('textSimpanDraft');
-
-        if (!form) {
-            alert('Form pendaftaran tidak ditemukan!');
-            return;
-        }
-
-        const formData = new FormData(form);
-        formData.delete('_method');
-
-        const csrfInput = form.querySelector('input[name="_token"]');
-        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-        const csrfToken = csrfInput
-            ? csrfInput.value
-            : (csrfMeta ? csrfMeta.getAttribute('content') : '');
-
-        if (!csrfToken) {
-            alert('Token keamanan (CSRF) tidak ditemukan. Silakan muat ulang halaman lalu coba lagi.');
-            return;
-        }
-
         button.disabled = true;
         text.textContent = 'Menyimpan...';
 
-        fetch("{{ route('user.pendaftaran.draft') }}", {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'Accept': 'application/json'
-            }
-        })
-        .then(async response => {
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || 'Draft gagal disimpan.');
-            }
-            return data;
-        })
-        .then(data => {
-            if (data.success) {
-                alert(data.message || 'Draft berhasil disimpan.');
-                window.location.href = "{{ route('user.dashboard') }}";
-            } else {
-                throw new Error(data.message || 'Draft gagal disimpan.');
-            }
-        })
-        .catch(error => {
+        try {
+            await autoSavePromise;                 // jangan bentrok dengan auto-save yang sedang jalan
+            const data = await kirimDraft();
+            alert(data.message || 'Draft berhasil disimpan.');
+            window.location.href = URL_DASHBOARD;
+        } catch (error) {
             console.error('ERROR SIMPAN DRAFT:', error);
             alert(error.message || 'Draft gagal disimpan. Silakan coba lagi.');
             button.disabled = false;
             text.textContent = 'Simpan Draft';
-        });
+        }
     }
 
-    // HAPUS DRAFT//
-    function hapusDraft() {
-        const yakin = confirm(
-            'Yakin ingin menghapus draft ini? Data dan berkas yang sudah diunggah akan ikut terhapus dan tidak dapat dikembalikan.'
-        );
-        if (!yakin) return;
-
-        const form = document.getElementById('hapusDraftForm');
-        if (!form) {
-            alert('Form hapus draft tidak ditemukan!');
+    async function konfirmasiKirim() {
+        if (!validateForm(true).valid) {
+            alert('Masih ada data yang belum sesuai ketentuan. Silakan periksa keterangan berwarna merah pada formulir.');
             return;
         }
-        form.submit();
+
+        if (!confirm('Yakin data yang kamu isi sudah benar? Setelah dikirim, data tidak bisa diedit lagi selama proses verifikasi.')) {
+            return;
+        }
+
+        // Hentikan auto-save & tunggu yang sedang berjalan, supaya tidak muncul draft ganda.
+        autoSaveDisabled = true;
+        clearTimeout(autoSaveTimer);
+        await autoSavePromise;
+
+        document.getElementById('pendaftaranForm').submit();
+    }
+
+    async function hapusDraft() {
+        if (!confirm('Yakin ingin menghapus draft ini? Data dan berkas yang sudah diunggah akan ikut terhapus dan tidak dapat dikembalikan.')) {
+            return;
+        }
+
+        // Cegah auto-save "menghidupkan" draft lagi setelah dihapus.
+        autoSaveDisabled = true;
+        clearTimeout(autoSaveTimer);
+        await autoSavePromise;
+
+        document.getElementById('hapusDraftForm').submit();
     }
 </script>
 @endpush

@@ -419,130 +419,88 @@
     </section>
 
 
-    {{-- ==================== DOKUMENTASI ==================== --}}
-    <section id="dokumentasi" class="py-8 sm:py-16 px-4 sm:px-6 bg-white dark:bg-slate-900">
-        <div class="max-w-6xl mx-auto">
+   {{-- ==================== DOKUMENTASI ==================== --}}
+<section id="dokumentasi" class="py-8 sm:py-16 px-4 sm:px-6 bg-white dark:bg-slate-950">
+    <div class="max-w-6xl mx-auto">
 
-            <x-section-heading
-                eyebrow="Galeri & Kegiatan"
-                title="Dokumentasi Aktivitas Magang"
-            >
-                Intip keseruan suasana kerja, kolaborasi proyek, dan bimbingan langsung bersama mentor profesional.
-            </x-section-heading>
+        <x-section-heading
+            eyebrow="Galeri & Kegiatan"
+            title="Dokumentasi Aktivitas Magang"
+        >
+            Intip keseruan suasana kerja, kolaborasi proyek, dan bimbingan langsung bersama mentor profesional.
+        </x-section-heading>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
 
-                @forelse($dokumentasis as $item)
-
-                    <a href="{{ route('dokumentasi.show', $item) }}"
-                       class="block h-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
-
-                        <x-galeri-card
-                            :tag="$item->kategori_badge"
-                            :judul="$item->judul_kegiatan"
-                            :gambar="$item->sampul_url"
-                            :tempat="$item->tempat_pelaksanaan"
-                            :tanggal="$item->tanggal_pelaksanaan ?? $item->created_at"
-                            :waktu="$item->created_at"
-                        />
-
-                    </a>
-
-                @empty
-
-                    <div class="col-span-full py-10 text-center">
-                        <div class="text-4xl mb-3">📸</div>
-                        <h3 class="font-semibold text-slate-700 dark:text-slate-200">Belum ada dokumentasi kegiatan</h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Dokumentasi kegiatan magang akan tampil di sini setelah diunggah admin.
-                        </p>
-                    </div>
-
-                @endforelse
-
-            </div>
-        </div>
-    </section>
-
-
-    {{-- ==================== CTA ==================== --}}
-    <div class="px-4 sm:px-6">
-        <div class="max-w-6xl mx-auto mt-4 sm:mt-8 mb-12 sm:mb-16
-                    bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900
-                    dark:border dark:border-slate-700
-                    rounded-3xl p-6 sm:p-12 text-center text-white
-                    shadow-xl relative overflow-hidden">
-
-            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.2),transparent_50%)] pointer-events-none"></div>
-
-            <h3 class="text-xl sm:text-3xl font-extrabold relative z-10">
-                Tertarik Bergabung Menjadi Bagian dari Kami?
-            </h3>
-
-            <p class="text-slate-300 text-xs sm:text-base mt-3 max-w-xl mx-auto relative z-10">
-                Segera siapkan berkas pengajuan surat pengantar dari kampusmu
-                dan pilih instansi tujuanmu sekarang juga.
-            </p>
-
-            <div class="mt-6 sm:mt-8 relative z-10">
-                <a href="{{ route('user.pendaftaran.create') }}"
-                   class="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4
-                          bg-blue-600 hover:bg-blue-500 text-white font-bold
-                          text-xs sm:text-sm rounded-xl shadow-lg transition duration-200">
-                    <span>Mulai Ajukan Pendaftaran</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                    </svg>
+            @forelse($dokumentasis as $item)
+                <a href="{{ route('dokumentasi.show', $item) }}"
+                   class="block h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
+                          focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950">
+                    <x-galeri-card
+                        :tag="$item->kategori_badge"
+                        :judul="$item->judul_kegiatan"
+                        :gambar="$item->sampul_url"
+                        :tempat="$item->tempat_pelaksanaan"
+                        :tanggal="$item->tanggal_pelaksanaan"
+                        :ringkasan="$item->ringkasan"
+                    />
                 </a>
-            </div>
+            @empty
+                <div class="col-span-full py-10 text-center">
+                    <div class="text-4xl mb-3">📸</div>
+                    <h3 class="font-semibold text-slate-700 dark:text-slate-100">Belum ada dokumentasi kegiatan</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-300 mt-1">
+                        Dokumentasi kegiatan magang akan tampil di sini setelah diunggah admin.
+                    </p>
+                </div>
+            @endforelse
 
         </div>
     </div>
+</section>
 
+{{-- ==================== CTA ==================== --}}
+<div class="px-4 sm:px-6">
+    <div class="max-w-6xl mx-auto mt-4 sm:mt-8 mb-12 sm:mb-16
+                bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-700
+                dark:from-slate-900 dark:via-blue-950 dark:to-slate-900
+                border border-blue-200/50 dark:border-slate-700
+                rounded-3xl p-6 sm:p-12 text-center text-white
+                shadow-xl relative overflow-hidden">
 
-    {{-- ==================== LIGHTBOX DOKUMENTASI ==================== --}}
-    <div id="galeriLightbox"
-         class="hidden fixed inset-0 z-[9999] flex items-start justify-center px-4 pt-24 pb-6 overflow-y-auto">
+        <div class="absolute inset-0
+                    bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_50%)]
+                    dark:bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.2),transparent_50%)]
+                    pointer-events-none"></div>
 
-        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeGaleriLightbox()"></div>
+        <h3 class="text-xl sm:text-3xl font-extrabold relative z-10">
+            Tertarik Bergabung Menjadi Bagian dari Kami?
+        </h3>
 
-        <div class="relative w-fit max-w-[92vw] max-h-[calc(100vh-7rem)] bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col my-auto">
+        <p class="text-blue-50 dark:text-slate-300
+                  text-xs sm:text-base mt-3 max-w-xl mx-auto relative z-10">
+            Segera siapkan berkas pengajuan surat pengantar dari kampusmu
+            dan pilih instansi tujuanmu sekarang juga.
+        </p>
 
-            <button type="button" onclick="closeGaleriLightbox()"
-                    class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full
-                           bg-white/90 hover:bg-white text-slate-700
-                           dark:bg-slate-800/90 dark:hover:bg-slate-800 dark:text-slate-200
-                           flex items-center justify-center shadow-lg transition"
-                    aria-label="Tutup">
-                ✕
-            </button>
-
-            <div class="flex items-center justify-center bg-slate-100 dark:bg-slate-900">
-                <img id="galeriLightboxImg" src="" alt=""
-                     class="block max-w-[92vw] max-h-[65vh] w-auto h-auto object-contain">
-            </div>
-
-            <div class="p-5 sm:p-6 bg-white dark:bg-slate-800 w-full overflow-y-auto">
-                <span id="galeriLightboxTag"
-                      class="inline-block px-3 py-1 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 text-xs font-bold mb-3"></span>
-                <h3 id="galeriLightboxJudul" class="text-lg font-extrabold text-slate-900 dark:text-white mb-2"></h3>
-                <p id="galeriLightboxDeskripsi" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line"></p>
-            </div>
-
+        <div class="mt-6 sm:mt-8 relative z-10">
+            <a href="{{ route('user.pendaftaran.create') }}"
+               class="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4
+                      bg-white text-blue-700 hover:bg-blue-50
+                      dark:bg-blue-600 dark:text-white dark:hover:bg-blue-500
+                      font-bold text-xs sm:text-sm rounded-xl shadow-lg
+                      transition duration-200">
+                <span>Mulai Ajukan Pendaftaran</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3">
+                    </path>
+                </svg>
+            </a>
         </div>
-    </div>
 
-    {{-- DATA GALERI UNTUK JAVASCRIPT --}}
-    @php
-        $galeriDataUntukJs = $dokumentasis->map(function ($item) {
-            return [
-                'tag' => $item->judul_kegiatan,
-                'judul' => $item->kategori_badge,
-                'gambar' => asset('storage/' . $item->foto),
-                'deskripsi' => $item->deskripsi,
-            ];
-        });
-    @endphp
+    </div>
+</div>
 
 </div>{{-- /bg-white --}}
 
@@ -600,30 +558,6 @@
     terapkanTemaChart(document.documentElement.classList.contains('dark'));
     window.addEventListener('themechange', e => terapkanTemaChart(e.detail.dark));
 
-    const galeriData = @json($galeriDataUntukJs);
-
-    function openGaleriLightbox(index) {
-        const data = galeriData[index];
-        if (!data) return;
-
-        document.getElementById('galeriLightboxImg').src = data.gambar;
-        document.getElementById('galeriLightboxImg').alt = data.judul;
-        document.getElementById('galeriLightboxTag').textContent = data.tag;
-        document.getElementById('galeriLightboxJudul').textContent = data.judul;
-        document.getElementById('galeriLightboxDeskripsi').textContent = data.deskripsi;
-
-        document.getElementById('galeriLightbox').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeGaleriLightbox() {
-        document.getElementById('galeriLightbox').classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeGaleriLightbox();
-    });
 </script>
 </body>
 </html>

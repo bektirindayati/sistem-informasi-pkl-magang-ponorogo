@@ -17,27 +17,51 @@
 
         <div class="h-16 px-4 sm:px-5 flex items-center justify-between gap-3">
 
-            {{-- Logo --}}
-            <a href="{{ $isDokumentasi ? route('home') : route('user.dashboard') }}"
-               class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            {{-- LOGO --}}
+            <a href="{{ url('/') }}" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
 
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform shrink-0">
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m-6-6h12"/>
-                    </svg>
+                {{-- Logo SIMANTARA (kotak tetap putih agar logo ber-latar putih tetap rapi di mode gelap) --}}
+                <div
+                    class="h-9 w-9 sm:h-12 sm:w-12
+                           rounded-xl
+                           bg-white
+                           border border-slate-200 dark:border-slate-600
+                           flex items-center justify-center
+                           overflow-hidden
+                           shadow-sm
+                           group-hover:scale-105
+                           transition-transform
+                           shrink-0"
+                >
+                    <img
+    src="{{ asset('images/logo-simantara.png') }}"
+    alt="Logo SIMANTARA"
+    class="w-full h-full object-contain"
+>
                 </div>
 
-                <div class="block leading-tight">
-                    <div class="font-extrabold text-slate-900 dark:text-white text-sm tracking-tight">
-                        SiMagang
-                    </div>
+                {{-- Nama aplikasi --}}
+                <div class="flex flex-col">
+                    <span
+                        class="text-[15px] sm:text-lg
+                               font-extrabold
+                               text-slate-900 dark:text-white
+                               leading-tight
+                               tracking-tight"
+                    >
+                        SIMANTARA
+                    </span>
 
-                    <div class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
-                        Kabupaten Ponorogo
-                    </div>
+                    <span
+                        class="hidden sm:block
+                               text-[10px] sm:text-xs
+                               text-blue-600 dark:text-blue-400
+                               font-semibold"
+                    >
+                        Sistem Informasi Magang Terintegrasi
+                    </span>
                 </div>
             </a>
-
 
             {{-- =========================================================
                  NAVBAR KHUSUS DOKUMENTASI PUBLIK

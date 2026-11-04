@@ -19,10 +19,16 @@ trait ScopePendaftaranAdmin
     }
 
     /** Draft belum dianggap pengajuan, jadi tidak tampil di admin. */
-    public function scopeSudahDikirim($query)
-    {
-        return $query->whereIn('status', ['pending', 'revisi', 'diterima', 'ditolak']);
-    }
+   public function scopeSudahDikirim($query)
+{
+    return $query->whereIn('status', [
+        'pending',
+        'revisi',
+        'diterima',
+        'ditolak',
+        'selesai',
+    ]);
+}
 
     public function scopeCariNama($query, ?string $kata)
     {
@@ -30,21 +36,13 @@ trait ScopePendaftaranAdmin
     }
 
     /** Pending, atau diterima tapi belum lewat tanggal_selesai. */
-    public function scopeAktif($query)
-    {
-        $hariIni = now()->toDateString();
-
-        return $query->where(function ($q) use ($hariIni) {
-            $q->where('status', 'pending')
-              ->orWhere(function ($q2) use ($hariIni) {
-                  $q2->where('status', 'diterima')
-                     ->where(function ($q3) use ($hariIni) {
-                         $q3->whereNull('tanggal_selesai')
-                            ->orWhereDate('tanggal_selesai', '>=', $hariIni);
-                     });
-              });
-        });
-    }
+   /**
+ * Pending dan diterima yang belum ditandai selesai.
+ */
+public function scopeAktif($query)
+{
+    return $query->whereIn('status', ['pending', 'diterima']);
+}
 
     /**
      * BARU — khusus "diterima & masih berjalan" TANPA ikut pending.
@@ -67,12 +65,13 @@ trait ScopePendaftaranAdmin
             });
     }
 
-    /** Diterima dan tanggal_selesai sudah lewat. */
-    public function scopeSelesai($query)
-    {
-        return $query->where('status', 'diterima')
-            ->whereDate('tanggal_selesai', '<', now()->toDateString());
-    }
+    /**
+ * Pendaftar yang sudah ditandai selesai oleh admin.
+ */
+public function scopeSelesai($query)
+{
+    return $query->where('status', 'selesai');
+}
 
     public function scopeDitolak($query)
     {

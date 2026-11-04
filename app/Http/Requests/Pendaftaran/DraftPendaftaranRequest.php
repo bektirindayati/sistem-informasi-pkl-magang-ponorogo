@@ -2,28 +2,20 @@
 
 namespace App\Http\Requests\Pendaftaran;
 
-use App\Models\PendaftaranMagang;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
+/** Simpan draft / auto-save: semua field boleh kosong. */
 class DraftPendaftaranRequest extends BasePendaftaranRequest
 {
-    public function authorize(): bool
+    protected function failedAuthorization()
     {
-        return $this->pesanTerkunci() === null;
+        throw new HttpResponseException(
+            response()->json([
+                'success' => false,
+                'message' => $this->pesanTerkunci(),
+            ], 403)
+        );
     }
-
-    public function pendaftaran(): PendaftaranMagang
-{
-    $terakhir = $this->pendaftaranTerakhir();
-
-    if ($terakhir?->status === 'draft') {
-        return $terakhir;
-    }
-
-    return new PendaftaranMagang([
-        'user_id' => $this->user()->id,
-        'status'  => 'draft',
-    ]);
-}
 
     public function rules(): array
     {
@@ -33,14 +25,8 @@ class DraftPendaftaranRequest extends BasePendaftaranRequest
         );
     }
 
-    public function dataPendaftaran(): array
+    protected function dataStatus(): array
     {
-        return array_merge(
-            parent::dataPendaftaran(),
-            [
-                'status' => 'draft',
-                'user_id' => $this->user()->id,
-            ]
-        );
+        return ['status' => 'draft'];
     }
 }

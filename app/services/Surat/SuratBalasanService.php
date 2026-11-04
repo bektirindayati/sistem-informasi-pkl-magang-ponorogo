@@ -2,188 +2,141 @@
 
 namespace App\Services\Surat;
 
-use App\Exceptions\SuratBalasanException;
 use App\Models\PendaftaranMagang;
-use App\Models\SuratBalasan;
-use App\Models\User;
-use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Alur surat balasan: draf -> pratinjau -> terbit (PDF final) -> diunduh peserta.
- * Perubahan dilakukan pada DATA surat, lalu draf dibuat ulang; PDF tidak diedit langsung.
+ * Surat balasan magang. Alurnya ada di DokumenService.
+ *
+ * Isi surat   : resources/templates/surat_balasan_magang.docx
+ * Pengaturan  : config/surat.php
+ * Kop         : data Dinas (alamat, telepon, faksimile, website, email)
+ * Penandatangan: data pejabat dari profil Dinas.
  */
-class SuratBalasanService
+class SuratBalasanService extends DokumenService
 {
-    public function __construct(
-        private SuratBalasanGenerator $generator,
-        private PdfKonverter $konverter,
-    ) {
-    }
-
-    /** Surat milik pendaftaran; kalau belum ada dibuat dengan isian awal dari data pendaftar & dinas. */
-    public function ambilAtauBuat(PendaftaranMagang $pendaftaran): SuratBalasan
+    protected function profil(): array
     {
-        return $pendaftaran->suratBalasan ?? $pendaftaran->suratBalasan()->create($this->dataAwal($pendaftaran));
+        return [
+            'file'   => 'file_surat_balasan',
+            'status' => 'status_surat',
+            'waktu'  => 'surat_balasan_terbit_at',
+            'nama'   => 'Surat_Balasan',
+            'folder' => 'surat-balasan',
+            'boleh'  => ['diterima', 'selesai'],
+        ];
     }
 
     /**
-     * Simpan data surat lalu buat ulang draf PDF-nya.
-     *
-     * @throws SuratBalasanException jika data tersimpan tetapi PDF gagal dibuat
+     * Template siswa (PKL) bila tersedia, selain itu template magang.
      */
-    public function perbarui(SuratBalasan $surat, array $data): void
+    protected function template(PendaftaranMagang $p): string
     {
-        $surat->update($data);
+        $pkl = str_contains((string) $p->kategori, 'Siswa');
 
-        try {
-            $this->buatDraf($surat);
-        } catch (SuratBalasanException $e) {
-            throw new SuratBalasanException('Data surat tersimpan, tetapi draf PDF gagal dibuat. ' . $e->getMessage(), 0, $e);
-        }
-    }
-
-    public function buatDraf(SuratBalasan $surat): void
-    {
-        $tujuan = $this->folder($surat) . '/draf.pdf';
-
-        $pdf = $this->bikinPdf($surat, draf: true);
-
-        try {
-            $this->disk()->put($tujuan, file_get_contents($pdf));
-        } finally {
-            @unlink($pdf);
-        }
-
-        $surat->update(['file_draf' => $tujuan]);
+        return (string) (
+            ($pkl ? config('surat.template.pkl') : null)
+            ?: config('surat.template.magang')
+        );
     }
 
     /**
-     * Terbitkan: PDF bertanda tangan yang diunggah admin dipakai sebagai file final;
-     * jika tidak ada, sistem membuat PDF final (tanpa tanda "DRAF") dari data surat.
+     * Menyiapkan data untuk mengisi placeholder template DOCX.
      */
-    public function terbitkan(SuratBalasan $surat, ?UploadedFile $pdfTtd, User $admin): void
+    protected function data(PendaftaranMagang $p): array
     {
-        $nama = 'surat-balasan-' . now()->format('YmdHis') . '.pdf';
-        $tujuan = $this->folder($surat) . '/' . $nama;
+        $dinas = $p->dinas;
 
-        if ($pdfTtd) {
-            $this->disk()->putFileAs($this->folder($surat), $pdfTtd, $nama);
-        } else {
-            $pdf = $this->bikinPdf($surat, draf: false);
+        return [
+            // =========================================
+            // KOP SURAT (PROFIL DINAS)
+            // =========================================
+            'kop_nama_dinas' => Str::upper($this->namaDinas($p)),
+            'kop_alamat'     => $this->satuBaris($dinas?->alamat),
 
-            try {
-                $this->disk()->put($tujuan, file_get_contents($pdf));
-            } finally {
-                @unlink($pdf);
-            }
-        }
+            'kop_kontak' => $this->gabung([
+                filled($dinas?->telepon)
+                    ? 'Telepon ' . $dinas->telepon
+                    : null,
 
-        $surat->update([
-            'status' => SuratBalasan::TERBIT,
-            'file_final' => $tujuan,
-            'diterbitkan_oleh' => $admin->id,
-            'diterbitkan_pada' => now(),
-        ]);
+                filled($dinas?->faksimile)
+                    ? 'Faksimile ' . $dinas->faksimile
+                    : null,
+            ]),
+
+            'kop_web_email' => $this->gabung([
+                filled($dinas?->website)
+                    ? 'Laman ' . $this->tanpaSkema($dinas->website)
+                    : null,
+
+                filled($dinas?->email)
+                    ? 'Pos-el ' . $dinas->email
+                    : null,
+            ]),
+
+            // =========================================
+            // PEJABAT PENANDATANGAN SURAT BALASAN
+            // =========================================
+            'jabatan_pengirim' => $this->isi($dinas?->jabatan_pejabat),
+            'nama_pengirim'    => $this->isi($dinas?->nama_pejabat),
+            'pangkat'          => $this->isi($dinas?->pangkat_pejabat),
+            'gol'              => $this->isi($dinas?->golongan_pejabat),
+            'nip_pengirim'     => $this->isi($dinas?->nip_pejabat),
+
+            // =========================================
+            // SURAT: TUJUAN DAN RUJUKAN SURAT PENGANTAR
+            // =========================================
+            'tanggal_surat'       => $this->tanggal(today()),
+            'jabatan_penerima'    => $this->isi($p->jabatan_penerima),
+            'nama_penerima'       => $this->isi($p->instansi),
+            'kota_tujuan'         => Str::upper($this->isi($p->kota_tujuan)),
+
+            'pengirim_surat' => $this->isi(
+                trim($p->jabatan_penerima . ' ' . $p->instansi)
+            ),
+
+            'tgl_bln_thn'         => $this->tanggal($p->tanggal_surat_pengantar),
+            'nomor_suratpengirim' => $this->isi($p->nomor_surat_pengantar),
+
+            // =========================================
+            // DATA PENDAFTAR DAN PERIODE MAGANG
+            // =========================================
+            'nama_dinas'      => $this->namaDinasLengkap($p),
+            'nama_lengkap'    => $this->isi($p->nama_lengkap),
+            'nim_nisn'        => $this->isi($p->nim_nisn),
+            'jurusan'         => $this->isi($p->jurusan),
+            'instansi'        => $this->isi($p->instansi),
+            'tanggal_mulai'   => $this->tanggal($p->tanggal_mulai),
+            'tanggal_selesai' => $this->tanggal($p->tanggal_selesai),
+        ];
     }
 
-    /** Kembalikan ke draf (mis. ada kesalahan setelah terbit): file final dihapus. */
-    public function tarik(SuratBalasan $surat): void
+    /**
+     * Menghilangkan skema http/https dan garis miring terakhir dari URL.
+     */
+    private function tanpaSkema(string $url): string
     {
-        if ($surat->file_final) {
-            $this->disk()->delete($surat->file_final);
-        }
-
-        $surat->update([
-            'status' => SuratBalasan::DRAF,
-            'file_final' => null,
-            'diterbitkan_oleh' => null,
-            'diterbitkan_pada' => null,
-        ]);
+        return rtrim(
+            (string) preg_replace('#^https?://#i', '', trim($url)),
+            '/'
+        );
     }
 
-    /** Kirim PDF ke browser ($disposisi: inline = tampil, attachment = unduh). */
-    public function responsPdf(string $path, string $namaFile, string $disposisi = 'inline'): StreamedResponse
-    {
-        abort_unless($this->disk()->exists($path), 404, 'File surat tidak ditemukan.');
-
-        return $this->disk()->response($path, $namaFile, [
-            'Content-Type' => 'application/pdf',
-            'Cache-Control' => 'no-store, max-age=0',
-        ], $disposisi);
-    }
-
-    public function namaFile(PendaftaranMagang $pendaftaran, string $awalan = 'Surat_Balasan'): string
-    {
-        return $awalan . '_' . Str::slug($pendaftaran->nama_lengkap ?: 'peserta', '_') . '.pdf';
-    }
-
-    // ---------- pembantu ----------
-
-  private function dataAwal(PendaftaranMagang $p): array
+    /**
+     * Mengubah teks dengan beberapa baris menjadi satu baris.
+     */
+private function satuBaris(?string $teks): string
 {
-    $dinas = $p->dinas;
-
-    $jenisKegiatan = str_contains(
-        (string) $p->kategori,
-        'Siswa'
-    )
-        ? 'Praktik Kerja Lapangan'
-        : 'Magang';
-
-    return [
-        'tanggal_surat' => now()
-            ->timezone(config('surat.zona_waktu'))
-            ->toDateString(),
-
-        // Data instansi
-        'instansi' => $p->instansi,
-        'nama_instansi' => $p->instansi,
-
-        // Data peserta
-        'nama' => $p->nama_lengkap,
-        'nim_nisn' => $p->nim_nisn,
-        'jurusan' => $p->jurusan,
-        'tanggal_mulai' => $p->tanggal_mulai,
-        'tanggal_selesai' => $p->tanggal_selesai,
-        'sebutan' => str_contains(
-            (string) $p->kategori,
-            'Siswa'
-        ) ? 'siswa' : 'mahasiswa',
-
-        // Jenis kegiatan
-        'jenis_kegiatan' => $jenisKegiatan,
-
-        // Penandatangan dari dinas
-        'nama_penandatangan' => $dinas?->nama_pejabat,
-        'jabatan_penandatangan' => $dinas?->jabatan_pejabat,
-        'pangkat_penandatangan' => $dinas?->pangkat_pejabat,
-        'nip_penandatangan' => $dinas?->nip_pejabat,
-    ];
+    return trim(
+        (string) preg_replace('/\s+/', ' ', (string) $teks)
+    );
 }
 
-    /** DOCX -> PDF; berkas sementara DOCX dihapus, PDF sementara dihapus oleh pemanggil. */
-    private function bikinPdf(SuratBalasan $surat, bool $draf): string
+    /**
+     * Menggabungkan informasi yang tersedia dengan pemisah koma.
+     */
+    private function gabung(array $bagian): string
     {
-        $docx = $this->generator->buat($surat, $draf);
-
-        try {
-            return $this->konverter->ubahKePdf($docx);
-        } finally {
-            @unlink($docx);
-        }
-    }
-
-    private function disk(): FilesystemAdapter
-    {
-        return Storage::disk(config('surat.disk'));
-    }
-
-    private function folder(SuratBalasan $surat): string
-    {
-        return trim(config('surat.folder'), '/') . '/' . $surat->pendaftaran_magang_id;
+        return implode(', ', array_filter($bagian));
     }
 }

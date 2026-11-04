@@ -23,10 +23,10 @@
                            shrink-0"
                 >
                     <img
-                        src="{{ asset('images/logo-simantara.jpg') }}"
-                        alt="Logo SIMANTARA"
-                        class="w-full h-full object-contain"
-                    >
+    src="{{ asset('images/logo-simantara.png') }}"
+    alt="Logo SIMANTARA"
+    class="w-full h-full object-contain"
+>
                 </div>
 
                 {{-- Nama aplikasi --}}

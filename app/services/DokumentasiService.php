@@ -6,6 +6,7 @@ use App\Models\DokumentasiFoto;
 use App\Models\DokumentasiMagang;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /** Semua urusan simpan/hapus dokumentasi beserta foto dan uraiannya. */
 class DokumentasiService
@@ -15,12 +16,21 @@ class DokumentasiService
      */
     public function buat(array $data, array $fotoBaru): DokumentasiMagang
     {
-        return DB::transaction(function () use ($data, $fotoBaru) {
-            $dokumentasi = DokumentasiMagang::create($data);
-            $this->tambahFoto($dokumentasi, $fotoBaru);
+        $tersimpan = [];
 
-            return $dokumentasi;
-        });
+        try {
+            return DB::transaction(function () use ($data, $fotoBaru, &$tersimpan) {
+                $dokumentasi = DokumentasiMagang::create($data);
+                $this->tambahFoto($dokumentasi, $fotoBaru, $tersimpan);
+
+                return $dokumentasi;
+            });
+        } catch (Throwable $e) {
+            // Transaksi gagal: file yang sudah terlanjur diunggah ikut dibuang.
+            $this->hapusFile($tersimpan);
+
+            throw $e;
+        }
     }
 
     /**
@@ -35,12 +45,25 @@ class DokumentasiService
         array $hapusIds,
         array $uraianLama
     ): void {
-        DB::transaction(function () use ($dokumentasi, $data, $fotoBaru, $hapusIds, $uraianLama) {
-            $dokumentasi->update($data);
-            $this->hapusFoto($dokumentasi, $hapusIds);
-            $this->perbaruiUraian($dokumentasi, $uraianLama);
-            $this->tambahFoto($dokumentasi, $fotoBaru);
-        });
+        $tersimpan = [];
+
+        try {
+            $pathTerhapus = DB::transaction(function () use ($dokumentasi, $data, $fotoBaru, $hapusIds, $uraianLama, &$tersimpan) {
+                $dokumentasi->update($data);
+                $path = $this->hapusFoto($dokumentasi, $hapusIds);
+                $this->perbaruiUraian($dokumentasi, $uraianLama);
+                $this->tambahFoto($dokumentasi, $fotoBaru, $tersimpan);
+
+                return $path;
+            });
+        } catch (Throwable $e) {
+            $this->hapusFile($tersimpan);
+
+            throw $e;
+        }
+
+        // File lama dihapus SETELAH commit: kalau transaksi gagal, foto lama tetap utuh.
+        $this->hapusFile($pathTerhapus);
     }
 
     public function hapus(DokumentasiMagang $dokumentasi): void
@@ -49,32 +72,40 @@ class DokumentasiService
 
         $dokumentasi->delete(); // baris foto ikut terhapus (cascade)
 
-        Storage::disk('public')->delete($paths);
+        $this->hapusFile($paths);
     }
 
-    private function tambahFoto(DokumentasiMagang $dokumentasi, array $fotoBaru): void
+    /**
+     * @param  string[]  $tersimpan  diisi path file yang sudah ditulis ke disk (untuk pembersihan bila gagal)
+     */
+    private function tambahFoto(DokumentasiMagang $dokumentasi, array $fotoBaru, array &$tersimpan): void
     {
         $urutan = (int) $dokumentasi->fotos()->max('urutan');
 
         foreach ($fotoBaru as $item) {
+            $path = $item['file']->store('dokumentasi', 'public');
+            $tersimpan[] = $path;
+
             $dokumentasi->fotos()->create([
-                'path' => $item['file']->store('dokumentasi', 'public'),
+                'path'   => $path,
                 'uraian' => $item['uraian'],
                 'urutan' => ++$urutan,
             ]);
         }
     }
 
-    private function hapusFoto(DokumentasiMagang $dokumentasi, array $ids): void
+    /** Hapus baris foto; mengembalikan path file untuk dihapus dari disk SETELAH commit. */
+    private function hapusFoto(DokumentasiMagang $dokumentasi, array $ids): array
     {
         if (empty($ids)) {
-            return;
+            return [];
         }
 
         $foto = $dokumentasi->fotos()->whereIn('id', $ids)->get();
 
-        Storage::disk('public')->delete($foto->pluck('path')->all());
         DokumentasiFoto::destroy($foto->pluck('id')->all());
+
+        return $foto->pluck('path')->all();
     }
 
     /** Hanya foto milik kegiatan ini yang bisa diubah uraiannya. */
@@ -88,5 +119,12 @@ class DokumentasiService
             ->whereIn('id', array_keys($uraianLama))
             ->get()
             ->each(fn (DokumentasiFoto $foto) => $foto->update(['uraian' => $uraianLama[$foto->id]]));
+    }
+
+    private function hapusFile(array $paths): void
+    {
+        if (! empty($paths)) {
+            Storage::disk('public')->delete($paths);
+        }
     }
 }

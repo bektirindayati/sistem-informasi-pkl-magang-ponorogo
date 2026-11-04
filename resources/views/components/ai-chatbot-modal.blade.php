@@ -7,7 +7,7 @@
 <div
     id="aiChatbotPanel"
     role="dialog"
-    aria-label="Asisten MagangHub"
+    aria-label="Asisten SIMANTARA"
     class="hidden fixed top-24 right-3 sm:right-6 z-[95]
            w-[92vw] max-w-sm h-[70vh] max-h-[560px]
            bg-white dark:bg-slate-900 rounded-2xl shadow-2xl
@@ -25,7 +25,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-sm font-bold leading-none">Asisten MagangHub</p>
+                <p class="text-sm font-bold leading-none">Asisten SIMANTARA</p>
                 <p class="text-[11px] text-indigo-100 mt-1">Ditenagai Gemini AI</p>
             </div>
         </div>
@@ -47,7 +47,7 @@
          class="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50 dark:bg-slate-950 text-sm">
         <div class="flex">
             <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%] text-slate-700 dark:text-slate-200 shadow-sm">
-                Halo! 👋 Saya asisten AI MagangHub. Tanyakan apa saja seputar
+                Halo! Saya asisten AI SIMANTARA. Tanyakan apa saja seputar
                 alur pendaftaran PKL/Magang, dokumen yang dibutuhkan, atau
                 instansi yang tersedia.
             </div>

@@ -18,16 +18,38 @@
     @method('PUT')
 
     <div class="relative inline-block w-full">
-        <select name="status" onchange="handleStatusSelectChange(this)" class="js-status-dropdown appearance-none w-full px-4 py-2 pr-10 rounded-xl border font-bold text-xs focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer transition shadow-sm
-            {{ $status == 'pending' ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' : '' }}
-            {{ $status == 'diterima' ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100' : '' }}
-            {{ $status == 'revisi' ? 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100' : '' }}
-            {{ $status == 'ditolak' ? 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100' : '' }}">
-            <option value="pending" {{ $status == 'pending' ? 'selected' : '' }}>⏳ Pending</option>
-            <option value="diterima" {{ $status == 'diterima' ? 'selected' : '' }}>✅ Diterima</option>
-            <option value="revisi" {{ $status == 'revisi' ? 'selected' : '' }}>✏️ Revisi</option>
-            <option value="ditolak" {{ $status == 'ditolak' ? 'selected' : '' }}>❌ Ditolak</option>
-        </select>
+       <select name="status"
+    onchange="handleStatusSelectChange(this)"
+    class="js-status-dropdown appearance-none w-full px-4 py-2 pr-10 rounded-xl border font-bold text-xs focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer transition shadow-sm
+        {{ $status === 'pending' ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' : '' }}
+        {{ $status === 'diterima' ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100' : '' }}
+        {{ $status === 'revisi' ? 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100' : '' }}
+        {{ $status === 'ditolak' ? 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100' : '' }}
+        {{ $status === 'selesai' ? 'bg-cyan-50 text-cyan-800 border-cyan-200 hover:bg-cyan-100' : '' }}">
+
+    <option value="pending" @selected($status === 'pending')>
+        ⏳ Pending
+    </option>
+
+    <option value="diterima" @selected($status === 'diterima')>
+        ✅ Diterima
+    </option>
+
+    <option value="revisi" @selected($status === 'revisi')>
+        ✏️ Revisi
+    </option>
+
+    <option value="ditolak" @selected($status === 'ditolak')>
+        ❌ Ditolak
+    </option>
+
+    @if (in_array($status, ['diterima', 'selesai'], true))
+        <option value="selesai" @selected($status === 'selesai')>
+            🏁 Magang Selesai
+        </option>
+    @endif
+
+</select>
         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 text-xs">▼</div>
     </div>
 

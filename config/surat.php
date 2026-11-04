@@ -1,28 +1,15 @@
 <?php
 
 return [
+    // Ditambahkan di belakang nama dinas: "Dinas ... Kabupaten Ponorogo".
+    'wilayah' => 'Kabupaten Ponorogo',
 
-    /* File template DOCX (placeholder ${...}). Bisa diganti tanpa mengubah kode. */
-    'template' => env('SURAT_TEMPLATE', storage_path('app/templates/surat_template.docx')),
-
-    /*
-     | Program LibreOffice untuk mengubah DOCX menjadi PDF.
-     | Linux  : soffice  (apt install libreoffice-writer fonts-liberation)
-     | Windows: C:\Program Files\LibreOffice\program\soffice.exe
-     */
-    'soffice'     => env('SOFFICE_PATH', 'soffice'),
-    'batas_waktu' => 90, // detik
-
-    /* Tempat penyimpanan PDF (disk privat, tidak bisa dibuka lewat URL langsung). */
-    'disk'   => env('SURAT_DISK', 'local'),
-    'folder' => 'surat',
+    // Template Word. Template PKL (siswa) belum ada: isi path-nya di sini begitu sudah tersedia.
+    'template' => [
+    'magang'     => resource_path('templates/surat_balasan_magang.docx'),
+    'pkl'        => null,
+    'sertifikat' => resource_path('templates/sertifikat_magang.docx'),
+],
 
     'zona_waktu' => 'Asia/Jakarta',
-
-    /*
-     | true  : surat baru bisa diterbitkan setelah admin mengunggah PDF yang
-     |         SUDAH ditandatangani (mis. TTE BSrE) -- direkomendasikan.
-     | false : admin boleh menerbitkan PDF buatan sistem (ruang tanda tangan kosong).
-     */
-    'wajib_unggah_ttd' => (bool) env('SURAT_WAJIB_UNGGAH_TTD', true),
 ];

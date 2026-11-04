@@ -7,9 +7,10 @@
     Jarak dari navbar diurus <main class="pt-24 sm:pt-28"> di layout,
     jadi JANGAN menambah padding-top lagi di halaman.
 --}}
+
 @props(['width' => 'max-w-6xl', 'gap' => 'space-y-6'])
 
-<div class="min-h-screen bg-slate-50/50 pb-16">
+<div class="bg-slate-50 dark:bg-slate-950 pb-16 transition-colors duration-300">
     <div class="px-4 sm:px-6">
         <div class="{{ $width }} mx-auto {{ $gap }}">
             {{ $slot }}

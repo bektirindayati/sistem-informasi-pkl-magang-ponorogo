@@ -1,20 +1,15 @@
+
 @extends('user.layout.app')
 
 @section('title', 'Informasi & Panduan')
 
 @section('content')
-@php
-    $kembali = auth()->check() ? route('user.dashboard') : route('home');
-    $labelKembali = auth()->check() ? 'Kembali ke Dashboard' : 'Kembali ke Beranda';
-@endphp
 
 <x-page>
 
     <x-page-header
         eyebrow="Panduan & Ketentuan"
         title="Informasi Pendaftaran Magang & PKL"
-        :back="$kembali"
-        :back-label="$labelKembali"
     >
         Pelajari alur pendaftaran, persyaratan dokumen, serta ketentuan sebelum
         mengajukan magang melalui sistem SiMagang.
@@ -48,80 +43,115 @@
     {{-- 2 & 3. PERSYARATAN + CATATAN --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
+        {{-- PERSYARATAN DOKUMEN --}}
         <x-card>
             <x-step-heading number="2" variant="blue">
                 Persyaratan Dokumen
             </x-step-heading>
 
             <div class="mt-5 space-y-3">
-                <div class="p-4 bg-blue-50/60 border border-blue-100 rounded-xl flex items-start gap-4">
-                    <div class="w-10 h-10 shrink-0 bg-white rounded-lg border border-blue-100 flex items-center justify-center text-lg">📄</div>
+
+                <div class="p-4
+                            bg-blue-50/70 dark:bg-blue-500/10
+                            border border-blue-100 dark:border-blue-500/20
+                            rounded-xl flex items-start gap-4">
+
+                    <div class="w-10 h-10 shrink-0
+                                bg-white dark:bg-slate-800
+                                rounded-lg border border-blue-100 dark:border-blue-500/20
+                                flex items-center justify-center text-lg">
+                        📄
+                    </div>
+
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-900">
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">
                             Surat Pengantar Resmi <span class="text-rose-500">*</span>
                         </h3>
-                        <p class="text-sm text-slate-600 mt-1 leading-relaxed">
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                             Surat pengantar resmi dari Kampus atau Sekolah/SMK yang ditujukan kepada instansi tujuan.
                         </p>
                     </div>
                 </div>
 
-                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-4">
-                    <div class="w-10 h-10 shrink-0 bg-white rounded-lg border border-slate-200 flex items-center justify-center text-lg">📁</div>
+                <div class="p-4
+                            bg-slate-50 dark:bg-slate-800/50
+                            border border-slate-200 dark:border-slate-700
+                            rounded-xl flex items-start gap-4">
+
+                    <div class="w-10 h-10 shrink-0
+                                bg-white dark:bg-slate-800
+                                rounded-lg border border-slate-200 dark:border-slate-700
+                                flex items-center justify-center text-lg">
+                        📁
+                    </div>
+
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-900">Proposal & CV</h3>
-                        <p class="text-sm text-slate-600 mt-1 leading-relaxed">
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">
+                            Proposal & CV
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                             Dokumen tambahan dapat dilampirkan apabila dipersyaratkan oleh instansi tujuan.
                         </p>
                     </div>
                 </div>
+
             </div>
         </x-card>
 
+        {{-- HAL YANG PERLU DIPERHATIKAN --}}
         <x-card>
             <x-step-heading number="3" variant="blue">
                 Hal yang Perlu Diperhatikan
             </x-step-heading>
 
             <div class="mt-5 space-y-3">
-                <div class="p-4 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-4">
-                    <span class="w-10 h-10 shrink-0 rounded-lg bg-white border border-amber-100 flex items-center justify-center text-lg">⚠️</span>
+
+                <div class="p-4
+                            bg-amber-50 dark:bg-amber-500/10
+                            border border-amber-200/70 dark:border-amber-500/20
+                            rounded-xl flex items-start gap-4">
+
+                    <span class="w-10 h-10 shrink-0
+                                 rounded-lg bg-white dark:bg-slate-800
+                                 border border-amber-100 dark:border-amber-500/20
+                                 flex items-center justify-center text-lg">
+                        ⚠️
+                    </span>
+
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-900">Periksa Data</h3>
-                        <p class="text-sm text-slate-600 mt-1 leading-relaxed">
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">
+                            Periksa Data
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                             Pastikan seluruh data dan dokumen yang diunggah sudah benar sebelum mengirimkan pengajuan.
                         </p>
                     </div>
                 </div>
 
-                <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-4">
-                    <span class="w-10 h-10 shrink-0 rounded-lg bg-white border border-emerald-100 flex items-center justify-center text-lg">✓</span>
+                <div class="p-4
+                            bg-emerald-50 dark:bg-emerald-500/10
+                            border border-emerald-200/70 dark:border-emerald-500/20
+                            rounded-xl flex items-start gap-4">
+
+                    <span class="w-10 h-10 shrink-0
+                                 rounded-lg bg-white dark:bg-slate-800
+                                 border border-emerald-100 dark:border-emerald-500/20
+                                 flex items-center justify-center text-lg">
+                        ✓
+                    </span>
+
                     <div>
-                        <h3 class="text-sm font-semibold text-slate-900">Pantau Pengajuan</h3>
-                        <p class="text-sm text-slate-600 mt-1 leading-relaxed">
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">
+                            Pantau Pengajuan
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                             Setelah pengajuan dikirim, pantau status secara berkala melalui dashboard pengguna.
                         </p>
                     </div>
                 </div>
+
             </div>
         </x-card>
-    </div>
-
-    {{-- 4. BANTUAN --}}
-    <div class="rounded-2xl bg-slate-900 text-white p-6 sm:p-7
-                flex flex-col sm:flex-row items-center justify-between gap-5">
-
-        <div class="text-center sm:text-left">
-            <h3 class="text-base font-semibold">Butuh Bantuan?</h3>
-            <p class="text-sm text-slate-400 mt-1">
-                Hubungi pengelola magang apabila mengalami kendala saat menggunakan sistem.
-            </p>
-        </div>
-
-        {{-- TODO: isi nomor WhatsApp admin, mis. https://wa.me/62812xxxxxxx --}}
-        <x-button href="https://wa.me/" target="_blank" rel="noopener" variant="light" class="whitespace-nowrap">
-            WhatsApp Admin
-        </x-button>
     </div>
 
 </x-page>

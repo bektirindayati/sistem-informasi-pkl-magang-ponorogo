@@ -1,0 +1,202 @@
+<?php
+
+namespace App\Services\Surat;
+
+use App\Models\PendaftaranMagang;
+use Carbon\Carbon;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use PhpOffice\PhpWord\Settings;
+use PhpOffice\PhpWord\TemplateProcessor;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Validation\ValidationException;
+
+/**
+ * Dasar dokumen resmi pendaftar (surat balasan, sertifikat) dengan alur yang sama:
+ *  1. draf()         : DOCX terisi otomatis dari template Word; placeholder urusan dinas dibiarkan.
+ *  2. simpanStatus() : admin mengunggah PDF final dan/atau mengubah status (diproses / diterbitkan).
+ *  3. berkasFinal()  : pendaftar mengunduh PDF resmi setelah diterbitkan.
+ */
+abstract class DokumenService
+{
+    protected const KOSONG = '..........';
+
+    /**
+     * 'file'   => kolom PDF, 'status' => kolom status, 'waktu' => kolom waktu terbit,
+     * 'nama'   => awalan nama berkas, 'folder' => folder simpan,
+     * 'boleh'  => status pendaftaran yang boleh memakai dokumen ini.
+     */
+    abstract protected function profil(): array;
+
+    abstract protected function template(PendaftaranMagang $p): string;
+
+    /** Placeholder grup A (diisi sistem). Placeholder urusan dinas tidak boleh disentuh. */
+    abstract protected function data(PendaftaranMagang $p): array;
+
+    /** Unduh draf DOCX untuk dilengkapi dan ditandatangani dinas. */
+    public function draf(PendaftaranMagang $p): BinaryFileResponse
+    {
+        abort_unless(
+            in_array($p->status, $this->profil()['boleh'], true),
+            404,
+            'Draf belum tersedia untuk status pendaftaran ini.'
+        );
+
+        $template = $this->template($p);
+
+        throw_unless(
+            is_file($template),
+            \RuntimeException::class,
+            'Template tidak ditemukan di: ' . ($template ?: '(pengaturan config/surat.php kosong)')
+        );
+
+        // Nama yang memuat tanda & atau < tidak boleh merusak dokumen.
+        Settings::setOutputEscapingEnabled(true);
+
+        $dokumen = new TemplateProcessor($template);
+
+        foreach ($this->data($p) as $placeholder => $nilai) {
+            $dokumen->setValue($placeholder, $nilai);
+        }
+
+        $sementara = tempnam(sys_get_temp_dir(), 'dok');
+        $dokumen->saveAs($sementara);
+
+        return response()
+            ->download($sementara, $this->namaBerkas($p, 'docx'))
+            ->deleteFileAfterSend(true);
+    }
+
+    /**
+     * PDF resmi: tampil di tab baru, atau unduh jika $unduh = true.
+     * Pendaftar hanya bisa membuka dokumen yang sudah diterbitkan; admin ($untukAdmin)
+     * boleh melihat PDF yang sudah diunggah meski belum diterbitkan.
+     */
+    public function berkasFinal(PendaftaranMagang $p, bool $unduh = false, bool $untukAdmin = false): Response
+    {
+        $path = $p->{$this->profil()['file']};
+
+        abort_unless($untukAdmin ? filled($path) : $this->terbit($p), 404, 'Dokumen belum tersedia.');
+
+        $disk = Storage::disk(PendaftaranMagang::DISK_SURAT);
+        abort_unless($disk->exists($path), 404, 'File tidak ditemukan. Hubungi admin.');
+
+        $nama = $this->namaBerkas($p, 'pdf');
+
+        $respons = $unduh
+            ? $disk->download($path, $nama)
+            : $disk->response($path, $nama, ['Content-Type' => 'application/pdf']);
+
+        $respons->headers->set('Cache-Control', 'no-store, max-age=0');
+
+        return $respons;
+    }
+
+    /**
+     * Simpan status dokumen. $pdf (opsional) menggantikan PDF yang tersimpan.
+     * "diterbitkan" membuat dokumen bisa diunduh pendaftar; "diproses" menariknya tanpa menghapus PDF.
+     *
+     * @return bool true bila dokumen baru saja diterbitkan (saatnya mengirim email)
+     */
+    public function simpanStatus(PendaftaranMagang $p, string $status, ?UploadedFile $pdf = null): bool
+{
+    $k = $this->profil();
+    $sudahTerbit = $this->terbit($p);
+    $disk = Storage::disk(PendaftaranMagang::DISK_SURAT);
+
+    $lama = $p->{$k['file']};
+    $pathBaru = null;
+
+    // Simpan PDF baru jika admin mengunggah penggantinya.
+    if ($pdf) {
+        $pathBaru = $pdf->store($k['folder'], PendaftaranMagang::DISK_SURAT);
+
+        if (! $pathBaru) {
+            throw new \RuntimeException('PDF gagal disimpan.');
+        }
+
+        $p->forceFill([$k['file'] => $pathBaru]);
+    }
+
+    $pathFinal = $p->{$k['file']};
+
+    // Dokumen tidak boleh diterbitkan tanpa PDF yang benar-benar tersedia.
+    if (
+        $status === 'diterbitkan'
+        && (! filled($pathFinal) || ! $disk->exists($pathFinal))
+    ) {
+        if ($pathBaru) {
+            $disk->delete($pathBaru);
+        }
+
+        throw ValidationException::withMessages([
+            'status_surat' => 'Dokumen tidak dapat diterbitkan karena PDF final belum tersedia.',
+        ]);
+    }
+
+    $terbitkan = $status === 'diterbitkan';
+    $baru = $terbitkan && (! $sudahTerbit || $pdf !== null);
+
+    $p->forceFill([
+        $k['status'] => $terbitkan ? 'diterbitkan' : 'diproses',
+        $k['waktu']  => $terbitkan ? ($baru ? now() : $p->{$k['waktu']}) : null,
+    ])->save();
+
+    // Hapus PDF lama setelah perubahan database berhasil disimpan.
+    if ($pathBaru && $lama && $lama !== $pathBaru) {
+        $disk->delete($lama);
+    }
+
+    return $baru;
+}
+
+    /** Tarik dari pendaftar: status kembali "diproses", PDF tetap tersimpan. */
+    public function tarik(PendaftaranMagang $p): void
+    {
+        $k = $this->profil();
+
+        $p->forceFill([$k['status'] => 'diproses', $k['waktu'] => null])->save();
+    }
+
+    // ---------- Pembantu untuk turunan ----------
+
+    protected function terbit(PendaftaranMagang $p): bool
+    {
+        $k = $this->profil();
+
+        return $p->{$k['status']} === 'diterbitkan' && filled($p->{$k['file']});
+    }
+
+    protected function namaBerkas(PendaftaranMagang $p, string $ekstensi): string
+    {
+        return $this->profil()['nama'] . '_' . Str::slug($p->nama_lengkap ?: 'peserta', '_') . '.' . $ekstensi;
+    }
+
+    protected function isi(?string $nilai): string
+    {
+        return filled($nilai) ? (string) $nilai : self::KOSONG;
+    }
+
+    protected function tanggal($nilai, string $format = 'j F Y'): string
+    {
+        return $nilai ? Carbon::parse($nilai)->locale('id')->translatedFormat($format) : self::KOSONG;
+    }
+
+    protected function namaDinas(PendaftaranMagang $p): string
+    {
+        return (string) ($p->dinas_tujuan ?: ($p->dinas?->nama_dinas ?? ''));
+    }
+
+    /** "Dinas ... Kabupaten Ponorogo", tanpa mengulang bila nama dinas sudah memuat wilayah. */
+    protected function namaDinasLengkap(PendaftaranMagang $p): string
+    {
+        $dinas = $this->namaDinas($p);
+        $wilayah = (string) config('surat.wilayah');
+
+        return $wilayah !== '' && ! str_contains(mb_strtolower($dinas), mb_strtolower($wilayah))
+            ? trim($dinas . ' ' . $wilayah)
+            : $dinas;
+    }
+}

@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -5,9 +6,17 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Struktur akhir tabel users (gabungan 6 migrasi lama), plus
- * password_reset_tokens dan sessions bawaan Laravel.
- * Butuh tabel dinases sudah ada lebih dulu (foreign key dinas_id).
+ * Struktur utama tabel users.
+ *
+ * Mencakup:
+ * - Autentikasi pengguna
+ * - Login Google
+ * - Role dan relasi dinas
+ * - Profil pengguna
+ * - Password reset tokens
+ * - Sessions
+ *
+ * Kolom kategori ditambahkan melalui migration terpisah.
  */
 return new class extends Migration
 {
@@ -15,40 +24,53 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+
+            // Informasi akun
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
 
-            // Nullable karena akun dibuat lewat login Google
+            // Autentikasi
             $table->string('password')->nullable();
             $table->string('google_id')->nullable();
             $table->string('avatar')->nullable();
 
-            // Role: user | admin | super_admin (disalin ke Spatie oleh RolePermissionSeeder)
+            // Hak akses pengguna
+            // user | admin | super_admin
             $table->string('role')->default('user');
 
-            // Admin dinas terikat ke satu dinas; user biasa & super admin kosong
-            $table->foreignId('dinas_id')->nullable()->constrained('dinases')->nullOnDelete();
+            // Relasi admin dengan dinas
+            $table->foreignId('dinas_id')
+                ->nullable()
+                ->constrained('dinases')
+                ->nullOnDelete();
 
-           // Profil pengguna, dipakai sebagai data default untuk form pendaftaran
+            // Profil pengguna
+            // Digunakan sebagai data default formulir pendaftaran
             $table->string('nama_lengkap')->nullable();
             $table->string('nim_nisn')->nullable();
             $table->string('instansi')->nullable();
             $table->string('jurusan')->nullable();
+
+            // Informasi kontak
             $table->string('no_hp', 20)->nullable();
             $table->text('alamat')->nullable();
             $table->string('kabupaten')->nullable();
             $table->string('provinsi')->nullable();
+
+            // Remember token dan timestamps
             $table->rememberToken();
             $table->timestamps();
         });
 
+        // Password reset tokens
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
+        // Sessions
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();

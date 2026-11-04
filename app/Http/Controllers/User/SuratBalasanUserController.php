@@ -3,19 +3,16 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\User\SuratBalasan\UnduhSuratBalasanRequest;
 use App\Services\Surat\SuratBalasanService;
+use Illuminate\Http\Request;
 
-/** Peserta yang diterima mengunduh surat balasan (PDF final) setelah diterbitkan admin. */
+/** Peserta membuka/mengunduh surat balasan resmi miliknya setelah diterbitkan. */
 class SuratBalasanUserController extends Controller
 {
-    public function __invoke(UnduhSuratBalasanRequest $request, SuratBalasanService $service)
+    public function __invoke(Request $request, $pendaftaran, SuratBalasanService $surat)
     {
-        $pendaftaran = $request->pendaftaran();
-        $surat = $pendaftaran->suratBalasan;
+        $milikku = $request->user()->pendaftarans()->findOrFail($pendaftaran);
 
-        abort_unless($surat?->sudahTerbit() && $surat->file_final, 404, 'Surat balasan belum diterbitkan.');
-
-        return $service->responsPdf($surat->file_final, $service->namaFile($pendaftaran), 'attachment');
+        return $surat->berkasFinal($milikku, $request->boolean('unduh'));
     }
 }

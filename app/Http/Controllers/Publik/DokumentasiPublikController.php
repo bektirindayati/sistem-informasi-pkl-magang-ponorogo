@@ -14,7 +14,7 @@ class DokumentasiPublikController extends Controller
 
         $lainnya = DokumentasiMagang::with('fotos')
             ->whereKeyNot($dokumentasi->id)
-            ->latest()
+            ->terbaru()
             ->take(3)
             ->get();
 

@@ -38,8 +38,9 @@ class BerandaController extends Controller
 
             'dinases' => $dinases,
 
+            // Urut menurut waktu acara, bukan waktu unggah
             'dokumentasis' => DokumentasiMagang::with('fotos')
-                ->latest()
+                ->terbaru()
                 ->take(6)
                 ->get(),
         ]);

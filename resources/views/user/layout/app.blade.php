@@ -32,7 +32,7 @@
     @stack('styles')
 </head>
 
-<body class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased">
+<body class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 antialiased">
 
     {{-- Navbar user (pill mengambang) --}}
     <x-user-navbar />

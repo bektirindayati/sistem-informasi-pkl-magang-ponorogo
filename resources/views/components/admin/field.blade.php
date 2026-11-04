@@ -1,11 +1,9 @@
-{{--Komponen: <x-admin.field label="Judul Kegiatan / Badge (Atas)">
-                  <input type="text" name="judul_kegiatan" class="..." required>
-              </x-admin.field>
+{{-- resources/views/components/admin/field.blade.php --}}
+@props(['label' => ''])
 
-    <x-form.input>--}}
-@props(['label'])
-
-<div>
-    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">{{ $label }}</label>
+<div {{ $attributes }}>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-200 mb-2">
+        {{ $label }}
+    </label>
     {{ $slot }}
 </div>

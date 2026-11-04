@@ -8,6 +8,7 @@ use App\Models\PendaftaranMagang;
 /**
  * Update / kirim ulang (status draft atau revisi).
  * Surat pengantar tidak wajib diunggah ulang jika sudah ada.
+ * (rules dan dataStatus mengikuti Base; trait menimpa authorize & pendaftaran.)
  */
 class UpdatePendaftaranRequest extends BasePendaftaranRequest
 {
@@ -21,17 +22,5 @@ class UpdatePendaftaranRequest extends BasePendaftaranRequest
     protected function pesanStatusDitolak(): string
     {
         return 'Pendaftaran yang sudah dikirim tidak dapat diubah lagi.';
-    }
-
-    public function rules(): array
-    {
-        $suratWajib = empty($this->pendaftaran()->surat_pengantar);
-
-        return array_merge($this->aturanData('required'), $this->aturanBerkas($suratWajib));
-    }
-
-    public function dataPendaftaran(): array
-    {
-        return array_merge(parent::dataPendaftaran(), $this->dataKirim());
     }
 }

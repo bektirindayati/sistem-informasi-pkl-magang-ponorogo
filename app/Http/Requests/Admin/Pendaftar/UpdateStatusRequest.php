@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin\Pendaftar;
 
-/** Ubah status verifikasi (pending/revisi/diterima/ditolak). */
+use Illuminate\Contracts\Validation\Validator;
+
+/** Ubah status verifikasi (pending/revisi/diterima/ditolak/selesai). */
 class UpdateStatusRequest extends AdminPendaftaranRequest
 {
     protected function pesanAksesDitolak(): string
@@ -13,10 +15,32 @@ class UpdateStatusRequest extends AdminPendaftaranRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'in:pending,revisi,diterima,ditolak'],
+            'status' => ['required', 'in:pending,revisi,diterima,ditolak,selesai'],
             'alasan_penolakan' => ['nullable', 'required_if:status,ditolak', 'string'],
             'alasan_revisi' => ['nullable', 'required_if:status,revisi', 'string'],
         ];
+    }
+
+    /**
+     * Status Selesai hanya dapat diberikan kepada pendaftaran
+     * yang sudah diterima. Tidak dibatasi tanggal selesai magang.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $v) {
+            if ($this->input('status') !== 'selesai') {
+                return;
+            }
+
+            $pendaftaran = $this->pendaftaran();
+
+            if (! in_array($pendaftaran->status, ['diterima', 'selesai'], true)) {
+                $v->errors()->add(
+                    'status',
+                    'Status Magang Selesai hanya dapat diberikan kepada pendaftaran yang sudah diterima.'
+                );
+            }
+        });
     }
 
     public function messages(): array
@@ -34,8 +58,12 @@ class UpdateStatusRequest extends AdminPendaftaranRequest
 
         return [
             'status' => $data['status'],
-            'alasan_penolakan' => $data['status'] === 'ditolak' ? ($data['alasan_penolakan'] ?? null) : null,
-            'alasan_revisi' => $data['status'] === 'revisi' ? ($data['alasan_revisi'] ?? null) : null,
+            'alasan_penolakan' => $data['status'] === 'ditolak'
+                ? ($data['alasan_penolakan'] ?? null)
+                : null,
+            'alasan_revisi' => $data['status'] === 'revisi'
+                ? ($data['alasan_revisi'] ?? null)
+                : null,
         ];
     }
 }

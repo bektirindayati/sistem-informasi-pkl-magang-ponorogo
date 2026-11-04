@@ -8,7 +8,6 @@
     <x-page-header
         eyebrow="Pendaftaran"
         title="Status Pendaftaran"
-        :back="route('user.dashboard')"
     >
         Pantau progres verifikasi pengajuan magang/PKL kamu.
 
@@ -20,8 +19,9 @@
     </x-page-header>
 
     @if(session('success'))
-        <x-alert type="success">✨ {{ session('success') }}</x-alert>
+        <x-alert type="success"> {{ session('success') }}</x-alert>
     @endif
+
     @if(session('error'))
         <x-alert type="error">{{ session('error') }}</x-alert>
     @endif
@@ -31,9 +31,18 @@
         {{-- BELUM PERNAH MENDAFTAR --}}
         <x-card class="text-center !py-12">
             <div class="text-3xl mb-3">📭</div>
-            <h2 class="text-base font-semibold text-slate-900">Belum Ada Pendaftaran</h2>
-            <p class="text-sm text-slate-500 mt-1 mb-5">Kamu belum pernah mengajukan pendaftaran magang atau PKL.</p>
-            <x-button :href="route('user.pendaftaran.create')">Daftar Sekarang</x-button>
+
+            <h2 class="text-base font-semibold text-slate-900 dark:text-white">
+                Belum Ada Pendaftaran
+            </h2>
+
+            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 mb-5">
+                Kamu belum pernah mengajukan pendaftaran magang atau PKL.
+            </p>
+
+            <x-button :href="route('user.pendaftaran.create')">
+                Daftar Sekarang
+            </x-button>
         </x-card>
 
     @else
@@ -45,9 +54,9 @@
             $langkah = [
                 ['label' => 'Data Dikirim', 'state' => $status === 'draft' ? 'active' : 'done'],
                 ['label' => 'Verifikasi',   'state' => match (true) {
-                    $status === 'draft'                       => 'todo',
-                    in_array($status, ['pending', 'revisi'])  => 'active',
-                    default                                   => 'done',
+                    $status === 'draft'                      => 'todo',
+                    in_array($status, ['pending', 'revisi']) => 'active',
+                    default                                  => 'done',
                 }],
                 ['label' => 'Keputusan',    'state' => match ($status) {
                     'diterima', 'selesai' => 'done',
@@ -60,15 +69,22 @@
                 'done'     => 'bg-emerald-500 text-white',
                 'active'   => 'bg-blue-600 text-white animate-pulse',
                 'rejected' => 'bg-rose-500 text-white',
-                'todo'     => 'bg-slate-200 text-slate-400',
+                'todo'     => 'bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400',
             ];
-            $ikonBulat = ['done' => '✓', 'active' => '●', 'rejected' => '✕', 'todo' => '○'];
 
-            // Warna garis penghubung = warna langkah tujuannya
+            $ikonBulat = [
+                'done'     => '✓',
+                'active'   => '●',
+                'rejected' => '✕',
+                'todo'     => '○',
+            ];
+
+            // Warna garis mengikuti status langkah tujuan
             $warnaGaris = fn ($state) => match ($state) {
-                'done', 'active' => 'bg-emerald-500',
-                'rejected'       => 'bg-rose-400',
-                default          => 'bg-slate-200',
+                'done'     => 'bg-emerald-500',
+                'active'   => 'bg-blue-500',
+                'rejected' => 'bg-rose-400',
+                default    => 'bg-slate-200 dark:bg-slate-600',
             };
 
             $bolehBatal = in_array($status, ['draft', 'pending', 'revisi', 'ditolak']);
@@ -80,29 +96,50 @@
             <x-card :pad="false" class="lg:col-span-2">
 
                 {{-- Header --}}
-                <div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+                <div class="px-5 sm:px-6 py-4
+                            border-b border-blue-100 dark:border-slate-700
+                            flex items-center justify-between gap-3">
+
                     <div class="flex items-center gap-3 flex-wrap">
-                        <span class="text-sm font-semibold text-slate-900">Pendaftaran #{{ $nomorUrut }}</span>
+                        <span class="text-sm font-semibold text-slate-900 dark:text-white">
+                            Pendaftaran #{{ $nomorUrut }}
+                        </span>
+
                         <x-status-badge :status="$status" />
                     </div>
-                    <span class="text-xs text-slate-400 whitespace-nowrap">{{ $pendaftaran->created_at->translatedFormat('d M Y') }}</span>
+
+                    <span class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        {{ $pendaftaran->created_at->translatedFormat('d M Y') }}
+                    </span>
                 </div>
 
-                {{-- Stepper (status revisi memakai kartu sendiri di bawah) --}}
+                {{-- Stepper --}}
                 @if($status !== 'revisi')
-                    <div class="px-5 sm:px-6 py-5 border-b border-slate-100">
+                    <div class="px-5 sm:px-6 py-5
+                                border-b border-blue-100 dark:border-slate-700">
+
                         <div class="flex items-start max-w-md mx-auto">
                             @foreach($langkah as $i => $item)
+
                                 @if($i > 0)
-                                    <div class="flex-1 h-0.5 mt-[13px] mx-1 rounded-full {{ $warnaGaris($item['state']) }}"></div>
+                                    <div class="flex-1 h-0.5 mt-[13px] mx-1 rounded-full
+                                                {{ $warnaGaris($item['state']) }}">
+                                    </div>
                                 @endif
 
                                 <div class="w-16 flex flex-col items-center shrink-0">
-                                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold {{ $warnaBulat[$item['state']] }}">
+                                    <div class="w-7 h-7 rounded-full flex items-center justify-center
+                                                text-xs font-bold {{ $warnaBulat[$item['state']] }}">
                                         {{ $ikonBulat[$item['state']] }}
                                     </div>
-                                    <span class="text-xs font-medium text-slate-600 mt-2 text-center leading-tight">{{ $item['label'] }}</span>
+
+                                    <span class="text-xs font-medium
+                                                 text-slate-600 dark:text-slate-300
+                                                 mt-2 text-center leading-tight">
+                                        {{ $item['label'] }}
+                                    </span>
                                 </div>
+
                             @endforeach
                         </div>
                     </div>
@@ -112,87 +149,184 @@
                 <div class="px-5 sm:px-6 py-5">
 
                     @if($status === 'pending')
+
                         <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">⏳</div>
+                            <div class="w-10 h-10 rounded-xl
+                                        bg-blue-100 dark:bg-blue-500/10
+                                        text-blue-700 dark:text-cyan-300
+                                        flex items-center justify-center text-lg shrink-0">
+                                ⏳
+                            </div>
+
                             <div>
-                                <h3 class="text-base font-semibold text-slate-900">Sedang dalam proses verifikasi</h3>
-                                <p class="text-sm text-slate-500 mt-1 leading-relaxed">Admin sedang memeriksa kelengkapan data dan dokumen kamu. Kamu akan diberi tahu begitu ada keputusan.</p>
+                                <h3 class="text-base font-semibold text-slate-900 dark:text-white">
+                                    Sedang dalam proses verifikasi
+                                </h3>
+
+                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                                    Admin sedang memeriksa kelengkapan data dan dokumen kamu.
+                                    Kamu akan diberi tahu begitu ada keputusan.
+                                </p>
                             </div>
                         </div>
-                        <p class="mt-5 pt-4 border-t border-slate-100 text-xs text-slate-400">
+
+                        <p class="mt-5 pt-4
+                                  border-t border-blue-100 dark:border-slate-700
+                                  text-xs text-slate-500 dark:text-slate-400">
                             Data pendaftaran tidak dapat diubah selama masih dalam proses verifikasi.
                         </p>
 
                     @elseif($status === 'revisi')
-                        <div class="p-4 sm:p-5 bg-orange-50 border border-orange-200 rounded-xl">
-                            <h3 class="text-base font-semibold text-orange-800">⚠️ Perlu Perbaikan</h3>
-                            <p class="text-sm text-orange-900/80 mt-1 mb-4">Silakan perbaiki data sesuai catatan admin di bawah ini.</p>
-                            <div class="p-4 bg-white border border-orange-100 rounded-lg">
-                                <p class="text-[11px] font-semibold text-orange-700 uppercase tracking-wide mb-1">Alasan revisi</p>
-                                <p class="text-sm text-slate-700 leading-relaxed">"{{ $pendaftaran->alasan_revisi ?? 'Tidak ada catatan khusus.' }}"</p>
+
+                        <div class="p-4 sm:p-5
+                                    bg-orange-50 dark:bg-orange-500/10
+                                    border border-orange-200 dark:border-orange-500/30
+                                    rounded-xl">
+
+                            <h3 class="text-base font-semibold text-orange-800 dark:text-orange-300">
+                                ⚠️ Perlu Perbaikan
+                            </h3>
+
+                            <p class="text-sm text-orange-900/80 dark:text-orange-200/80 mt-1 mb-4">
+                                Silakan perbaiki data sesuai catatan admin di bawah ini.
+                            </p>
+
+                            <div class="p-4 bg-white dark:bg-slate-800
+                                        border border-orange-200/70 dark:border-orange-500/20
+                                        rounded-lg">
+
+                                <p class="text-[11px] font-semibold
+                                          text-orange-700 dark:text-orange-300
+                                          uppercase tracking-wide mb-1">
+                                    Alasan revisi
+                                </p>
+
+                                <p class="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                                    "{{ $pendaftaran->alasan_revisi ?? 'Tidak ada catatan khusus.' }}"
+                                </p>
                             </div>
-                            <x-button :href="route('user.pendaftaran.edit', $pendaftaran->id)" variant="orange" class="mt-4">
+
+                            <x-button :href="route('user.pendaftaran.edit', $pendaftaran->id)"
+                                      variant="orange" class="mt-4">
                                 Perbaiki Pendaftaran
                             </x-button>
                         </div>
 
                     @elseif($status === 'diterima')
+
                         <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">✅</div>
+                            <div class="w-10 h-10 rounded-xl
+                                        bg-emerald-100 dark:bg-emerald-500/10
+                                        text-emerald-700 dark:text-emerald-400
+                                        flex items-center justify-center text-lg shrink-0">
+                                ✅
+                            </div>
+
                             <div>
-                                <h3 class="text-base font-semibold text-slate-900">Selamat, pendaftaran kamu diterima!</h3>
-                                <p class="text-sm text-slate-500 mt-1 leading-relaxed">Pengajuan magang/PKL kamu telah disetujui oleh instansi tujuan.</p>
+                                <h3 class="text-base font-semibold text-slate-900 dark:text-white">
+                                    Selamat, pendaftaran kamu diterima!
+                                </h3>
+
+                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                                    Pengajuan magang/PKL kamu telah disetujui oleh instansi tujuan.
+                                </p>
                             </div>
                         </div>
-                        @if($pendaftaran->suratBalasan?->sudahTerbit())
-                            <x-button :href="route('user.pendaftaran.surat', $pendaftaran->id)" variant="success" class="mt-5">
-                                Unduh Surat Balasan (PDF)
-                            </x-button>
-                        @else
-                            <p class="mt-4 text-xs text-slate-400">
-                                Surat balasan sedang disiapkan admin. Tombol unduh akan muncul di sini setelah surat diterbitkan.
-                            </p>
-                        @endif
+
+                        <x-user.surat-balasan :pendaftaran="$pendaftaran" />
+                        <x-user.sertifikat :pendaftaran="$pendaftaran" />
 
                     @elseif($status === 'ditolak')
-                        <div class="p-4 sm:p-5 bg-rose-50 border border-rose-200 rounded-xl">
-                            <h3 class="text-base font-semibold text-rose-800">❌ Pendaftaran Ditolak</h3>
-                            <div class="mt-3 p-4 bg-white border border-rose-100 rounded-lg">
-                                <p class="text-[11px] font-semibold text-rose-700 uppercase tracking-wide mb-1">Alasan penolakan</p>
-                                <p class="text-sm text-slate-700 leading-relaxed">"{{ $pendaftaran->alasan_penolakan ?? 'Tidak ada catatan khusus.' }}"</p>
+
+                        <div class="p-4 sm:p-5
+                                    bg-rose-50 dark:bg-rose-500/10
+                                    border border-rose-200 dark:border-rose-500/30
+                                    rounded-xl">
+
+                            <h3 class="text-base font-semibold text-rose-800 dark:text-rose-300">
+                                ❌ Pendaftaran Ditolak
+                            </h3>
+
+                            <div class="mt-3 p-4 bg-white dark:bg-slate-800
+                                        border border-rose-200/70 dark:border-rose-500/20
+                                        rounded-lg">
+
+                                <p class="text-[11px] font-semibold
+                                          text-rose-700 dark:text-rose-300
+                                          uppercase tracking-wide mb-1">
+                                    Alasan penolakan
+                                </p>
+
+                                <p class="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                                    "{{ $pendaftaran->alasan_penolakan ?? 'Tidak ada catatan khusus.' }}"
+                                </p>
                             </div>
+
                             <x-button :href="route('user.pendaftaran.create')" class="mt-4">
                                 Daftar Magang Lagi
                             </x-button>
                         </div>
 
                     @elseif($status === 'selesai')
+
                         <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">🏁</div>
+                            <div class="w-10 h-10 rounded-xl
+                                        bg-cyan-100 dark:bg-cyan-500/10
+                                        text-cyan-700 dark:text-cyan-300
+                                        flex items-center justify-center text-lg shrink-0">
+                                🏁
+                            </div>
+
                             <div>
-                                <h3 class="text-base font-semibold text-slate-900">Magang telah selesai</h3>
-                                <p class="text-sm text-slate-500 mt-1 leading-relaxed">Periode magang/PKL kamu di instansi ini sudah berakhir. Terima kasih atas kontribusinya!</p>
+                                <h3 class="text-base font-semibold text-slate-900 dark:text-white">
+                                    Magang telah selesai
+                                    <x-user.surat-balasan :pendaftaran="$pendaftaran" />
+                                    <x-user.sertifikat :pendaftaran="$pendaftaran" />
+                                </h3>
+
+                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                                    Periode magang/PKL kamu di instansi ini sudah berakhir.
+                                    Terima kasih atas kontribusinya!
+                                </p>
                             </div>
                         </div>
 
                     @elseif($status === 'draft')
+
                         <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center text-lg shrink-0">📝</div>
+                            <div class="w-10 h-10 rounded-xl
+                                        bg-slate-100 dark:bg-slate-700
+                                        text-slate-600 dark:text-slate-300
+                                        flex items-center justify-center text-lg shrink-0">
+                                📝
+                            </div>
+
                             <div>
-                                <h3 class="text-base font-semibold text-slate-900">Masih draft, belum dikirim</h3>
-                                <p class="text-sm text-slate-500 mt-1 leading-relaxed">Lanjutkan mengisi formulir dan kirim pengajuan kalau sudah yakin datanya benar.</p>
+                                <h3 class="text-base font-semibold text-slate-900 dark:text-white">
+                                    Masih draft, belum dikirim
+                                </h3>
+
+                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                                    Lanjutkan mengisi formulir dan kirim pengajuan kalau sudah yakin datanya benar.
+                                </p>
                             </div>
                         </div>
-                        <x-button :href="route('user.pendaftaran.edit', $pendaftaran->id)" variant="warning" class="mt-5">
+
+                        <x-button :href="route('user.pendaftaran.edit', $pendaftaran->id)"
+                                  variant="warning" class="mt-5">
                             Lanjutkan Draft
                         </x-button>
+
                     @endif
                 </div>
             </x-card>
 
             {{-- ===== DETAIL PENGAJUAN ===== --}}
             <x-card class="lg:col-span-1">
-                <h2 class="text-sm font-semibold text-slate-900">Detail Pengajuan</h2>
+
+                <h2 class="text-sm font-semibold text-slate-900 dark:text-white">
+                    Detail Pengajuan
+                </h2>
 
                 <dl class="mt-4 space-y-3.5">
                     @foreach([
@@ -206,26 +340,39 @@
                                         : null,
                         'Diajukan' => $pendaftaran->created_at->translatedFormat('d M Y, H:i'),
                     ] as $label => $nilai)
+
                         @if(filled($nilai))
                             <div>
-                                <dt class="text-[11px] font-medium uppercase tracking-wide text-slate-400">{{ $label }}</dt>
-                                <dd class="mt-0.5 text-sm font-medium text-slate-800 break-words">{{ $nilai }}</dd>
+                                <dt class="text-[11px] font-medium uppercase tracking-wide
+                                           text-slate-500 dark:text-slate-400">
+                                    {{ $label }}
+                                </dt>
+
+                                <dd class="mt-0.5 text-sm font-medium
+                                           text-slate-800 dark:text-slate-100 break-words">
+                                    {{ $nilai }}
+                                </dd>
                             </div>
                         @endif
+
                     @endforeach
                 </dl>
 
                 @if($bolehBatal)
-                    <form action="{{ route('user.pendaftaran.destroy', $pendaftaran->id) }}" method="POST"
+                    <form action="{{ route('user.pendaftaran.destroy', $pendaftaran->id) }}"
+                          method="POST"
                           onsubmit="return confirm('Yakin ingin membatalkan pengajuan ini?')"
-                          class="mt-5 pt-5 border-t border-slate-100">
+                          class="mt-5 pt-5 border-t border-blue-100 dark:border-slate-700">
+
                         @csrf
                         @method('DELETE')
+
                         <x-button type="submit" variant="danger" size="sm" class="w-full">
                             {{ $status === 'draft' ? 'Hapus Draft' : 'Batalkan Pengajuan' }}
                         </x-button>
                     </form>
                 @endif
+
             </x-card>
         </div>
 

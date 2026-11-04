@@ -24,7 +24,9 @@ class DinasSuperAdminController extends Controller
     {return view('admin.dinas.edit', ['dinas' => Dinas::findOrFail($id)]);}
 
     public function update(UpdateDinasRequest $request, $id)
-    {Dinas::findOrFail($id)->update($request->validated());
+   {
+
+       Dinas::findOrFail($id)->update($request->validated());
     return redirect()->route('admin.dinas.index')->with('success', 'Dinas berhasil diperbarui!');}
 
     public function destroy($id)

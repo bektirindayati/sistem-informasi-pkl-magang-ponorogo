@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Admin\Dokumentasi;
 
+use App\Models\Dinas;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 /** Aturan & pesan bersama untuk tambah/ubah dokumentasi kegiatan. */
@@ -12,20 +14,32 @@ abstract class BaseDokumentasiRequest extends FormRequest
     protected const MAKS_FOTO = 10;
     protected const MAKS_URAIAN = 5000;
 
-    /** Akses dijaga middleware permission:kelola-dokumentasi di route. */
+    /**
+     * Akses halaman dijaga middleware permission:kelola-dokumentasi di route.
+     * Di sini: admin dinas wajib terhubung ke sebuah dinas.
+     */
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+
+        return $user->isSuperAdmin() || filled($user->dinas_id);
     }
 
     protected function aturanKegiatan(): array
     {
-        return [
+        $aturan = [
             'judul_kegiatan' => ['required', 'string', 'max:255'],
             'kategori_badge' => ['required', 'string', 'max:255'],
             'tempat_pelaksanaan' => ['required', 'string', 'max:255'],
             'tanggal_pelaksanaan' => ['required', 'date'],
         ];
+
+        // Hanya super admin yang memilih dinas; admin dinas otomatis memakai dinasnya sendiri.
+        if ($this->user()->isSuperAdmin()) {
+            $aturan['dinas_id'] = ['required', Rule::exists((new Dinas)->getTable(), 'id')];
+        }
+
+        return $aturan;
     }
 
     /** Foto baru (foto[]) dan uraiannya (uraian[]) dikirim berpasangan menurut urutan. */
@@ -68,6 +82,9 @@ abstract class BaseDokumentasiRequest extends FormRequest
             'tanggal_pelaksanaan.required' => 'Tanggal pelaksanaan wajib diisi.',
             'tanggal_pelaksanaan.date' => 'Format tanggal pelaksanaan tidak valid.',
 
+            'dinas_id.required' => 'Dinas pemilik dokumentasi wajib dipilih.',
+            'dinas_id.exists' => 'Dinas yang dipilih tidak ditemukan.',
+
             'foto.required' => 'Minimal unggah 1 foto dokumentasi.',
             'foto.array' => 'Format unggahan foto tidak valid.',
             'foto.max' => 'Maksimal ' . self::MAKS_FOTO . ' foto per kegiatan.',
@@ -83,9 +100,16 @@ abstract class BaseDokumentasiRequest extends FormRequest
 
     public function dataKegiatan(): array
     {
-        return Arr::only($this->validated(), [
+        $data = Arr::only($this->validated(), [
             'judul_kegiatan', 'kategori_badge', 'tempat_pelaksanaan', 'tanggal_pelaksanaan',
         ]);
+
+        // Admin dinas: nilai diambil dari akunnya, bukan dari input form (tidak bisa dipalsukan).
+        $data['dinas_id'] = $this->user()->isSuperAdmin()
+            ? $this->validated('dinas_id')
+            : $this->user()->dinas_id;
+
+        return $data;
     }
 
     /**

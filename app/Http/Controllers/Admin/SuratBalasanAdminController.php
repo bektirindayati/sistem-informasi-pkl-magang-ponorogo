@@ -2,96 +2,55 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Exceptions\SuratBalasanException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SuratBalasan\AksesSuratBalasanRequest;
-use App\Http\Requests\Admin\SuratBalasan\TerbitkanSuratBalasanRequest;
-use App\Http\Requests\Admin\SuratBalasan\UpdateSuratBalasanRequest;
+use App\Http\Requests\Admin\SuratBalasan\UnggahSuratBalasanRequest;
+use App\Services\PendaftaranNotifier;
 use App\Services\Surat\SuratBalasanService;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 
-/**
- * Surat balasan untuk pendaftar yang diterima:
- * isi data -> pratinjau draf PDF -> terbitkan -> peserta mengunduh.
- */
+/** Admin: unduh draf Word, lihat PDF tersimpan, dan atur status surat (diproses / diterbitkan). */
 class SuratBalasanAdminController extends Controller
 {
     public function __construct(private SuratBalasanService $surat)
     {
     }
 
-    /** Halaman kerja: form data surat, pratinjau, dan tombol terbitkan. */
+    public function draf(AksesSuratBalasanRequest $request)
+    {
+        return $this->surat->draf($request->pendaftaran());
+    }
+
     public function show(AksesSuratBalasanRequest $request)
     {
-        $pendaftaran = $request->pendaftaran();
-
-        return view('admin.surat.show', [
-            'pendaftaran' => $pendaftaran,
-            'surat'       => $this->surat->ambilAtauBuat($pendaftaran),
-            'wajibTtd'    => (bool) config('surat.wajib_unggah_ttd'),
-        ]);
-    }
-
-    /** Simpan data surat dan buat ulang draf PDF. */
-    public function update(UpdateSuratBalasanRequest $request)
-    {
-        $surat = $this->surat->ambilAtauBuat($request->pendaftaran());
-
-        if ($surat->sudahTerbit()) {
-            return back()->with('error', 'Surat sudah diterbitkan. Tarik penerbitan terlebih dahulu untuk mengubah datanya.');
-        }
-
-        try {
-            $this->surat->perbarui($surat, $request->dataSurat());
-        } catch (SuratBalasanException $e) {
-            return back()->with('error', $e->getMessage());
-        }
-
-        return back()->with('success', 'Data surat disimpan dan draf PDF diperbarui. Silakan periksa pratinjau.');
-    }
-
-    /**
-     * PDF untuk dilihat di halaman (inline) atau diunduh (?unduh=1).
-     * Surat yang sudah terbit menampilkan file final, selain itu draf.
-     */
-    public function pratinjau(AksesSuratBalasanRequest $request)
-    {
-        $pendaftaran = $request->pendaftaran();
-        $surat = $pendaftaran->suratBalasan;
-
-        $path = $surat?->sudahTerbit() ? $surat->file_final : $surat?->file_draf;
-
-        abort_unless($path, 404, 'Draf surat belum dibuat.');
-
-        return $this->surat->responsPdf(
-            $path,
-            $this->surat->namaFile($pendaftaran, $surat->sudahTerbit() ? 'Surat_Balasan' : 'Draf_Surat_Balasan'),
-            $request->boolean('unduh') ? 'attachment' : 'inline'
+        return $this->surat->berkasFinal(
+            $request->pendaftaran(),
+            $request->boolean('unduh'),
+            untukAdmin: true
         );
     }
 
-    public function terbitkan(TerbitkanSuratBalasanRequest $request)
-    {
-        $surat = $request->pendaftaran()->suratBalasan;
+    public function status(
+        UnggahSuratBalasanRequest $request,
+        PendaftaranNotifier $notifier
+    ): RedirectResponse {
+        $pendaftaran = $request->pendaftaran();
+        $status = $request->validated('status_surat');
 
-        try {
-            $this->surat->terbitkan($surat, $request->file('pdf_bertanda_tangan'), Auth::user());
-        } catch (SuratBalasanException $e) {
-            return back()->with('error', $e->getMessage());
-        }
+        $baruTerbit = $this->surat->simpanStatus(
+            $pendaftaran,
+            $status,
+            $request->file('surat_balasan')
+        );
 
-        return back()->with('success', 'Surat balasan diterbitkan. Peserta sekarang dapat mengunduhnya dari halaman status.');
-    }
+        $emailGagal = $baruTerbit && ! $notifier->kirim($pendaftaran, 'surat');
 
-    /** Batalkan penerbitan: surat kembali menjadi draf dan tidak bisa diunduh peserta. */
-    public function tarik(AksesSuratBalasanRequest $request)
-    {
-        $surat = $request->pendaftaran()->suratBalasan;
+        $respons = back()->with('success', $status === 'diterbitkan'
+            ? 'Surat balasan berhasil diterbitkan. Pendaftar dapat mengunduhnya melalui dashboard.'
+            : 'Status surat disimpan: surat sedang diproses.');
 
-        abort_unless($surat?->sudahTerbit(), 404);
-
-        $this->surat->tarik($surat);
-
-        return back()->with('success', 'Penerbitan ditarik. Surat kembali menjadi draf dan tidak lagi dapat diunduh peserta.');
+        return $emailGagal
+            ? $respons->with('error', 'Surat tersimpan, tetapi email ke pendaftar gagal dikirim. Periksa pengaturan email (MAIL_*) di .env.')
+            : $respons;
     }
 }

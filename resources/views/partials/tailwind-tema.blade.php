@@ -36,4 +36,4 @@
 
 {{-- 2) Tailwind CDN + 3) config dark mode (harus tepat setelah CDN) --}}
 <script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config = { darkMode: 'class' }</script>
+@include('partials.tailwind-config')

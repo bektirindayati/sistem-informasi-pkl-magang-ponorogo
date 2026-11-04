@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PencarianRequest;
 use App\Http\Requests\Admin\Pendaftar\AdminPendaftaranRequest;
 use App\Models\PendaftaranMagang;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Data pendaftar: daftar per kelompok (+ pencarian nama)
@@ -16,7 +15,7 @@ class PendaftarAdminController extends Controller
 {
     public function index(PencarianRequest $request)
     {
-        $admin = Auth::user();
+        $admin  = $request->user();
         $search = $request->kata();
 
         $dasar = fn () => PendaftaranMagang::latest()

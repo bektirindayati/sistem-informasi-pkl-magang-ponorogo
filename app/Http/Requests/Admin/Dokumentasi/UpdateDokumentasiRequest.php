@@ -15,13 +15,18 @@ class UpdateDokumentasiRequest extends BaseDokumentasiRequest
 {
     private ?DokumentasiMagang $dimuat = null;
 
+    /** Hanya dokumentasi yang boleh dikelola user ini; selain itu 404. */
     public function dokumentasi(): DokumentasiMagang
     {
-        return $this->dimuat ??= DokumentasiMagang::findOrFail($this->route('id'));
+        return $this->dimuat ??= DokumentasiMagang::bisaDikelolaOleh($this->user())
+            ->findOrFail($this->route('id'));
     }
 
     public function rules(): array
     {
+        // Muat lebih awal agar akses ditolak (404) sebelum validasi lain berjalan.
+        $this->dokumentasi();
+
         return array_merge($this->aturanKegiatan(), $this->aturanFoto(false), [
             'uraian_lama' => ['nullable', 'array'],
             'uraian_lama.*' => ['nullable', 'string', 'max:' . self::MAKS_URAIAN],
