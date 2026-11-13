@@ -233,8 +233,9 @@
                             </div>
                         </div>
 
-                        <x-user.surat-balasan :pendaftaran="$pendaftaran" />
-                        <x-user.sertifikat :pendaftaran="$pendaftaran" />
+                        <x-user.dokumen jenis="balasan" :pendaftaran="$pendaftaran" />
+                        <x-user.dokumen jenis="selesai" :pendaftaran="$pendaftaran" />
+                        <x-user.dokumen jenis="sertifikat" :pendaftaran="$pendaftaran" />
 
                     @elseif($status === 'ditolak')
 
@@ -267,29 +268,28 @@
                             </x-button>
                         </div>
 
-                    @elseif($status === 'selesai')
+                    
+@elseif($status === 'selesai')
 
-                        <div class="flex items-start gap-4">
-                            <div class="w-10 h-10 rounded-xl
-                                        bg-cyan-100 dark:bg-cyan-500/10
-                                        text-cyan-700 dark:text-cyan-300
-                                        flex items-center justify-center text-lg shrink-0">
-                                🏁
-                            </div>
+    <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-500/10 text-cyan-700 dark:text-cyan-300
+                    flex items-center justify-center text-lg shrink-0">🏁</div>
 
-                            <div>
-                                <h3 class="text-base font-semibold text-slate-900 dark:text-white">
-                                    Magang telah selesai
-                                    <x-user.surat-balasan :pendaftaran="$pendaftaran" />
-                                    <x-user.sertifikat :pendaftaran="$pendaftaran" />
-                                </h3>
+        <div>
+            <h3 class="text-base font-semibold text-slate-900 dark:text-white">
+                Magang telah selesai
+            </h3>
 
-                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
-                                    Periode magang/PKL kamu di instansi ini sudah berakhir.
-                                    Terima kasih atas kontribusinya!
-                                </p>
-                            </div>
-                        </div>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                Periode magang/PKL kamu di instansi ini sudah berakhir. Terima kasih atas kontribusinya!
+            </p>
+        </div>
+    </div>
+
+    <x-user.dokumen jenis="balasan" :pendaftaran="$pendaftaran" />
+    <x-user.dokumen jenis="selesai" :pendaftaran="$pendaftaran" />
+    <x-user.dokumen jenis="sertifikat" :pendaftaran="$pendaftaran" />
+
 
                     @elseif($status === 'draft')
 
@@ -321,59 +321,93 @@
                 </div>
             </x-card>
 
-            {{-- ===== DETAIL PENGAJUAN ===== --}}
-            <x-card class="lg:col-span-1">
+            
+{{-- ===== DETAIL PENGAJUAN ===== --}}
+<x-card class="lg:col-span-1">
 
-                <h2 class="text-sm font-semibold text-slate-900 dark:text-white">
-                    Detail Pengajuan
-                </h2>
+    <h2 class="text-sm font-semibold text-slate-900 dark:text-white">
+        Detail Pengajuan
+    </h2>
 
-                <dl class="mt-4 space-y-3.5">
-                    @foreach([
-                        'Instansi' => $pendaftaran->dinas_tujuan,
-                        'Bidang'   => $pendaftaran->divisi,
-                        'Kategori' => $pendaftaran->kategori,
-                        'Periode'  => ($pendaftaran->tanggal_mulai && $pendaftaran->tanggal_selesai)
-                                        ? \Carbon\Carbon::parse($pendaftaran->tanggal_mulai)->translatedFormat('d M Y')
-                                          . ' – '
-                                          . \Carbon\Carbon::parse($pendaftaran->tanggal_selesai)->translatedFormat('d M Y')
-                                        : null,
-                        'Diajukan' => $pendaftaran->created_at->translatedFormat('d M Y, H:i'),
-                    ] as $label => $nilai)
+    <dl class="mt-4 space-y-3.5">
+        @foreach([
+            'Jenis' => $pendaftaran->tipe === 'kelompok'
+                ? 'Berkelompok · ' . ($pendaftaran->anggotas->count() + 1) . ' orang'
+                : 'Mandiri',
 
-                        @if(filled($nilai))
-                            <div>
-                                <dt class="text-[11px] font-medium uppercase tracking-wide
-                                           text-slate-500 dark:text-slate-400">
-                                    {{ $label }}
-                                </dt>
+            'Instansi' => $pendaftaran->dinas_tujuan,
+            'Bidang'   => $pendaftaran->divisi,
+            'Kategori' => $pendaftaran->kategori,
 
-                                <dd class="mt-0.5 text-sm font-medium
-                                           text-slate-800 dark:text-slate-100 break-words">
-                                    {{ $nilai }}
-                                </dd>
-                            </div>
-                        @endif
+            'Periode' => ($pendaftaran->tanggal_mulai && $pendaftaran->tanggal_selesai)
+                ? \Carbon\Carbon::parse($pendaftaran->tanggal_mulai)->translatedFormat('d M Y')
+                    . ' – '
+                    . \Carbon\Carbon::parse($pendaftaran->tanggal_selesai)->translatedFormat('d M Y')
+                : null,
 
-                    @endforeach
-                </dl>
+            'Diajukan' => $pendaftaran->created_at->translatedFormat('d M Y, H:i'),
+        ] as $label => $nilai)
 
-                @if($bolehBatal)
-                    <form action="{{ route('user.pendaftaran.destroy', $pendaftaran->id) }}"
-                          method="POST"
-                          onsubmit="return confirm('Yakin ingin membatalkan pengajuan ini?')"
-                          class="mt-5 pt-5 border-t border-blue-100 dark:border-slate-700">
+            @if(filled($nilai))
+                <div>
+                    <dt class="text-[11px] font-medium uppercase tracking-wide
+                               text-slate-500 dark:text-slate-400">
+                        {{ $label }}
+                    </dt>
 
-                        @csrf
-                        @method('DELETE')
+                    <dd class="mt-0.5 text-sm font-medium
+                               text-slate-800 dark:text-slate-100 break-words">
+                        {{ $nilai }}
+                    </dd>
+                </div>
+            @endif
 
-                        <x-button type="submit" variant="danger" size="sm" class="w-full">
-                            {{ $status === 'draft' ? 'Hapus Draft' : 'Batalkan Pengajuan' }}
-                        </x-button>
-                    </form>
-                @endif
+        @endforeach
+    </dl>
 
-            </x-card>
+    
+{{-- DAFTAR ANGGOTA KELOMPOK --}}
+@if ($pendaftaran->tipe === 'kelompok')
+    <div class="mt-4 pt-4 border-t border-blue-100 dark:border-slate-700">
+        <p class="text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Anggota
+        </p>
+
+        <ul class="mt-1.5 space-y-0.5 text-sm text-slate-800 dark:text-slate-100">
+            <li>
+                {{ $pendaftaran->nama_lengkap }}
+                <span class="text-slate-400">(Ketua)</span>
+            </li>
+
+            @foreach ($pendaftaran->anggotas as $a)
+                <li>{{ $a->nama_lengkap }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+
+    {{-- TOMBOL BATAL PENGAJUAN --}}
+    @if($bolehBatal)
+
+        <form action="{{ route('user.pendaftaran.destroy', $pendaftaran->id) }}"
+              method="POST"
+              onsubmit="return confirm('Yakin ingin membatalkan pengajuan ini?')"
+              class="mt-5 pt-5 border-t border-blue-100 dark:border-slate-700">
+
+            @csrf
+            @method('DELETE')
+
+            <x-button type="submit" variant="danger" size="sm" class="w-full">
+                {{ $status === 'draft' ? 'Hapus Draft' : 'Batalkan Pengajuan' }}
+            </x-button>
+
+        </form>
+
+    @endif
+
+</x-card>
+
         </div>
 
     @endif

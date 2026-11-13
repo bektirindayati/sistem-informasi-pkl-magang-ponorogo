@@ -83,18 +83,19 @@
     />
 
     {{-- 3. USER / PENDAFTAR --}}
-    <x-admin.tabel-pengguna
-        :users="$pengguna"
-        :dinas-list="$dinasList"
-        icon="👥"
-        title="User / Pendaftar"
-        description="Akun pengguna biasa yang mendaftar magang atau PKL."
-        empty="Belum ada pengguna."
-    />
+<x-admin.tabel-pengguna
+    :users="$pengguna"
+    :dinas-list="$dinasList"
+    icon="👥"
+    title="User / Pendaftar"
+    description="Akun pengguna biasa yang mendaftar magang atau PKL."
+    empty="Belum ada pengguna."
+    :show-account-status="true"
+/>
 
-    @if($halaman)
-        <div>{{ $halaman->links() }}</div>
-    @endif
+@if($halaman)
+    <div>{{ $halaman->links() }}</div>
+@endif
 
 @endsection
 

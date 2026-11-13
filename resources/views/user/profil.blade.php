@@ -8,21 +8,6 @@
 
     {{-- HEADER PROFIL --}}
     <div class="mb-6">
-        <a
-            href="{{ route('user.dashboard') }}"
-            class="inline-flex items-center gap-2
-                   text-sm font-semibold
-                   text-slate-600 hover:text-blue-700
-                   dark:text-slate-300 dark:hover:text-cyan-300
-                   transition-colors duration-200"
-        >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M15 19l-7-7 7-7" />
-            </svg>
-            Kembali ke Dashboard
-        </a>
-
         <p class="mt-5 text-xs font-bold uppercase tracking-wider
                   text-blue-700 dark:text-cyan-300">
             Akun
@@ -178,23 +163,6 @@
                         :value="old('no_hp', $user->no_hp)"
                         oninput="this.value=this.value.replace(/[^0-9]/g,'');"
                     />
-
-                    {{-- ALAMAT --}}
-                    <div class="md:col-span-2">
-                        <x-form.input
-                            name="alamat"
-                            label="Alamat"
-                            placeholder="Alamat lengkap"
-                            :value="old('alamat', $user->alamat)"
-                        />
-                    </div>
-
-                    {{-- PROVINSI DAN KABUPATEN/KOTA --}}
-                    <x-form.wilayah
-                        :provinsi="old('provinsi', $user->provinsi)"
-                        :kabupaten="old('kabupaten', $user->kabupaten)"
-                    />
-
                 </div>
 
                 {{-- TOMBOL SIMPAN --}}

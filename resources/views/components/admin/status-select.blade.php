@@ -27,27 +27,13 @@
         {{ $status === 'ditolak' ? 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100' : '' }}
         {{ $status === 'selesai' ? 'bg-cyan-50 text-cyan-800 border-cyan-200 hover:bg-cyan-100' : '' }}">
 
-    <option value="pending" @selected($status === 'pending')>
-        ⏳ Pending
-    </option>
-
-    <option value="diterima" @selected($status === 'diterima')>
-        ✅ Diterima
-    </option>
-
-    <option value="revisi" @selected($status === 'revisi')>
-        ✏️ Revisi
-    </option>
-
-    <option value="ditolak" @selected($status === 'ditolak')>
-        ❌ Ditolak
-    </option>
-
-    @if (in_array($status, ['diterima', 'selesai'], true))
-        <option value="selesai" @selected($status === 'selesai')>
-            🏁 Magang Selesai
-        </option>
-    @endif
+        <option value="pending"  @selected($status === 'pending')>Menunggu</option>
+        <option value="diterima" @selected($status === 'diterima')>Diterima</option>
+        <option value="revisi"   @selected($status === 'revisi')>Perlu Revisi</option>
+        <option value="ditolak"  @selected($status === 'ditolak')>Ditolak</option>
+        @if (in_array($status, ['diterima', 'selesai'], true))
+            <option value="selesai" @selected($status === 'selesai')>Magang Selesai</option>
+        @endif
 
 </select>
         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 text-xs">▼</div>

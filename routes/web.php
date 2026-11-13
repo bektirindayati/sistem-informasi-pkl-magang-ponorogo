@@ -5,7 +5,6 @@ use App\Http\Controllers\Admin\DokumentasiAdminController;
 use App\Http\Controllers\Admin\InstansiAdminController;
 use App\Http\Controllers\Admin\PendaftarAdminController;
 use App\Http\Controllers\Admin\SuratBalasanAdminController;
-use App\Http\Controllers\Admin\SuratPengantarAdminController;
 use App\Http\Controllers\Admin\VerifikasiAdminController;
 use App\Http\Controllers\Admin\PenggunaController;
 use App\Http\Controllers\Auth\GoogleAuthController;
@@ -21,6 +20,8 @@ use App\Http\Controllers\User\ProfilUserController;
 use App\Http\Controllers\User\SuratBalasanUserController;
 use App\Http\Controllers\Admin\SertifikatAdminController;
 use App\Http\Controllers\User\SertifikatUserController;
+use App\Http\Controllers\Admin\SuratSelesaiAdminController;
+use App\Http\Middleware\NormalisasiStatusDokumen;
 use Illuminate\Support\Facades\Route;
 
 // Parameter id wajib angka, supaya segmen seperti "status" atau "riwayat" tidak pernah ditangkap sebagai {id}.
@@ -87,6 +88,9 @@ Route::middleware('auth')->group(function () {
                 Route::get('/status', 'status')->name('status');
                 Route::get('/riwayat', 'riwayat')->name('riwayat');
 
+                // Detail pengajuan pengguna
+                Route::get('/{id}', 'show')->name('show');
+                
                 // Data untuk form (dipanggil JavaScript)
                 Route::get('/bidang/{dinasId}', 'getBidang')->name('bidang');
 
@@ -129,45 +133,54 @@ Route::middleware(['auth', 'admin'])
             });
 
      
-        // Verifikasi berkas & surat
-        Route::middleware('permission:verifikasi-pendaftar')->group(function () {
+      // Verifikasi berkas & surat
+Route::middleware('permission:verifikasi-pendaftar')->group(function () {
 
-            // Verifikasi pendaftar
-            Route::prefix('verifikasi')
-                ->name('verifikasi.')
-                ->controller(VerifikasiAdminController::class)
-                ->group(function () {
-                    Route::get('/', 'index')->name('index');
-                    Route::put('/{id}', 'update')->name('update');
-                });
-
-            // Simpan nomor dan tanggal surat pengantar
-            Route::put(
-                '/pendaftaran/{id}/surat-pengantar',
-                [SuratPengantarAdminController::class, 'update']
-            )->name('surat-pengantar.update');
-
-            // Surat balasan
-            Route::prefix('pendaftaran/{id}/surat')
-                ->name('surat.')
-                ->controller(SuratBalasanAdminController::class)
-                ->group(function () {
-                    Route::get('/', 'show')->name('show');
-                    Route::get('/draf', 'draf')->name('draf');
-                    Route::post('/status', 'status')->name('status');
-                });
-
-            // Sertifikat
-            Route::prefix('pendaftaran/{id}/sertifikat')
-                ->name('sertifikat.')
-                ->controller(SertifikatAdminController::class)
-                ->group(function () {
-                    Route::get('/', 'show')->name('show');
-                    Route::get('/draf', 'draf')->name('draf');
-                    Route::post('/status', 'status')->name('status');
-                });
+    // Verifikasi pendaftar
+    Route::prefix('verifikasi')
+        ->name('verifikasi.')
+        ->controller(VerifikasiAdminController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::put('/{id}', 'update')->name('update');
         });
 
+    // Surat balasan
+    Route::prefix('pendaftaran/{id}/surat')
+        ->name('surat.')
+        ->controller(SuratBalasanAdminController::class)
+        ->group(function () {
+            Route::get('/', 'show')->name('show');
+            Route::get('/draf', 'draf')->name('draf');
+            Route::post('/status', 'status')
+                    ->name('status')
+                    ->middleware(NormalisasiStatusDokumen::class);
+        });
+
+    // Sertifikat
+    Route::prefix('pendaftaran/{id}/sertifikat')
+        ->name('sertifikat.')
+        ->controller(SertifikatAdminController::class)
+        ->group(function () {
+            Route::get('/', 'show')->name('show');
+            Route::get('/draf', 'draf')->name('draf');
+            Route::post('/status', 'status')
+                ->name('status')
+                ->middleware(NormalisasiStatusDokumen::class);
+        });
+
+    // Surat selesai magang
+Route::prefix('pendaftaran/{id}/surat-selesai')
+    ->name('surat-selesai.')
+    ->controller(SuratSelesaiAdminController::class)
+    ->group(function () {
+        Route::get('/', 'show')->name('show');
+        Route::get('/draf', 'draf')->name('draf');
+        Route::post('/status', 'status')
+            ->name('status')
+            ->middleware(NormalisasiStatusDokumen::class);
+    });
+});
         // Bidang instansi
         Route::middleware('permission:kelola-instansi')
             ->prefix('instansi')
@@ -206,15 +219,17 @@ Route::middleware(['auth', 'admin'])
                 Route::delete('/{id}', 'destroy')->name('destroy');
             });
 
-        Route::middleware('permission:kelola-admin')
-            ->prefix('pengguna')
-            ->name('pengguna.')
-            ->controller(PenggunaSuperAdminController::class)
-            ->group(function () {
-                Route::get('/', 'index')->name('index');
-                Route::put('/{id}', 'update')->name('update');
-            });
+      Route::middleware('permission:kelola-admin')
+    ->prefix('pengguna')
+    ->name('pengguna.')
+    ->controller(PenggunaSuperAdminController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('/{id}', 'update')->name('update');
 
-            Route::get('/pengguna', [PenggunaController::class, 'index'])->name('pengguna.index');
-            Route::put('/pengguna/{user}', [PenggunaController::class, 'update'])->name('pengguna.update');
+        Route::patch('/{user}/status-akun', [
+            PenggunaController::class,
+            'updateStatusAkun'
+        ])->name('status-akun');
+    });
     });

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SuratBalasan\AksesSuratBalasanRequest;
 use App\Http\Requests\Admin\SuratBalasan\UnggahSuratBalasanRequest;
-use App\Services\PendaftaranNotifier;
 use App\Services\Surat\SuratBalasanService;
 use Illuminate\Http\RedirectResponse;
 
@@ -30,27 +29,18 @@ class SuratBalasanAdminController extends Controller
         );
     }
 
-    public function status(
-        UnggahSuratBalasanRequest $request,
-        PendaftaranNotifier $notifier
-    ): RedirectResponse {
-        $pendaftaran = $request->pendaftaran();
-        $status = $request->validated('status_surat');
+ public function status(UnggahSuratBalasanRequest $request): RedirectResponse
+{
+    $status = $request->validated('status_surat');
 
-        $baruTerbit = $this->surat->simpanStatus(
-            $pendaftaran,
-            $status,
-            $request->file('surat_balasan')
-        );
+    $this->surat->simpanStatus(
+        $request->pendaftaran(),
+        $status,
+        $request->file('surat_balasan')
+    );
 
-        $emailGagal = $baruTerbit && ! $notifier->kirim($pendaftaran, 'surat');
-
-        $respons = back()->with('success', $status === 'diterbitkan'
-            ? 'Surat balasan berhasil diterbitkan. Pendaftar dapat mengunduhnya melalui dashboard.'
-            : 'Status surat disimpan: surat sedang diproses.');
-
-        return $emailGagal
-            ? $respons->with('error', 'Surat tersimpan, tetapi email ke pendaftar gagal dikirim. Periksa pengaturan email (MAIL_*) di .env.')
-            : $respons;
-    }
+    return back()->with('success', $status === 'diterbitkan'
+        ? 'Surat balasan berhasil diterbitkan. Pendaftar dapat mengunduhnya melalui dashboard.'
+        : 'Status surat disimpan: surat sedang diproses.');
+}
 }

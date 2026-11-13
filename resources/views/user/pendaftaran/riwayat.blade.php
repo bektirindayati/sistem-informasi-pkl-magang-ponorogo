@@ -49,6 +49,22 @@
                                 {{ $item->divisi }}
                             @endif
                         </p>
+
+<p class="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+    {{ $item->dinas_tujuan ?? 'Instansi belum dipilih' }}
+
+    @if($item->divisi)
+        <span class="text-slate-400 dark:text-slate-600 mx-1">•</span>
+        {{ $item->divisi }}
+    @endif
+</p>
+
+@if ($item->tipe === 'kelompok')
+    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        Kelompok · {{ $item->anggotas_count }} anggota
+    </p>
+@endif
+
                     </div>
 
                     {{-- PERIODE DAN TANGGAL --}}
@@ -66,18 +82,16 @@
                         </p>
                     </div>
 
-                    {{-- AKSI --}}
-                    <div class="sm:w-32 sm:flex sm:justify-end">
-                        @if($item->id === optional($riwayat->first())->id)
-                            <x-button
-                                :href="route('user.pendaftaran.status')"
-                                variant="soft"
-                                size="sm"
-                            >
-                                Lihat Status
-                            </x-button>
-                        @endif
-                    </div>
+                   {{-- AKSI --}}
+<div class="sm:w-32 sm:flex sm:justify-end">
+    <x-button
+        :href="route('user.pendaftaran.show', $item->id)"
+        variant="soft"
+        size="sm"
+    >
+        Lihat Detail
+    </x-button>
+</div>
 
                 </div>
             </x-card>

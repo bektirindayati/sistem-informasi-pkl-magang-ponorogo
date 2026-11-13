@@ -405,129 +405,124 @@
         </p>
 
 
-                    <div class="mt-4 sm:mt-5">
-                        @if (!$pendaftaran)
-                            <a href="{{ route('user.pendaftaran.create') }}"
-                               class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-md dark:hover:shadow-none rounded-xl px-4 py-3.5 transition">
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Daftar Magang</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Buat pengajuan baru</p>
-                                </div>
-                                <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center group-hover:translate-x-0.5 transition shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                    </svg>
-                                </div>
-                            </a>
-                        @elseif ($pendaftaran->status === 'draft')
-                            <a href="{{ route('user.pendaftaran.edit', $pendaftaran->id) }}"
-                               class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-amber-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500/50 hover:shadow-md dark:hover:shadow-none rounded-xl px-4 py-3.5 transition">
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Lanjutkan Draft</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Lengkapi dan kirim pengajuan</p>
-                                </div>
-                                <div class="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center group-hover:translate-x-0.5 transition shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                    </svg>
-                                </div>
-                            </a>
-                        @elseif ($pendaftaran->status === 'revisi')
-                            <a href="{{ route('user.pendaftaran.edit', $pendaftaran->id) }}"
-                               class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-orange-100 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-500/50 hover:shadow-md dark:hover:shadow-none rounded-xl px-4 py-3.5 transition">
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Perbaiki Pengajuan</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Lengkapi revisi dari admin</p>
-                                </div>
-                                <div class="w-9 h-9 rounded-lg bg-orange-500 text-white flex items-center justify-center group-hover:translate-x-0.5 transition shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                    </svg>
-                                </div>
-                            </a>
-                            @elseif ($pendaftaran->statusSertifikat() === 'diterbitkan')
-    <a href="{{ route('user.pendaftaran.sertifikat', ['pendaftaran' => $pendaftaran->id, 'unduh' => 1]) }}"
-       class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-emerald-100 dark:border-emerald-500/20 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-md rounded-xl px-4 py-3.5 transition">
-        <div>
-            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Unduh Sertifikat</p>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Sertifikat telah diterbitkan</p>
-        </div>
-        <div class="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 text-base">🎓</div>
-    </a>
-@elseif ($pendaftaran->statusSertifikat() === 'diproses')
-    <a href="{{ route('user.pendaftaran.status') }}"
-       class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-amber-100 dark:border-amber-500/20 hover:border-amber-300 hover:shadow-md rounded-xl px-4 py-3.5 transition">
-        <div>
-            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Sertifikat sedang diproses</p>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Tombol unduh muncul setelah diterbitkan</p>
-        </div>
-        <div class="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 text-base">⏳</div>
-    </a>
-                        @elseif (in_array($pendaftaran->status, ['ditolak', 'selesai']))
-                            <a href="{{ route('user.pendaftaran.create') }}"
-                               class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-md dark:hover:shadow-none rounded-xl px-4 py-3.5 transition">
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Daftar Magang Lagi</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Buat pengajuan baru</p>
-                                </div>
-                                <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center group-hover:translate-x-0.5 transition shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                    </svg>
-                                </div>
-                            </a>
-                        @elseif ($pendaftaran->statusSurat() === 'diterbitkan')
-                            <a href="{{ route('user.pendaftaran.surat', ['pendaftaran' => $pendaftaran->id, 'unduh' => 1]) }}"
-                               class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-emerald-100 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-md dark:hover:shadow-none rounded-xl px-4 py-3.5 transition">
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Unduh Surat Balasan</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Surat balasan telah diterbitkan</p>
-                                </div>
-                                <div class="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4"/>
-                                    </svg>
-                                </div>
-                            </a>
-                        @elseif ($pendaftaran->statusSurat() === 'diproses')
-                            <a href="{{ route('user.pendaftaran.status') }}"
-                               class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-amber-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500/50 hover:shadow-md dark:hover:shadow-none rounded-xl px-4 py-3.5 transition">
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Surat sedang diproses</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Tombol unduh muncul setelah diterbitkan</p>
-                                </div>
-                                <div class="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 text-base">⏳</div>
-                            </a>
-                        @elseif ($pendaftaran->status === 'diterima')
-                            <a href="{{ route('user.pendaftaran.status') }}"
-                               class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-amber-100 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500/50 hover:shadow-md dark:hover:shadow-none rounded-xl px-4 py-3.5 transition">
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Surat Balasan Sedang Diproses</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Tombol unduh muncul setelah admin mengirim surat</p>
-                                </div>
-                                <div class="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 text-base">⏳</div>
-                            </a>
-                        @else
-                            <a href="{{ route('user.pendaftaran.status') }}"
-                               class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-md dark:hover:shadow-none rounded-xl px-4 py-3.5 transition">
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Cek Pengajuan</p>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Lihat perkembangan pengajuan</p>
-                                </div>
-                                <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center group-hover:translate-x-0.5 transition shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                    </svg>
-                                </div>
-                            </a>
-                        @endif
-                    </div>
-                </div>
-            </div>
+                    
+@php
+    $p = $pendaftaran;
 
+    $aksi = match (true) {
+        ! $p => [
+            'Daftar Magang',
+            'Buat pengajuan baru',
+            route('user.pendaftaran.create'),
+            'blue',
+        ],
+
+        $p->status === 'draft' => [
+            'Lanjutkan Draft',
+            'Lengkapi dan kirim pengajuan',
+            route('user.pendaftaran.edit', $p->id),
+            'amber',
+        ],
+
+        $p->status === 'revisi' => [
+            'Perbaiki Pengajuan',
+            'Lengkapi revisi dari admin',
+            route('user.pendaftaran.edit', $p->id),
+            'orange',
+        ],
+
+        $p->statusSertifikat() === 'diterbitkan' => [
+            'Unduh Sertifikat',
+            'Sertifikat telah diterbitkan',
+            route('user.pendaftaran.sertifikat', [
+                'pendaftaran' => $p->id,
+                'unduh' => 1,
+            ]),
+            'emerald',
+        ],
+
+        $p->statusSertifikat() === 'diproses' => [
+            'Sertifikat sedang diproses',
+            'Tombol unduh muncul setelah diterbitkan',
+            route('user.pendaftaran.status'),
+            'amber',
+        ],
+
+        in_array($p->status, ['ditolak', 'selesai'], true) => [
+            'Daftar Magang Lagi',
+            'Buat pengajuan baru',
+            route('user.pendaftaran.create'),
+            'blue',
+        ],
+
+        $p->statusSurat() === 'diterbitkan' => [
+            'Unduh Surat Balasan',
+            'Surat balasan telah diterbitkan',
+            route('user.pendaftaran.surat', [
+                'pendaftaran' => $p->id,
+                'unduh' => 1,
+            ]),
+            'emerald',
+        ],
+
+        $p->statusSurat() === 'diproses' => [
+            'Surat balasan sedang diproses',
+            'Tombol unduh muncul setelah diterbitkan',
+            route('user.pendaftaran.status'),
+            'amber',
+        ],
+
+        default => [
+            'Cek Pengajuan',
+            'Lihat perkembangan pengajuan',
+            route('user.pendaftaran.status'),
+            'blue',
+        ],
+    };
+
+    [$garis, $tombol] = [
+        'blue' => [
+            'hover:border-blue-300 dark:hover:border-blue-500/50',
+            'bg-blue-600',
+        ],
+        'amber' => [
+            'hover:border-amber-300 dark:hover:border-amber-500/50',
+            'bg-amber-500',
+        ],
+        'orange' => [
+            'hover:border-orange-300 dark:hover:border-orange-500/50',
+            'bg-orange-500',
+        ],
+        'emerald' => [
+            'hover:border-emerald-300 dark:hover:border-emerald-500/50',
+            'bg-emerald-600',
+        ],
+    ][$aksi[3]];
+@endphp
+
+<div class="mt-4 sm:mt-5">
+    <a href="{{ $aksi[2] }}"
+       class="group w-full flex items-center justify-between gap-3 bg-white dark:bg-slate-800
+              border border-slate-200 dark:border-slate-700 {{ $garis }}
+              hover:shadow-md dark:hover:shadow-none rounded-xl px-4 py-3.5 transition">
+
+        <div>
+            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">
+                {{ $aksi[0] }}
+            </p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                {{ $aksi[1] }}
+            </p>
         </div>
 
-    </div>
+        <div class="w-9 h-9 rounded-lg {{ $tombol }} text-white flex items-center justify-center shrink-0 group-hover:translate-x-0.5 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+        </div>
+    </a>
+</div>
 </section>
 
 
@@ -1336,12 +1331,21 @@
             </div>
 
             <div class="pop-isi">
-                <h2 id="judulDiterima" class="pop-judul">Selamat, kamu diterima magang!</h2>
-                <p class="pop-dinas">
-                    Pendaftaranmu di <strong>{{ $pendaftaran->dinas_tujuan }}</strong> telah disetujui.
-                </p>
+    <h2 id="judulDiterima" class="pop-judul">
+        Selamat, kamu diterima magang!
+    </h2>
 
-                <dl class="pop-info">
+    <p class="pop-dinas">
+        Pendaftaranmu di <strong>{{ $pendaftaran->dinas_tujuan }}</strong> telah disetujui.
+    </p>
+
+    @if ($pendaftaran->tipe === 'kelompok')
+        <p class="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+            Kelompok · {{ $pendaftaran->anggotas->count() + 1 }} orang
+        </p>
+    @endif
+
+    <dl class="pop-info">
                     <div class="pop-baris">
                         <span class="ikon">📅</span>
                         <div>

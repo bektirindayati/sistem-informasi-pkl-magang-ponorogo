@@ -2,9 +2,11 @@
 
 namespace App\Services\Surat;
 
+use App\Models\AnggotaPendaftaran;
 use App\Models\PendaftaranMagang;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use PhpOffice\PhpWord\Settings;
@@ -12,7 +14,6 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Validation\ValidationException;
-
 /**
  * Dasar dokumen resmi pendaftar (surat balasan, sertifikat) dengan alur yang sama:
  *  1. draf()         : DOCX terisi otomatis dari template Word; placeholder urusan dinas dibiarkan.
@@ -35,39 +36,83 @@ abstract class DokumenService
     /** Placeholder grup A (diisi sistem). Placeholder urusan dinas tidak boleh disentuh. */
     abstract protected function data(PendaftaranMagang $p): array;
 
-    /** Unduh draf DOCX untuk dilengkapi dan ditandatangani dinas. */
-    public function draf(PendaftaranMagang $p): BinaryFileResponse
-    {
-        abort_unless(
-            in_array($p->status, $this->profil()['boleh'], true),
-            404,
-            'Draf belum tersedia untuk status pendaftaran ini.'
-        );
+   
+/** Hook untuk turunan: olah blok/baris template sebelum placeholder biasa diisi. */
+protected function olah(TemplateProcessor $dokumen, PendaftaranMagang $p): void
+{
+}
 
-        $template = $this->template($p);
+/** Ketua + anggota, urut: ketua selalu pertama. */
+protected function pesertaDokumen(PendaftaranMagang $p): Collection
+{
+    $p->loadMissing('anggotas');
 
-        throw_unless(
-            is_file($template),
-            \RuntimeException::class,
-            'Template tidak ditemukan di: ' . ($template ?: '(pengaturan config/surat.php kosong)')
-        );
+    return $p->anggotas
+        ->map(fn ($a) => $a->only(AnggotaPendaftaran::KOLOM))
+        ->prepend($p->only(AnggotaPendaftaran::KOLOM))
+        ->values();
+}
 
-        // Nama yang memuat tanda & atau < tidak boleh merusak dokumen.
-        Settings::setOutputEscapingEnabled(true);
+protected function pastikanBoleh(PendaftaranMagang $p): void
+{
+    abort_unless(
+        in_array($p->status, $this->profil()['boleh'], true),
+        404,
+        'Draf belum tersedia untuk status pendaftaran ini.'
+    );
+}
 
-        $dokumen = new TemplateProcessor($template);
+protected function pathTemplate(PendaftaranMagang $p): string
+{
+    $template = $this->template($p);
 
-        foreach ($this->data($p) as $placeholder => $nilai) {
-            $dokumen->setValue($placeholder, $nilai);
-        }
+    throw_unless(
+        is_file($template),
+        \RuntimeException::class,
+        'Template tidak ditemukan di: ' . ($template ?: '(pengaturan config/surat.php kosong)')
+    );
 
-        $sementara = tempnam(sys_get_temp_dir(), 'dok');
-        $dokumen->saveAs($sementara);
+    return $template;
+}
 
-        return response()
-            ->download($sementara, $this->namaBerkas($p, 'docx'))
-            ->deleteFileAfterSend(true);
+/** Mengisi template, mengembalikan path DOCX sementara. */
+protected function isiTemplate(string $template, array $data, ?callable $olah = null): string
+{
+    // Nama yang memuat tanda & atau < tidak boleh merusak dokumen.
+    Settings::setOutputEscapingEnabled(true);
+
+    $dokumen = new TemplateProcessor($template);
+
+    if ($olah) {
+        $olah($dokumen);
     }
+
+    foreach ($data as $placeholder => $nilai) {
+        $dokumen->setValue($placeholder, $nilai);
+    }
+
+    $sementara = tempnam(sys_get_temp_dir(), 'dok');
+    $dokumen->saveAs($sementara);
+
+    return $sementara;
+}
+
+/** Unduh draf DOCX untuk dilengkapi dan ditandatangani dinas. */
+public function draf(PendaftaranMagang $p): BinaryFileResponse
+{
+    $this->pastikanBoleh($p);
+
+    $sementara = $this->isiTemplate(
+        $this->pathTemplate($p),
+        $this->data($p),
+        fn ($dokumen) => $this->olah($dokumen, $p)
+    );
+
+    return response()
+        ->download($sementara, $this->namaBerkas($p, 'docx'))
+        ->deleteFileAfterSend(true);
+}
+
 
     /**
      * PDF resmi: tampil di tab baru, atau unduh jika $unduh = true.
@@ -94,13 +139,11 @@ abstract class DokumenService
         return $respons;
     }
 
-    /**
-     * Simpan status dokumen. $pdf (opsional) menggantikan PDF yang tersimpan.
-     * "diterbitkan" membuat dokumen bisa diunduh pendaftar; "diproses" menariknya tanpa menghapus PDF.
-     *
-     * @return bool true bila dokumen baru saja diterbitkan (saatnya mengirim email)
-     */
-    public function simpanStatus(PendaftaranMagang $p, string $status, ?UploadedFile $pdf = null): bool
+/**
+ * Simpan status dokumen. $pdf (opsional) menggantikan PDF yang tersimpan.
+ * "diterbitkan" membuat dokumen bisa diunduh pendaftar; "diproses" menariknya tanpa menghapus PDF.
+ */
+   public function simpanStatus(PendaftaranMagang $p, string $status, ?UploadedFile $pdf = null): void
 {
     $k = $this->profil();
     $sudahTerbit = $this->terbit($p);
@@ -132,7 +175,7 @@ abstract class DokumenService
         }
 
         throw ValidationException::withMessages([
-            'status_surat' => 'Dokumen tidak dapat diterbitkan karena PDF final belum tersedia.',
+            $k['status'] => 'Dokumen tidak dapat diterbitkan karena PDF final belum tersedia.',
         ]);
     }
 
@@ -148,8 +191,6 @@ abstract class DokumenService
     if ($pathBaru && $lama && $lama !== $pathBaru) {
         $disk->delete($lama);
     }
-
-    return $baru;
 }
 
     /** Tarik dari pendaftar: status kembali "diproses", PDF tetap tersimpan. */

@@ -1,1 +1,9 @@
 *.sqlite*
+# Environment dan rahasia
+.env.*
+!.env.example
+
+# Backup database
+*.sql
+*.dump
+*.bak

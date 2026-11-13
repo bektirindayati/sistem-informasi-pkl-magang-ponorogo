@@ -4,13 +4,14 @@ namespace App\Services\Surat;
 
 use App\Models\PendaftaranMagang;
 use Illuminate\Support\Str;
+use PhpOffice\PhpWord\TemplateProcessor;
 
 /**
  * Surat balasan magang. Alurnya ada di DokumenService.
  *
- * Isi surat   : resources/templates/surat_balasan_magang.docx
- * Pengaturan  : config/surat.php
- * Kop         : data Dinas (alamat, telepon, faksimile, website, email)
+ * Isi surat    : resources/templates/surat_balasan_magang.docx
+ * Pengaturan   : config/surat.php
+ * Kop          : data Dinas (alamat, telepon, faksimile, website, email)
  * Penandatangan: data pejabat dari profil Dinas.
  */
 class SuratBalasanService extends DokumenService
@@ -32,12 +33,10 @@ class SuratBalasanService extends DokumenService
      */
     protected function template(PendaftaranMagang $p): string
     {
-        $pkl = str_contains((string) $p->kategori, 'Siswa');
+        $pkl   = str_contains((string) $p->kategori, 'Siswa') && config('surat.template.pkl');
+        $kunci = ($pkl ? 'pkl' : 'magang') . ($p->tipe === 'kelompok' ? '_kelompok' : '');
 
-        return (string) (
-            ($pkl ? config('surat.template.pkl') : null)
-            ?: config('surat.template.magang')
-        );
+        return (string) config("surat.template.{$kunci}");
     }
 
     /**
@@ -112,6 +111,23 @@ class SuratBalasanService extends DokumenService
     }
 
     /**
+     * Mengolah blok template sesuai jenis pendaftaran.
+     */
+    protected function olah(TemplateProcessor $dokumen, PendaftaranMagang $p): void
+    {
+        if ($p->tipe !== 'kelompok') {
+            return;
+        }
+
+        $dokumen->cloneRowAndSetValues('no', $this->pesertaDokumen($p)->map(fn ($o, $i) => [
+            'no'               => (string) ($i + 1),
+            'nama_anggota'     => $this->isi($o['nama_lengkap']),
+            'nim_anggota'      => $this->isi($o['nim_nisn']),
+            'jurusan_anggota'  => $this->isi($o['jurusan']),
+            'instansi_anggota' => $this->isi($o['instansi']),
+        ])->all());
+    }
+    /**
      * Menghilangkan skema http/https dan garis miring terakhir dari URL.
      */
     private function tanpaSkema(string $url): string
@@ -125,12 +141,12 @@ class SuratBalasanService extends DokumenService
     /**
      * Mengubah teks dengan beberapa baris menjadi satu baris.
      */
-private function satuBaris(?string $teks): string
-{
-    return trim(
-        (string) preg_replace('/\s+/', ' ', (string) $teks)
-    );
-}
+    private function satuBaris(?string $teks): string
+    {
+        return trim(
+            (string) preg_replace('/\s+/', ' ', (string) $teks)
+        );
+    }
 
     /**
      * Menggabungkan informasi yang tersedia dengan pemisah koma.

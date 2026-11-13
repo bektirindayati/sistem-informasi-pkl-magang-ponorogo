@@ -6,17 +6,16 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Struktur utama tabel users.
+ * Struktur akhir tabel users.
  *
  * Mencakup:
  * - Autentikasi pengguna
  * - Login Google
  * - Role dan relasi dinas
- * - Profil pengguna
+ * - Profil dan kategori pengguna
+ * - Status dan pemblokiran akun
  * - Password reset tokens
  * - Sessions
- *
- * Kolom kategori ditambahkan melalui migration terpisah.
  */
 return new class extends Migration
 {
@@ -35,9 +34,17 @@ return new class extends Migration
             $table->string('google_id')->nullable();
             $table->string('avatar')->nullable();
 
-            // Hak akses pengguna
-            // user | admin | super_admin
+            // Hak akses dan status akun
             $table->string('role')->default('user');
+            $table->string('status_akun', 20)->default('aktif');
+            $table->text('alasan_blokir')->nullable();
+            $table->timestamp('blocked_at')->nullable();
+
+            // Admin yang melakukan pemblokiran
+            $table->foreignId('blocked_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
             // Relasi admin dengan dinas
             $table->foreignId('dinas_id')
@@ -46,19 +53,15 @@ return new class extends Migration
                 ->nullOnDelete();
 
             // Profil pengguna
-            // Digunakan sebagai data default formulir pendaftaran
             $table->string('nama_lengkap')->nullable();
             $table->string('nim_nisn')->nullable();
             $table->string('instansi')->nullable();
             $table->string('jurusan')->nullable();
+            $table->string('kategori', 100)->nullable();
 
             // Informasi kontak
             $table->string('no_hp', 20)->nullable();
-            $table->text('alamat')->nullable();
-            $table->string('kabupaten')->nullable();
-            $table->string('provinsi')->nullable();
 
-            // Remember token dan timestamps
             $table->rememberToken();
             $table->timestamps();
         });

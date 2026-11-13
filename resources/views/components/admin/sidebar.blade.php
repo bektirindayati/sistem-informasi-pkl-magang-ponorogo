@@ -49,39 +49,51 @@
            text-slate-700 dark:text-slate-300
            shadow-xl shadow-slate-200/40 dark:shadow-black/20">
 
-    {{-- BRAND --}}
-    <div class="relative overflow-hidden
-                border-b border-slate-200 dark:border-slate-800
-                px-5 py-5">
+    
+{{-- BRAND --}}
+<div class="relative overflow-hidden
+            border-b border-slate-200 dark:border-slate-800
+            px-5 py-5">
 
-        <div class="pointer-events-none absolute -right-8 -top-10 h-28 w-28
-                    rounded-full bg-blue-400/10 dark:bg-cyan-500/[0.08] blur-2xl">
+    <div class="pointer-events-none absolute -right-8 -top-10 h-28 w-28
+                rounded-full bg-blue-400/10 dark:bg-cyan-500/[0.08] blur-2xl">
+    </div>
+
+    <a href="{{ route('admin.dashboard') }}"
+       class="group relative flex items-center gap-3">
+
+        {{-- Logo SIMANTARA --}}
+        <div class="h-11 w-11 shrink-0
+                    rounded-2xl
+                    bg-white
+                    border border-slate-200 dark:border-slate-600
+                    flex items-center justify-center
+                    overflow-hidden
+                    shadow-sm
+                    group-hover:scale-105
+                    transition-transform">
+
+            <img
+                src="{{ asset('images/logo-simantara.png') }}"
+                alt="Logo SIMANTARA"
+                class="w-full h-full object-contain"
+            >
         </div>
 
-        <a href="{{ route('admin.dashboard') }}"
-           class="relative flex items-center gap-3">
+        <div class="min-w-0">
+            <h1 class="text-[17px] font-extrabold leading-tight
+                       tracking-[0.12em] text-slate-900 dark:text-white">
+                SIMANTARA
+            </h1>
 
-            <div class="flex h-11 w-11 shrink-0 items-center justify-center
-                        rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500
-                        text-xl font-black text-white shadow-lg
-                        shadow-blue-500/20 dark:shadow-cyan-950/40
-                        ring-1 ring-blue-500/10 dark:ring-white/20">
-                S
-            </div>
+            <p class="mt-1 text-[9px] font-semibold uppercase
+                      tracking-[0.17em] text-blue-700 dark:text-cyan-400">
+                Panel Administrator
+            </p>
+        </div>
 
-            <div class="min-w-0">
-                <h1 class="text-[17px] font-extrabold leading-tight
-                           tracking-[0.12em] text-slate-900 dark:text-white">
-                    SIMANTARA
-                </h1>
-
-                <p class="mt-1 text-[9px] font-semibold uppercase
-                          tracking-[0.17em] text-blue-700 dark:text-cyan-400">
-                    Panel Administrator
-                </p>
-            </div>
-        </a>
-    </div>
+    </a>
+</div>
 
     {{-- DESKTOP NAVIGATION --}}
     <nav class="flex-1 overflow-y-auto px-3 py-5
@@ -193,58 +205,72 @@
            shadow-2xl shadow-slate-900/10 dark:shadow-black/30
            transition-transform duration-300 ease-in-out md:hidden">
 
-    {{-- MOBILE BRAND --}}
-    <div class="relative flex shrink-0 items-center justify-between
-                overflow-hidden
-                border-b border-slate-200 dark:border-slate-800
-                px-5 py-5">
+    
+{{-- MOBILE BRAND --}}
+<div class="relative flex shrink-0 items-center justify-between
+            overflow-hidden
+            border-b border-slate-200 dark:border-slate-800
+            px-5 py-5">
 
-        <div class="pointer-events-none absolute -right-8 -top-10 h-28 w-28
-                    rounded-full bg-blue-400/10 dark:bg-cyan-500/[0.08] blur-2xl">
+    <div class="pointer-events-none absolute -right-8 -top-10 h-28 w-28
+                rounded-full bg-blue-400/10 dark:bg-cyan-500/[0.08] blur-2xl">
+    </div>
+
+    <a href="{{ route('admin.dashboard') }}"
+       class="group relative flex min-w-0 items-center gap-3">
+
+        {{-- Logo SIMANTARA --}}
+        <div class="h-11 w-11 shrink-0
+                    rounded-2xl
+                    bg-white
+                    border border-slate-200 dark:border-slate-600
+                    flex items-center justify-center
+                    overflow-hidden
+                    shadow-sm
+                    group-hover:scale-105
+                    transition-transform">
+
+            <img
+                src="{{ asset('images/logo-simantara.png') }}"
+                alt="Logo SIMANTARA"
+                class="w-full h-full object-contain"
+            >
         </div>
 
-        <a href="{{ route('admin.dashboard') }}"
-           class="relative flex min-w-0 items-center gap-3">
+        <div class="min-w-0">
+            <h1 class="text-[17px] font-extrabold leading-tight
+                       tracking-[0.12em] text-slate-900 dark:text-white">
+                SIMANTARA
+            </h1>
 
-            <div class="flex h-11 w-11 shrink-0 items-center justify-center
-                        rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500
-                        text-xl font-black text-white shadow-lg
-                        shadow-blue-500/20 dark:shadow-cyan-950/40
-                        ring-1 ring-blue-500/10 dark:ring-white/20">
-                S
-            </div>
+            <p class="mt-1 text-[9px] font-semibold uppercase
+                      tracking-[0.17em] text-blue-700 dark:text-cyan-400">
+                Panel Administrator
+            </p>
+        </div>
 
-            <div class="min-w-0">
-                <h1 class="text-[17px] font-extrabold leading-tight
-                           tracking-[0.12em] text-slate-900 dark:text-white">
-                    SIMANTARA
-                </h1>
+    </a>
 
-                <p class="mt-1 text-[9px] font-semibold uppercase
-                          tracking-[0.17em] text-blue-700 dark:text-cyan-400">
-                    Panel Administrator
-                </p>
-            </div>
-        </a>
+    <button
+        id="closeSidebarBtn"
+        type="button"
+        aria-label="Tutup menu"
+        class="relative ml-3 flex h-9 w-9 shrink-0
+               items-center justify-center rounded-xl
+               border border-slate-200 dark:border-slate-700
+               bg-slate-50 dark:bg-white/[0.04]
+               text-slate-500 dark:text-slate-400
+               transition-all
+               hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700
+               dark:hover:border-slate-600 dark:hover:bg-white/[0.08]
+               dark:hover:text-white
+               focus:outline-none focus:ring-2
+               focus:ring-blue-400/40 dark:focus:ring-cyan-400/40">
+        ✕
+    </button>
 
-        <button
-            id="closeSidebarBtn"
-            type="button"
-            aria-label="Tutup menu"
-            class="relative ml-3 flex h-9 w-9 shrink-0
-                   items-center justify-center rounded-xl
-                   border border-slate-200 dark:border-slate-700
-                   bg-slate-50 dark:bg-white/[0.04]
-                   text-slate-500 dark:text-slate-400
-                   transition-all
-                   hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700
-                   dark:hover:border-slate-600 dark:hover:bg-white/[0.08]
-                   dark:hover:text-white
-                   focus:outline-none focus:ring-2
-                   focus:ring-blue-400/40 dark:focus:ring-cyan-400/40">
-            ✕
-        </button>
-    </div>
+</div>
+
 
     {{-- MOBILE NAVIGATION --}}
     <nav class="flex-1 overflow-y-auto px-3 py-5

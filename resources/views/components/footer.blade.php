@@ -14,11 +14,23 @@
         <div>
             <div class="flex items-center gap-2.5 mb-3">
 
-                <div class="h-8 w-8 rounded-full
-                            bg-gradient-to-br from-blue-600 to-cyan-500
-                            flex items-center justify-center
-                            text-white font-black text-sm shadow-sm">
-                    S
+                 <div
+                    class="h-9 w-9 sm:h-12 sm:w-12
+                           rounded-xl
+                           bg-white
+                           border border-slate-200 dark:border-slate-600
+                           flex items-center justify-center
+                           overflow-hidden
+                           shadow-sm
+                           group-hover:scale-105
+                           transition-transform
+                           shrink-0"
+                >
+                    <img
+    src="{{ asset('images/logo-simantara.png') }}"
+    alt="Logo SIMANTARA"
+    class="w-full h-full object-contain"
+>
                 </div>
 
                 <span class="text-slate-900 dark:text-white font-extrabold text-sm tracking-wide">

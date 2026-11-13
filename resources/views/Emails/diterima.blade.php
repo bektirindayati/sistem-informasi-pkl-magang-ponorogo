@@ -6,13 +6,18 @@ Dengan gembira kami sampaikan bahwa pendaftaran magang Anda di **{{ $p->dinas_tu
 <x-mail::panel>
 **Instansi tujuan:** {{ $p->dinas_tujuan }}<br>
 **Bidang penempatan:** {{ $p->divisi }}<br>
-**Periode magang:** {{ $periode }}
+**Periode magang:** {{ $periode }}@if ($p->tipe === 'kelompok')<br>
+**Peserta:** Kelompok, {{ $p->anggotas->count() + 1 }} orang (Anda sebagai ketua)@endif
 </x-mail::panel>
 
-Saat ini surat balasan penerimaan magang sedang dalam proses penyusunan dan penandatanganan oleh pimpinan dinas. Begitu surat tersebut diterbitkan, kami akan segera mengirimkannya ke alamat email ini sekaligus menampilkannya pada halaman status pendaftaran Anda, sehingga dapat diunduh dan diserahkan kepada pihak kampus atau sekolah Anda. Anda dapat memantau perkembangannya kapan saja melalui dashboard berikut.
+Surat balasan penerimaan magang, surat keterangan selesai magang, dan sertifikat akan diterbitkan melalui sistem, bukan melalui email. **Email ini adalah satu-satunya pemberitahuan yang kami kirim lewat surat elektronik**, sehingga mohon cek halaman status pendaftaran Anda secara berkala. Tombol unduh dokumen akan muncul di halaman tersebut begitu dokumen diterbitkan.
+@if ($p->tipe === 'kelompok')
+
+Sebagai ketua kelompok, Anda dapat mengunduh dokumen tersebut dan membagikannya kepada anggota kelompok.
+@endif
 
 <x-mail::button :url="$url">
-Buka Dashboard
+Buka Halaman Status
 </x-mail::button>
 
 Apabila ada hal yang ingin ditanyakan, silakan menghubungi dinas melalui kontak resmi yang tersedia. Terima kasih atas minat dan kepercayaan Anda kepada kami.

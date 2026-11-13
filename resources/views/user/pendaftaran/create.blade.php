@@ -77,8 +77,14 @@
 
     // Draft: boleh simpan & hapus. Revisi: hanya boleh dikirim ulang.
     $isDraft           = $isEdit && $pendaftaran->status === 'draft';
+    $kunciBackup = 'pendaftaran:' . $user->id . ':' . ($isEdit && ! $isDraft ? $pendaftaran->id : 'draft');
     $bisaSimpanDraft   = ! $isEdit || $isDraft;
     $hasSuratPengantar = $isEdit && filled($pendaftaran->surat_pengantar);
+
+    $tipe = old('tipe', $pendaftaran?->tipe ?? 'mandiri');
+
+$anggotaAwal = collect(old('anggota', $pendaftaran?->anggotas->map(fn ($a) => $a->only(\App\Models\AnggotaPendaftaran::KOLOM))->all() ?? []))
+    ->values()->all();
 @endphp
 <div class="min-h-screen bg-slate-50 dark:bg-slate-900/50 py-8 sm:py-10 px-4 sm:px-6">
     <div class="max-w-4xl mx-auto">
@@ -228,82 +234,130 @@
                     </div>
 
                     {{-- SECTION 1 --}}
-                    <div class="form-section">
-                        <x-step-heading number="1" variant="indigo">
-                            Informasi Akademik & Data Diri
-                        </x-step-heading>
-                        <div class="mt-4 space-y-4">
+<div class="form-section">
+    <x-step-heading number="1" variant="indigo">
+        Informasi Akademik & Data Diri
+    </x-step-heading>
 
-                            {{-- KATEGORI (default dari profil) --}}
-                            <x-form.select name="kategori" label="Kategori Pendaftar" required>
-                                <option value="">-- Pilih Kategori --</option>
-                                @foreach (\App\Models\PendaftaranMagang::KATEGORI as $nilai => $label)
-                                    <option value="{{ $nilai }}" @selected(old('kategori', $isi('kategori')) === $nilai)>
-                                        {{ $label }}
-                                    </option>
-                                @endforeach
-                            </x-form.select>
+    <div class="mt-4 space-y-4">
 
-                            {{-- DATA AKADEMIK --}}
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {{-- JENIS PENDAFTARAN --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            @foreach (\App\Models\PendaftaranMagang::TIPE as $nilai => $label)
+                <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition
+                              border-slate-200 dark:border-slate-600
+                              has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50
+                              dark:has-[:checked]:bg-indigo-500/10">
+                    <input type="radio" name="tipe" value="{{ $nilai }}"
+                           class="text-indigo-600 focus:ring-indigo-500"
+                           @checked($tipe === $nilai)>
+                    <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $label }}</span>
+                </label>
+            @endforeach
+        </div>
 
-                                <x-form.input
-                                    name="nama_lengkap"
-                                    label="Nama Lengkap"
-                                    required
-                                    :value="$namaLengkap"
-                                />
-                                <x-form.input
-                                    name="nim_nisn"
-                                    label="NIM / NISN"
-                                    required
-                                    placeholder="Contoh: 22050974001"
-                                    :value="$isi('nim_nisn')"
-                                />
-                                <x-form.input
-                                    name="instansi"
-                                    label="Asal Instansi / Universitas"
-                                    required
-                                    placeholder="Universitas Negeri Surabaya"
-                                    :value="$isi('instansi')"
-                                />
-                                <x-form.input
-                                    name="jurusan"
-                                    label="Jurusan / Program Studi"
-                                    required
-                                    placeholder="S1 Teknologi Pendidikan"
-                                    :value="$isi('jurusan')"
-                                />
-                                <div class="md:col-span-2">
-                                    <x-form.input
-                                        name="no_hp"
-                                        id="no_hp"
-                                        label="No. WhatsApp / HP Aktif"
-                                        required
-                                        placeholder="Contoh: 081234567890"
-                                        inputmode="numeric"
-                                        :value="$isi('no_hp')"
-                                        oninput="this.value=this.value.replace(/[^0-9]/g,'');"
-                                    />
-                                </div>
-                                <div class="md:col-span-2">
-                                    <x-form.input
-                                        name="alamat"
-                                        label="Alamat Tempat Tinggal"
-                                        required
-                                        placeholder="Jl. Ketintang No. 156, RT/RW, Desa/Kelurahan"
-                                        :value="$isi('alamat')"
-                                    />
-                                </div>
+        <p id="labelKetua" class="hidden text-[11px] font-bold uppercase tracking-wide text-slate-400">
+            Data Ketua Kelompok
+            <span class="normal-case font-medium">(diambil dari profil Anda)</span>
+        </p>
 
-                                {{-- PROVINSI -> KABUPATEN/KOTA (bertingkat, dari config/wilayah.php) --}}
-                                <x-form.wilayah
-                                    :provinsi="$isi('provinsi')"
-                                    :kabupaten="$isi('kabupaten')"
-                                />
-                            </div>
-                        </div>
+        <x-form.select name="kategori" label="Kategori Pendaftar" required>
+            <option value="">-- Pilih Kategori --</option>
+            @foreach (\App\Models\PendaftaranMagang::KATEGORI as $nilai => $label)
+                <option value="{{ $nilai }}" @selected(old('kategori', $isi('kategori')) === $nilai)>
+                    {{ $label }}
+                </option>
+            @endforeach
+        </x-form.select>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <x-form.input name="nama_lengkap" label="Nama Lengkap" required :value="$namaLengkap" />
+            <x-form.input name="nim_nisn" label="NIM / NISN" required
+                          placeholder="Contoh: 22050974001" :value="$isi('nim_nisn')" />
+            <x-form.input name="instansi" label="Asal Instansi / Universitas" required
+                          placeholder="Universitas Negeri Surabaya" :value="$isi('instansi')" />
+            <x-form.input name="jurusan" label="Jurusan / Program Studi" required
+                          placeholder="S1 Teknologi Pendidikan" :value="$isi('jurusan')" />
+            <div class="md:col-span-2">
+                <x-form.input name="no_hp" id="no_hp" label="No. WhatsApp / HP Aktif" required
+                              placeholder="Contoh: 081234567890" inputmode="numeric"
+                              :value="$isi('no_hp')"
+                              oninput="this.value=this.value.replace(/[^0-9]/g,'');" />
+            </div>
+        </div>
+
+        {{-- ANGGOTA KELOMPOK (hanya tampil jika berkelompok) --}}
+        <div id="blokAnggota" class="hidden space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between gap-3">
+                <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                    Anggota Kelompok <span id="jumlahAnggota"></span>
+                </p>
+                <button type="button" id="btnTambahAnggota" onclick="bukaEditor()"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition
+                               bg-indigo-50 text-indigo-700 hover:bg-indigo-100
+                               dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20
+                               disabled:opacity-50 disabled:cursor-not-allowed">
+                    + Tambah Anggota
+                </button>
+            </div>
+
+            <ul id="daftarAnggota" class="space-y-2"></ul>
+            <div id="hiddenAnggota"></div>
+
+            {{-- Editor (dipakai untuk tambah & edit). Input sengaja di luar form (atribut form tidak valid)
+                 supaya tidak ikut terkirim; yang terkirim hanya hidden input anggota[i][kolom]. --}}
+            <div id="editorAnggota" class="hidden rounded-xl border border-slate-200 dark:border-slate-600 p-4 space-y-3">
+                <h4 id="judulEditor" class="text-sm font-bold text-slate-800 dark:text-slate-100"></h4>
+
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @foreach ([
+        'nama_lengkap' => 'Nama Lengkap',
+        'nim_nisn'     => 'NIM / NISN',
+        'instansi'     => 'Asal Instansi / Universitas',
+        'jurusan'      => 'Jurusan / Program Studi',
+        'no_hp'        => 'No. WhatsApp / HP Aktif',
+    ] as $kolom => $label)
+        <x-form.input
+            :name="'ang_' . $kolom"
+            :label="$label"
+            required
+            form="editorAnggota"
+            :inputmode="$kolom === 'no_hp' ? 'numeric' : null"
+        />
+    @endforeach
+</div>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Kategori anggota mengikuti ketua.</p>
+                <p id="errorEditor" class="hidden text-xs font-medium text-rose-600 dark:text-rose-400"></p>
+
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="tutupEditor()"
+                            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100
+                                   dark:text-slate-200 dark:hover:bg-slate-700 transition">Batal</button>
+                    <button type="button" onclick="simpanAnggota()"
+                            class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition">
+                        Simpan Anggota
+                    </button>
+                </div>
+            </div>
+
+            {{-- Detail anggota --}}
+            <dialog id="dialogAnggota"
+                    class="rounded-2xl p-0 w-[min(92vw,26rem)] backdrop:bg-black/50
+                           bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                <div class="p-5">
+                    <h3 class="text-sm font-bold">Detail Anggota</h3>
+                    <dl id="isiDetailAnggota" class="mt-4 space-y-3 text-sm"></dl>
+                    <div class="mt-5 text-right">
+                        <button type="button" onclick="this.closest('dialog').close()"
+                                class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200
+                                       dark:bg-slate-700 dark:hover:bg-slate-600 transition">Tutup</button>
                     </div>
+                </div>
+            </dialog>
+        </div>
+
+    </div>
+</div>
 
                     {{-- SECTION 2 --}}
                     <div class="form-section">
@@ -555,7 +609,7 @@
     const URL_DASHBOARD = @json(route('user.dashboard'));
     const AUTOSAVE_AKTIF = @json($bisaSimpanDraft);   // revisi tidak boleh membuat draft baru
     let hasSuratPengantar = @json($hasSuratPengantar);
-
+    const KUNCI_BACKUP = @json($kunciBackup);
     // ==========================================
     // BIDANG INSTANSI
     // ==========================================
@@ -595,15 +649,216 @@
                 .dispatchEvent(new Event('change', { bubbles: true }));
         });
     }
+// ==========================================
+// ANGGOTA KELOMPOK
+// ==========================================
+const KOLOM_ANGGOTA  = ['nama_lengkap', 'nim_nisn', 'instansi', 'jurusan', 'no_hp'];
+const LABEL_ANGGOTA  = {
+    nama_lengkap: 'Nama Lengkap', nim_nisn: 'NIM / NISN', instansi: 'Asal Instansi',
+    jurusan: 'Jurusan / Program Studi', no_hp: 'No. WhatsApp / HP',
+};
+const MAKS_ANGGOTA   = @json(\App\Models\PendaftaranMagang::MAKS_ANGGOTA);
+let anggota   = @json($anggotaAwal);
+let editIndex = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
-        if (document.getElementById('dinasTujuan').value) {
-            updateBidang(@json(old('instansi_bidang_id', $pendaftaran?->instansi_bidang_id)));
-        }
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const tipeDipilih = () => document.querySelector('input[name="tipe"]:checked')?.value ?? 'mandiri';
+const ed = k => document.querySelector(`[name="ang_${k}"]`);
+const $id = id => document.getElementById(id);
 
-        initValidasiRealtime();
-        if (AUTOSAVE_AKTIF) initAutoSave();
+function renderAnggota() {
+    const kelompok = tipeDipilih() === 'kelompok';
+
+    $id('daftarAnggota').innerHTML = anggota.map((a, i) => `
+        <li class="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-600 px-3 py-2.5">
+            <span class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-xs font-bold
+                         bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">${i + 1}</span>
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">${esc(a.nama_lengkap)}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${esc(a.nim_nisn)}</p>
+            </div>
+            <details class="relative">
+                <summary aria-label="Menu anggota"
+                         class="list-none cursor-pointer px-2 py-1 rounded-lg text-lg leading-none
+                                text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700">⋮</summary>
+                <div class="absolute right-0 z-10 mt-1 w-36 rounded-xl border border-slate-200 dark:border-slate-600
+                            bg-white dark:bg-slate-800 shadow-lg py-1 text-sm">
+                    ${[['edit', 'Edit', ''], ['lihat', 'Lihat detail', ''], ['hapus', 'Hapus', 'text-rose-600 dark:text-rose-400']]
+                        .map(([aksi, teks, warna]) => `
+                        <button type="button" data-aksi="${aksi}" data-i="${i}"
+                                class="block w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 ${warna}">${teks}</button>`).join('')}
+                </div>
+            </details>
+        </li>`).join('');
+
+    // Hanya dikirim bila berkelompok; data tetap di memori jika user kembali memilih "Berkelompok".
+    $id('hiddenAnggota').innerHTML = kelompok
+        ? anggota.map((a, i) => KOLOM_ANGGOTA.map(k =>
+            `<input type="hidden" name="anggota[${i}][${k}]" value="${esc(a[k])}">`).join('')).join('')
+        : '';
+
+    $id('jumlahAnggota').textContent = anggota.length ? `(${anggota.length})` : '';
+    $id('btnTambahAnggota').disabled = anggota.length >= MAKS_ANGGOTA;
+}
+
+function terapkanTipe() {
+    const kelompok = tipeDipilih() === 'kelompok';
+    $id('blokAnggota').classList.toggle('hidden', !kelompok);
+    $id('labelKetua').classList.toggle('hidden', !kelompok);
+    if (!kelompok) tutupEditor();
+    renderAnggota();
+}
+
+function bukaEditor(i = null) {
+    editIndex = i;
+    const a = i === null ? { instansi: fieldEl('instansi')?.value ?? '' } : anggota[i];
+
+    KOLOM_ANGGOTA.forEach(k => { ed(k).value = a[k] ?? ''; });
+    $id('judulEditor').textContent = i === null ? 'Tambah Anggota' : `Edit Anggota ${i + 1}`;
+    $id('errorEditor').classList.add('hidden');
+    $id('editorAnggota').classList.remove('hidden');
+    ed('nama_lengkap').focus();
+}
+
+function tutupEditor() {
+    editIndex = null;
+    $id('editorAnggota').classList.add('hidden');
+}
+
+function cekAnggota(a) {
+    for (const k of KOLOM_ANGGOTA) {
+        const pesan = validators[k](a[k]);
+        if (pesan) return pesan;
+    }
+
+    const nimLain = [fieldEl('nim_nisn')?.value.trim(), ...anggota.filter((_, j) => j !== editIndex).map(x => x.nim_nisn)];
+    return nimLain.includes(a.nim_nisn) ? 'NIM / NISN sudah dipakai ketua atau anggota lain.' : null;
+}
+
+function simpanAnggota() {
+    const a = Object.fromEntries(KOLOM_ANGGOTA.map(k => [k, ed(k).value.trim()]));
+    const pesan = cekAnggota(a);
+
+    if (pesan) {
+        $id('errorEditor').textContent = pesan;
+        $id('errorEditor').classList.remove('hidden');
+        return;
+    }
+
+    editIndex === null ? anggota.push(a) : (anggota[editIndex] = a);
+    tutupEditor();
+    perubahanAnggota();
+}
+
+function hapusAnggota(i) {
+    if (!confirm(`Hapus anggota "${anggota[i].nama_lengkap}"?`)) return;
+    anggota.splice(i, 1);
+    tutupEditor();
+    perubahanAnggota();
+}
+
+function lihatAnggota(i) {
+    $id('isiDetailAnggota').innerHTML = KOLOM_ANGGOTA.map(k => `
+        <div>
+            <dt class="text-[11px] font-bold uppercase tracking-wider text-slate-400">${LABEL_ANGGOTA[k]}</dt>
+            <dd class="mt-0.5 font-semibold break-words">${esc(anggota[i][k]) || '-'}</dd>
+        </div>`).join('');
+    $id('dialogAnggota').showModal();
+}
+
+function perubahanAnggota() {
+    simpanBackup();
+    renderAnggota();
+    if (AUTOSAVE_AKTIF) scheduleAutoSave();
+}
+
+function initAnggota() {
+ed('no_hp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, ''); });    
+document.querySelectorAll('input[name="tipe"]').forEach(r => r.addEventListener('change', terapkanTipe));
+
+    const aksi = { edit: bukaEditor, lihat: lihatAnggota, hapus: hapusAnggota };
+    $id('daftarAnggota').addEventListener('click', e => {
+        const tombol = e.target.closest('[data-aksi]');
+        if (!tombol) return;
+        tombol.closest('details').removeAttribute('open');
+        aksi[tombol.dataset.aksi](Number(tombol.dataset.i));
     });
+
+    // Menu titik tiga menutup saat klik di luar.
+    document.addEventListener('click', e => {
+        document.querySelectorAll('#daftarAnggota details[open]').forEach(d => {
+            if (!d.contains(e.target)) d.removeAttribute('open');
+        });
+    });
+
+    // Enter di editor = Simpan Anggota (bukan submit form).
+    $id('editorAnggota').addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); simpanAnggota(); }
+    });
+
+    terapkanTipe();
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const pulih = pulihkanBackup();   // harus sebelum bidang dimuat
+
+    const bidangSiap = document.getElementById('dinasTujuan').value
+        ? updateBidang(pulih?.fields.instansi_bidang_id || @json(old('instansi_bidang_id', $pendaftaran?->instansi_bidang_id)))
+        : Promise.resolve();
+
+    initAnggota();
+    initBackup();
+    initValidasiRealtime();
+    if (AUTOSAVE_AKTIF) initAutoSave();
+
+    // Susulkan isian yang belum sempat tersimpan ke server (setelah bidang selesai dimuat).
+    if (pulih && AUTOSAVE_AKTIF) bidangSiap.then(scheduleAutoSave);
+});
+
+// ==========================================
+// BACKUP LOKAL (bertahan saat halaman di-refresh)
+// ==========================================
+function simpanBackup() {
+    const form = document.getElementById('pendaftaranForm');
+    const fields = {};
+
+    for (const [nama, nilai] of new FormData(form)) {
+        if (nilai instanceof File || nama === '_token' || nama === '_method' || nama.startsWith('anggota[')) continue;
+        fields[nama] = nilai;
+    }
+
+    try {
+        localStorage.setItem(KUNCI_BACKUP, JSON.stringify({ fields, anggota }));
+    } catch (e) { /* penyimpanan penuh atau diblokir: abaikan */ }
+}
+
+function hapusBackup() {
+    try { localStorage.removeItem(KUNCI_BACKUP); } catch (e) { /* abaikan */ }
+}
+
+/** Mengisi ulang form dari backup. Mengembalikan data backup, atau null bila tidak ada. */
+function pulihkanBackup() {
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(KUNCI_BACKUP)); } catch (e) { return null; }
+    if (!data || !data.fields) return null;
+
+    const form = document.getElementById('pendaftaranForm');
+    Object.entries(data.fields).forEach(([nama, nilai]) => {
+        if (nama !== 'instansi_bidang_id' && form.elements[nama]) form.elements[nama].value = nilai;
+    });
+
+    if (form.elements['tanggal_mulai'].value) {
+        form.elements['tanggal_selesai'].min = form.elements['tanggal_mulai'].value;
+    }
+
+    anggota = Array.isArray(data.anggota) ? data.anggota : [];
+    return data;
+}
+
+function initBackup() {
+    const form = document.getElementById('pendaftaranForm');
+    ['input', 'change'].forEach(evt => form.addEventListener(evt, simpanBackup));
+}
 
     // ==========================================
     // VALIDASI FORM (real-time + sebelum submit)
@@ -617,9 +872,6 @@
         instansi: 'Asal Instansi / Universitas',
         jurusan: 'Jurusan / Program Studi',
         no_hp: 'No. WhatsApp / HP Aktif',
-        alamat: 'Alamat Tempat Tinggal',
-        provinsi: 'Provinsi',
-        kabupaten: 'Kabupaten / Kota',
         tanggal_mulai: 'Tanggal Mulai Magang',
         tanggal_selesai: 'Tanggal Selesai Magang',
         nomor_surat_pengantar: 'Nomor Surat Pengantar',
@@ -660,23 +912,6 @@
             if (v.length < 10 || v.length > 15) return 'No. HP harus terdiri dari 10-15 digit.';
             return null;
         },
-        alamat: v => v.trim() ? null : 'Alamat tempat tinggal wajib diisi.',
-        provinsi: v => v.trim() ? null : 'Provinsi wajib diisi.',
-
-kabupaten: (v, form) => {
-    if (!v.trim()) return 'Kabupaten / kota wajib diisi.';
-
-    const cocok = window.kabupatenCocok
-        ? window.kabupatenCocok(
-            form.elements['provinsi'].value,
-            v
-        )
-        : true;
-
-    return cocok
-        ? null
-        : 'Kabupaten / kota tidak sesuai dengan provinsi yang dipilih.';
-},
                tanggal_mulai: v => v ? null : 'Tanggal mulai magang wajib diisi.',
 
         tanggal_selesai: (v, form) => {
@@ -843,7 +1078,23 @@ kabupaten: (v, form) => {
 
         cekBerkas(form, 'surat_pengantar', strict && isSuratPengantarRequired(), errors);
         cekBerkas(form, 'proposal', false, errors);
+        if (tipeDipilih() === 'kelompok') {
+    const editorTerbuka = !document.getElementById('editorAnggota').classList.contains('hidden');
 
+    const msg = editorTerbuka
+        ? 'Simpan atau batalkan form anggota yang sedang dibuka.'
+        : (strict && !anggota.length
+            ? 'Tambahkan minimal satu anggota kelompok.'
+            : null);
+
+    if (msg) {
+        errors.push({
+            field: 'anggota',
+            label: 'Anggota Kelompok',
+            message: msg
+        });
+    }
+}
         if (errors.length) {
             showErrorSummary(errors);
         } else {
@@ -941,16 +1192,17 @@ kabupaten: (v, form) => {
 
         autoSavePromise = kirimDraft()
             .then(() => {
-                if (statusEl) {
-                    const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                    statusEl.textContent = `Tersimpan otomatis pukul ${jam}`;
-                }
-            })
-            .catch(error => {
-                console.error('AUTO-SAVE ERROR:', error);
-                adaPerubahan = true;
-                if (statusEl) statusEl.textContent = 'Gagal menyimpan otomatis.';
-            })
+    if (!adaPerubahan && berkasBerubah.size === 0) hapusBackup();   // server sudah sinkron
+    if (statusEl) {
+        const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        statusEl.textContent = `Tersimpan otomatis pukul ${jam}`;
+    }
+})
+.catch(error => {
+    console.error('AUTO-SAVE ERROR:', error);
+    adaPerubahan = true;
+    if (statusEl) statusEl.textContent = 'Belum tersimpan: ' + error.message;
+})
             .finally(() => {
                 autoSaveInFlight = false;
                 if (autoSaveQueued) {
@@ -964,7 +1216,7 @@ kabupaten: (v, form) => {
         const form = document.getElementById('pendaftaranForm');
         if (!form) return;
 
-        form.querySelectorAll('input:not([type="file"]):not([type="hidden"]), select, textarea').forEach(el => {
+     form.querySelectorAll('input:not([type="file"]):not([type="hidden"]):not([form]), select, textarea').forEach(el => {
             const evt = (el.tagName === 'SELECT' || el.type === 'date') ? 'change' : 'input';
             el.addEventListener(evt, scheduleAutoSave);
 
@@ -1011,6 +1263,7 @@ kabupaten: (v, form) => {
         try {
             await autoSavePromise;                 // jangan bentrok dengan auto-save yang sedang jalan
             const data = await kirimDraft();
+            hapusBackup();
             alert(data.message || 'Draft berhasil disimpan.');
             window.location.href = URL_DASHBOARD;
         } catch (error) {
@@ -1035,7 +1288,7 @@ kabupaten: (v, form) => {
         autoSaveDisabled = true;
         clearTimeout(autoSaveTimer);
         await autoSavePromise;
-
+        hapusBackup();
         document.getElementById('pendaftaranForm').submit();
     }
 
@@ -1048,7 +1301,7 @@ kabupaten: (v, form) => {
         autoSaveDisabled = true;
         clearTimeout(autoSaveTimer);
         await autoSavePromise;
-
+        hapusBackup();
         document.getElementById('hapusDraftForm').submit();
     }
 </script>

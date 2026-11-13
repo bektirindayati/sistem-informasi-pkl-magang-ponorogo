@@ -14,7 +14,7 @@ class PendaftaranMagang extends Model
     /** Disk berkas yang diunggah peserta (surat pengantar & proposal). */
     public const DISK_BERKAS = 'public';
 
-    /** Disk PDF surat balasan resmi: privat, hanya bisa diakses lewat controller. */
+    /** Disk PDF surat resmi: privat, hanya bisa diakses lewat controller. */
     public const DISK_SURAT = 'local';
 
     public const KOLOM_BERKAS = ['surat_pengantar', 'proposal'];
@@ -36,10 +36,19 @@ class PendaftaranMagang extends Model
         'revisi'   => 'Pendaftaran kamu perlu direvisi terlebih dahulu sebelum mengirim ulang.',
     ];
 
+    public const TIPE = [
+        'mandiri'  => 'Mandiri / Sendiri',
+        'kelompok' => 'Berkelompok',
+    ];
+
+    public const MAKS_PESERTA = 7;
+    public const MAKS_ANGGOTA = self::MAKS_PESERTA - 1;
+
     protected $fillable = [
         'user_id',
         'dinas_id',
         'instansi_bidang_id',
+        'tipe',
 
         'kategori',
         'nama_lengkap',
@@ -47,14 +56,11 @@ class PendaftaranMagang extends Model
         'instansi',
         'jurusan',
         'no_hp',
-        'alamat',
-        'kabupaten',
-        'provinsi',
 
         'tanggal_mulai',
         'tanggal_selesai',
 
-        // Berkas & identitas surat pengantar (dipakai mengisi surat balasan)
+       // Berkas dan identitas surat pengantar.
         'surat_pengantar',
         'nomor_surat_pengantar',
         'tanggal_surat_pengantar',
@@ -71,97 +77,119 @@ class PendaftaranMagang extends Model
         'alasan_revisi',
     ];
 
-    // PDF surat balasan (file_surat_balasan, surat_balasan_terbit_at) sengaja tidak
-    // masuk $fillable: hanya diisi oleh SuratBalasanService lewat forceFill().
+    // File dan status surat resmi tidak dimasukkan ke $fillable.
+    // Pengelolaannya dilakukan melalui service menggunakan forceFill().
 
     protected function casts(): array
     {
         return [
             'surat_balasan_terbit_at' => 'datetime',
             'sertifikat_terbit_at' => 'datetime',
+            'surat_selesai_terbit_at' => 'datetime',
         ];
     }
 
-    protected static function booted(): void
-    {
-        // Berkas lama ikut terhapus saat diganti (mis. autosave / revisi).
-        static::updated(function (self $p) {
-            foreach (self::KOLOM_BERKAS as $kolom) {
-                if ($p->wasChanged($kolom) && $p->getOriginal($kolom)) {
-                    Storage::disk(self::DISK_BERKAS)->delete($p->getOriginal($kolom));
-                }
+    
+protected static function booted(): void
+{
+    // Berkas peserta yang lama ikut terhapus saat diganti.
+    static::updated(function (self $p) {
+        foreach (self::KOLOM_BERKAS as $kolom) {
+            if ($p->wasChanged($kolom) && $p->getOriginal($kolom)) {
+                Storage::disk(self::DISK_BERKAS)->delete(
+                    $p->getOriginal($kolom)
+                );
             }
+        }
+    });
+
+    // Hapus seluruh file sertifikat sebelum data pendaftaran dihapus.
+    static::deleting(function (self $p) {
+        $p->sertifikatFiles->each(function ($file) {
+            Storage::disk(self::DISK_SURAT)->delete($file->file);
         });
+    });
 
-        // Berkas peserta dan PDF surat balasan ikut terhapus saat record dihapus.
-        static::deleted(function (self $p) {
-            Storage::disk(self::DISK_BERKAS)->delete(
-                array_filter([$p->surat_pengantar, $p->proposal])
-            );
+    // Hapus berkas peserta dan PDF surat resmi saat pendaftaran dihapus.
+    static::deleted(function (self $p) {
+        Storage::disk(self::DISK_BERKAS)->delete(
+            array_filter([
+                $p->surat_pengantar,
+                $p->proposal,
+            ])
+        );
 
-            foreach (['file_surat_balasan', 'file_sertifikat'] as $kolom) {
-    if (filled($p->{$kolom})) {
-        Storage::disk(self::DISK_SURAT)->delete($p->{$kolom});
-    }
+        foreach ([
+            'file_surat_balasan',
+            'file_surat_selesai',
+        ] as $kolom) {
+            if (filled($p->{$kolom})) {
+                Storage::disk(self::DISK_SURAT)->delete($p->{$kolom});
+            }
+        }
+    });
 }
-        });
-    }
 
-    /** Pesan jika status ini mengunci pembuatan pengajuan baru, null jika boleh. */
-    public function pesanTerkunci(): ?string
-    {
-        return self::PESAN_TERKUNCI[$this->status] ?? null;
-    }
+/** Pesan jika status ini mengunci pembuatan pengajuan baru. */
+public function pesanTerkunci(): ?string
+{
+    return self::PESAN_TERKUNCI[$this->status] ?? null;
+}
 
-    /** Surat resmi sudah diterbitkan: statusnya "diterbitkan" dan PDF-nya ada. */
+/** Surat balasan resmi sudah diterbitkan. */
 public function suratTerbit(): bool
 {
-    return $this->status_surat === 'diterbitkan' && filled($this->file_surat_balasan);
+    return $this->status_surat === 'diterbitkan'
+        && filled($this->file_surat_balasan);
 }
 
-    /**
-     * Status surat balasan untuk tampilan:
-     * 'diproses'    = sudah diterima, PDF resmi belum diunggah
-     * 'diterbitkan' = PDF resmi tersedia untuk diunduh pendaftar
-     * null          = belum relevan (belum diterima)
-     */
-    public function statusSurat(): ?string
-    {
-        if ($this->suratTerbit()) {
-            return 'diterbitkan';
-        }
-
-        return $this->status === 'diterima' ? 'diproses' : null;
+/**
+ * Status surat balasan:
+ * 'diproses'    = sudah diterima, PDF resmi belum diunggah
+ * 'diterbitkan' = PDF resmi tersedia
+ * null          = belum relevan
+ */
+public function statusSurat(): ?string
+{
+    if ($this->suratTerbit()) {
+        return 'diterbitkan';
     }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    return $this->status === 'diterima' ? 'diproses' : null;
+}
 
-    public function dinas()
-    {
-        return $this->belongsTo(Dinas::class, 'dinas_id');
-    }
-
-    public function bidang()
-    {
-        return $this->belongsTo(InstansiBidang::class, 'instansi_bidang_id');
-    }
-    /** PDF sertifikat sudah diterbitkan: statusnya "diterbitkan" dan berkasnya ada. */
+/** Sertifikat resmi sudah diterbitkan. */
 public function sertifikatTerbit(): bool
 {
-    return $this->status_sertifikat === 'diterbitkan' && filled($this->file_sertifikat);
+    return $this->status_sertifikat === 'diterbitkan'
+        && $this->sertifikatFiles()->exists();
 }
 
-/** 'diproses' | 'diterbitkan' setelah magang selesai; null selama belum selesai. */
+/** Status sertifikat. */
 public function statusSertifikat(): ?string
 {
-    if ($this->status !== 'selesai') {
-        return null;
+    if ($this->sertifikatTerbit()) {
+        return 'diterbitkan';
     }
 
-    return $this->sertifikatTerbit() ? 'diterbitkan' : 'diproses';
+    return $this->status === 'selesai' ? 'diproses' : null;
+}
+
+/** Surat selesai magang sudah diterbitkan. */
+public function suratSelesaiTerbit(): bool
+{
+    return $this->status_surat_selesai === 'diterbitkan'
+        && filled($this->file_surat_selesai);
+}
+
+/** Status surat selesai magang. */
+public function statusSuratSelesai(): ?string
+{
+    if ($this->suratSelesaiTerbit()) {
+        return 'diterbitkan';
+    }
+
+    return $this->status === 'selesai' ? 'diproses' : null;
 }
 
 /** Tanggal selesai magang sudah terlewati. */
@@ -170,4 +198,31 @@ public function masaMagangBerakhir(): bool
     return filled($this->tanggal_selesai)
         && \Carbon\Carbon::parse($this->tanggal_selesai)->endOfDay()->isPast();
 }
+
+public function user()
+{
+    return $this->belongsTo(User::class);
+}
+
+public function dinas()
+{
+    return $this->belongsTo(Dinas::class, 'dinas_id');
+}
+
+public function bidang()
+{
+    return $this->belongsTo(InstansiBidang::class, 'instansi_bidang_id');
+}
+
+public function anggotas()
+{
+    return $this->hasMany(AnggotaPendaftaran::class);
+}
+
+/** Daftar PDF sertifikat yang diterbitkan untuk pendaftaran ini. */
+public function sertifikatFiles()
+{
+    return $this->hasMany(SertifikatFile::class)->orderBy('id');
+}
+
 }

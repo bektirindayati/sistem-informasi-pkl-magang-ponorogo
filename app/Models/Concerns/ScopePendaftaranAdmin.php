@@ -30,10 +30,15 @@ trait ScopePendaftaranAdmin
     ]);
 }
 
-    public function scopeCariNama($query, ?string $kata)
-    {
-        return $query->when($kata, fn ($q) => $q->where('nama_lengkap', 'like', "%{$kata}%"));
-    }
+   public function scopeCariNama($query, ?string $kata)
+{
+    return $query->when($kata, fn ($q) => $q->where(fn ($q) => $q
+        ->where('nama_lengkap', 'like', "%{$kata}%")
+        ->orWhere('nim_nisn', 'like', "%{$kata}%")
+        ->orWhereHas('anggotas', fn ($a) => $a
+            ->where('nama_lengkap', 'like', "%{$kata}%")
+            ->orWhere('nim_nisn', 'like', "%{$kata}%"))));
+}
 
     /** Pending, atau diterima tapi belum lewat tanggal_selesai. */
    /**
@@ -44,16 +49,6 @@ public function scopeAktif($query)
     return $query->whereIn('status', ['pending', 'diterima']);
 }
 
-    /**
-     * BARU — khusus "diterima & masih berjalan" TANPA ikut pending.
-     * Dipakai untuk kartu publik "Pemagang Aktif" di beranda, karena
-     * scopeAktif() di atas sengaja ikut menghitung pending (dipakai
-     * admin untuk tab "belum tuntas diproses"), sedangkan kartu publik
-     * labelnya "Status diterima" — jadi pending tidak boleh ikut.
-     * Isinya memang sengaja sama persis dengan separuh kondisi di
-     * scopeAktif() ("diterima" + belum lewat tanggal_selesai),
-     * cuma dipisah jadi scope sendiri biar bisa dipakai ulang.
-     */
     public function scopeSedangMagang($query)
     {
         $hariIni = now()->toDateString();

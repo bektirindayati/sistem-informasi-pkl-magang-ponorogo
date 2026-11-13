@@ -1,92 +1,71 @@
-{{--
-    <x-admin.status-verifikasi :pendaftaran="$pendaftaran" />
-    Status verifikasi (menunggu / revisi / diterima / ditolak / selesai). Kolom alasan muncul untuk revisi dan ditolak.
---}}
 @props(['pendaftaran'])
 
 @php
+    $p = $pendaftaran;
+
     $pilihan = [
-        'pending'  => '⏳ Menunggu Verifikasi',
-        'revisi'   => '✏️ Perlu Revisi',
-        'diterima' => '✅ Diterima',
-        'ditolak'  => '❌ Ditolak',
+        'pending'  => 'Menunggu Verifikasi',
+        'revisi'   => 'Perlu Revisi',
+        'diterima' => 'Diterima',
+        'ditolak'  => 'Ditolak',
     ];
 
-// "Selesai" dapat dipilih kapan saja setelah pendaftaran diterima.
-$bisaSelesai = in_array($pendaftaran->status, ['diterima', 'selesai'], true);
+    if (in_array($p->status, ['diterima', 'selesai'], true)) {
+        $pilihan['selesai'] = 'Magang Selesai';
+    }
 
-if ($bisaSelesai) {
-    $pilihan['selesai'] = '✓ Magang Selesai';
-}
+    $bisaUbah  = array_key_exists($p->status, $pilihan);
+    $adaTerbit = $p->suratTerbit() || $p->suratSelesaiTerbit() || $p->sertifikatTerbit();
 
-    $menungguSelesai = $pendaftaran->status === 'diterima' && ! $bisaSelesai;
-    $bisaUbah = array_key_exists($pendaftaran->status, $pilihan);
-    $adaDokumenTerbit = $pendaftaran->suratTerbit() || $pendaftaran->sertifikatTerbit();
+    $aksen = [
+        'pending' => 'border-l-amber-500', 'revisi' => 'border-l-orange-500', 'diterima' => 'border-l-emerald-500',
+        'ditolak' => 'border-l-rose-500', 'selesai' => 'border-l-cyan-500',
+    ][$p->status] ?? 'border-l-slate-300';
 
-    $input = 'w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-sm bg-slate-50 dark:bg-slate-900 focus:bg-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 outline-none transition';
-    $label = 'block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5';
+    $input = 'px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 dark:focus:ring-cyan-500/20 outline-none transition';
+    $btn   = 'relative inline-flex items-center justify-center whitespace-nowrap px-3.5 py-1.5 rounded-lg border border-transparent text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition';
 @endphp
 
-<div class="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-6">
-
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Status Verifikasi</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Keputusan atas pendaftaran ini. Pendaftar langsung melihat perubahannya.</p>
-        </div>
-        <x-status-badge :status="$pendaftaran->status" />
-    </div>
-
+<div class="border-l-4 {{ $aksen }} pl-4 py-3">
     @if ($bisaUbah)
-        <form action="{{ route('admin.verifikasi.update', $pendaftaran->id) }}" method="POST" class="mt-5 space-y-4"
-              @if ($adaDokumenTerbit)
-                  onsubmit="return this.status.value === '{{ $pendaftaran->status }}' || confirm('Mengubah status dapat menarik surat atau sertifikat yang sudah diterbitkan dari pendaftar. Lanjutkan?')"
+        <form action="{{ route('admin.verifikasi.update', $p->id) }}" method="POST"
+              class="flex flex-wrap items-center gap-x-4 gap-y-2"
+              @if ($adaTerbit)
+                  onsubmit="return this.status.value === '{{ $p->status }}' || confirm('Mengubah status dapat menarik surat atau sertifikat yang sudah diterbitkan dari pendaftar. Lanjutkan?')"
               @endif>
             @csrf
             @method('PUT')
 
-            <label class="block">
-                <span class="{{ $label }}">Ubah Status</span>
-                <select name="status" id="statusVerifikasi" class="{{ $input }} font-semibold">
+            <div class="min-w-0 flex-1 basis-56">
+                <p class="text-base font-semibold text-slate-800 dark:text-slate-100">Status Verifikasi</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Keputusan atas pendaftaran ini</p>
+            </div>
+
+            <div class="flex items-center justify-end gap-2">
+                <select name="status" id="statusVerifikasi" class="{{ $input }} w-[11.5rem]">
                     @foreach ($pilihan as $nilai => $teks)
-                <option value="{{ $nilai }}" @selected(old('status', $pendaftaran->status) === $nilai)>
-                    {{ $teks }}
-                </option>
-            @endforeach
+                        <option value="{{ $nilai }}" @selected(old('status', $p->status) === $nilai)>{{ $teks }}</option>
+                    @endforeach
                 </select>
-                @error('status')<p class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>@enderror
-                @if ($pendaftaran->status === 'diterima')
-                <p class="mt-1 text-[11px] text-slate-400">
-                    Pilih "Magang Selesai" ketika pendaftar telah menyelesaikan magang
-                    dan mengajukan penerbitan sertifikat.
-                </p>
-            @endif
-            </label>
 
-            <label class="block hidden" id="alasanRevisi">
-                <span class="{{ $label }}">Alasan revisi <span class="text-rose-500">*</span></span>
-                <textarea name="alasan_revisi" rows="3" class="{{ $input }}" placeholder="Jelaskan bagian yang perlu diperbaiki pendaftar">{{ old('alasan_revisi', $pendaftaran->alasan_revisi) }}</textarea>
-                @error('alasan_revisi')<p class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>@enderror
-            </label>
+                <button type="submit" class="{{ $btn }}">Simpan</button>
+            </div>
 
-            <label class="block hidden" id="alasanTolak">
-                <span class="{{ $label }}">Alasan penolakan <span class="text-rose-500">*</span></span>
-                <textarea name="alasan_penolakan" rows="3" class="{{ $input }}" placeholder="Jelaskan alasan pendaftaran ditolak">{{ old('alasan_penolakan', $pendaftaran->alasan_penolakan) }}</textarea>
-                @error('alasan_penolakan')<p class="text-[11px] text-rose-600 font-semibold mt-1">{{ $message }}</p>@enderror
-            </label>
+            @foreach (['revisi'  => ['alasanRevisi', 'alasan_revisi', 'Tulis alasan revisi (wajib)'],
+                       'ditolak' => ['alasanTolak', 'alasan_penolakan', 'Tulis alasan penolakan (wajib)']] as $nilai => [$id, $nama, $contoh])
+                <div class="hidden basis-full" id="{{ $id }}">
+                    <textarea name="{{ $nama }}" rows="2" class="{{ $input }} w-full" placeholder="{{ $contoh }}">{{ old($nama, $p->{$nama}) }}</textarea>
+                    @error($nama)<p class="mt-1 text-sm font-medium text-rose-600">{{ $message }}</p>@enderror
+                </div>
+            @endforeach
 
-            <button type="submit" class="px-6 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-bold shadow-sm transition">
-                Simpan Status
-            </button>
+            @error('status')<p class="basis-full text-sm font-medium text-rose-600">{{ $message }}</p>@enderror
         </form>
 
         <script>
             (() => {
-                const pilih = document.getElementById('statusVerifikasi');
-                const alasan = {
-                    revisi: document.getElementById('alasanRevisi'),
-                    ditolak: document.getElementById('alasanTolak'),
-                };
+                const pilih  = document.getElementById('statusVerifikasi');
+                const alasan = { revisi: document.getElementById('alasanRevisi'), ditolak: document.getElementById('alasanTolak') };
                 const tampil = () => Object.entries(alasan)
                     .forEach(([nilai, el]) => el.classList.toggle('hidden', pilih.value !== nilai));
 
@@ -95,6 +74,6 @@ if ($bisaSelesai) {
             })();
         </script>
     @else
-        <p class="mt-4 text-sm text-slate-500">Status pendaftaran ini tidak dapat diubah dari halaman ini.</p>
+        <p class="text-base text-slate-500 dark:text-slate-400">Status pendaftaran ini tidak dapat diubah dari halaman ini.</p>
     @endif
 </div>

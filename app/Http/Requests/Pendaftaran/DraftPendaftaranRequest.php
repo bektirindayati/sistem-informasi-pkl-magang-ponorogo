@@ -8,14 +8,14 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 class DraftPendaftaranRequest extends BasePendaftaranRequest
 {
     protected function failedAuthorization()
-    {
-        throw new HttpResponseException(
-            response()->json([
-                'success' => false,
-                'message' => $this->pesanTerkunci(),
-            ], 403)
-        );
-    }
+{
+    throw new HttpResponseException(
+        response()->json([
+            'success' => false,
+            'message' => $this->pesanAksesDitolak(),
+        ], 403)
+    );
+}
 
     public function rules(): array
     {

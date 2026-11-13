@@ -40,30 +40,30 @@
         </div>
     </div>
 
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        <x-admin.stat-card
-            icon="🎓"
-            color="cyan"
-            label="Total Mahasiswa"
-            :value="$totalMagang ?? 0"
-        />
+  {{-- Pengingat --}}
+@php
+    $pengingat = array_filter([
+        'surat balasan belum diterbitkan'                => $suratMenunggu ?? 0,
+        'masa magang berakhir, siap ditandai selesai'    => $perluSelesai ?? 0,
+    ]);
+@endphp
 
-        <x-admin.stat-card
-            icon="🏫"
-            color="blue"
-            label="Total Siswa PKL"
-            :value="$totalPkl ?? 0"
-        />
-
-        <x-admin.stat-card
-            icon="⏳"
-            color="amber"
-            label="Menunggu Review"
-            :value="$totalPending ?? 0"
-            class="sm:col-span-2 lg:col-span-1"
-        />
+@if ($pengingat)
+    <div class="rounded-2xl border border-amber-200 dark:border-amber-500/25 bg-amber-50 dark:bg-amber-500/10
+                px-5 py-4 text-base text-amber-800 dark:text-amber-200 space-y-1">
+        @foreach ($pengingat as $teks => $jumlah)
+            <p><span class="font-bold">{{ $jumlah }}</span> {{ $teks }}</p>
+        @endforeach
     </div>
+@endif
+
+{{-- Stats Cards --}}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+    <x-admin.stat-card icon="📄" color="cyan"    label="Total Pengajuan" :value="$totalPengajuan ?? 0" />
+    <x-admin.stat-card icon="👥" color="blue"    label="Total Peserta"   :value="$totalPeserta ?? 0" />
+    <x-admin.stat-card icon="✅" color="emerald" label="Diterima"        :value="$totalDiterima ?? 0" />
+    <x-admin.stat-card icon="⏳" color="amber"   label="Menunggu Review" :value="$totalPending ?? 0" />
+</div>
 
     {{-- Tabel Pengajuan Terbaru --}}
     <div class="bg-white dark:bg-[#111b32]
@@ -139,9 +139,15 @@
                                    transition duration-150">
 
                             <td class="p-4 px-6 font-bold
-                                       text-slate-900 dark:text-slate-100">
-                                {{ $item->nama_lengkap ?? $item->nama ?? '-' }}
-                            </td>
+                                text-slate-900 dark:text-slate-100">
+                            {{ $item->nama_lengkap ?? $item->nama ?? '-' }}
+
+                            @if ($item->tipe === 'kelompok')
+                                <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                                    Kelompok · {{ $item->anggotas_count }} anggota
+                                </p>
+                            @endif
+                        </td>
 
                             <td class="p-4 px-6 text-slate-600 dark:text-slate-400
                                        font-medium">
@@ -155,7 +161,7 @@
                                              dark:bg-slate-800 dark:text-slate-300
                                              dark:border-slate-700
                                              text-xs font-bold">
-                                    {{ $item->kategori ?? $item->jenis ?? 'Mahasiswa/Siswa' }}
+                                   {{ \App\Models\PendaftaranMagang::TIPE[$item->tipe] ?? ($item->kategori ?? 'Mahasiswa/Siswa') }}
                                 </span>
                             </td>
 
@@ -206,39 +212,39 @@
                 Lihat Surat
             </a>
 
-        @elseif ($status === 'selesai')
-            @if ($item->status_sertifikat === 'diterbitkan' && filled($item->file_sertifikat))
-                <a href="{{ route('admin.sertifikat.show', $item->id) }}"
-                   target="_blank"
-                   rel="noopener"
-                   class="px-3.5 py-1.5
-                          bg-cyan-600 hover:bg-cyan-700
-                          text-white rounded-xl text-xs font-bold
-                          shadow-sm dark:shadow-none transition">
-                    Lihat Sertifikat
-                </a>
-            @else
-                <a href="{{ route('admin.pendaftar.show', $item->id) }}"
-                   class="px-3.5 py-1.5
-                          bg-cyan-600 hover:bg-cyan-700
-                          text-white rounded-xl text-xs font-bold
-                          shadow-sm dark:shadow-none transition">
-                    Proses Sertifikat
-                </a>
-            @endif
+        
+@elseif ($status === 'selesai')
+    @if ($item->sertifikatTerbit())
+        <a href="{{ route('admin.pendaftar.show', $item->id) }}"
+           class="px-3.5 py-1.5
+                  bg-cyan-600 hover:bg-cyan-700
+                  text-white rounded-xl text-xs font-bold
+                  shadow-sm dark:shadow-none transition">
+            Lihat Sertifikat
+        </a>
+    @else
+        <a href="{{ route('admin.pendaftar.show', $item->id) }}"
+           class="px-3.5 py-1.5
+                  bg-cyan-600 hover:bg-cyan-700
+                  text-white rounded-xl text-xs font-bold
+                  shadow-sm dark:shadow-none transition">
+            Proses Sertifikat
+        </a>
+    @endif
 
-        @elseif (in_array($status, ['pending', 'revisi'], true))
-            <a href="{{ route('admin.verifikasi.index') }}"
-               class="px-3.5 py-1.5
-                      bg-amber-500 hover:bg-amber-600
-                      text-white dark:text-slate-950
-                      rounded-xl text-xs font-bold
-                      shadow-sm dark:shadow-none transition">
-                Review
-            </a>
-        @endif
+@elseif (in_array($status, ['pending', 'revisi'], true))
+    <a href="{{ route('admin.verifikasi.index') }}"
+       class="px-3.5 py-1.5
+              bg-amber-500 hover:bg-amber-600
+              text-white dark:text-slate-950
+              rounded-xl text-xs font-bold
+              shadow-sm dark:shadow-none transition">
+        Review
+    </a>
+@endif
 
-    </div>
+</div>
+
 </td>
                         </tr>
 

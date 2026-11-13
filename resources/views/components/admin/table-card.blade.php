@@ -3,7 +3,7 @@
     'title'       => '',
     'description' => null,
     'icon'        => null,
-    'titleSize'   => 'text-base md:text-lg',
+    'titleSize'   => 'text-lg md:text-xl',
 ])
 
 <div {{ $attributes->merge(['class' => 'bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none overflow-hidden']) }}>
@@ -19,7 +19,7 @@
             </h3>
 
             @if($description)
-                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-300 font-medium mt-1">
+                <p class="text-sm md:text-base text-slate-500 dark:text-slate-400 font-medium mt-1">
                     {{ $description }}
                 </p>
             @endif

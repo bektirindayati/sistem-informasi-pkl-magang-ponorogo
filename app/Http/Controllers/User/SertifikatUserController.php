@@ -6,13 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Services\Surat\SertifikatService;
 use Illuminate\Http\Request;
 
-/** Peserta membuka/mengunduh sertifikat miliknya setelah diterbitkan. */
 class SertifikatUserController extends Controller
 {
-    public function __invoke(Request $request, $pendaftaran, SertifikatService $sertifikat)
+    public function __invoke(Request $request, int $pendaftaran, SertifikatService $sertifikat)
     {
-        $milikku = $request->user()->pendaftarans()->findOrFail($pendaftaran);
+        $p = $request->user()->pendaftarans()->with('sertifikatFiles')->findOrFail($pendaftaran);
 
-        return $sertifikat->berkasFinal($milikku, $request->boolean('unduh'));
+        return $sertifikat->berkasSertifikat($p, $request->integer('berkas') ?: null, $request->boolean('unduh'));
     }
 }

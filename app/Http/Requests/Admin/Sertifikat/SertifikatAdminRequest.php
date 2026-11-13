@@ -12,12 +12,17 @@ class SertifikatAdminRequest extends AdminPendaftaranRequest
 {
     public function authorize(): bool
     {
-        return parent::authorize() && $this->pendaftaran()->status === 'selesai';
+        return parent::authorize()
+            && in_array(
+                $this->pendaftaran()->status,
+                ['diterima', 'selesai'],
+                true
+            );
     }
 
     protected function pesanAksesDitolak(): string
     {
-        return 'Sertifikat hanya dapat diurus untuk pendaftaran yang magangnya sudah selesai di dinas Anda.';
+        return 'Sertifikat hanya dapat diurus untuk pendaftaran yang sudah diterima di dinas Anda.';
     }
 
     /** Aturan hanya berlaku untuk aksi simpan status (aksi unduh draf & lihat PDF tanpa isian). */

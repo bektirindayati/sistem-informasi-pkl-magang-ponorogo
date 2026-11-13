@@ -9,13 +9,19 @@ use App\Models\PendaftaranMagang;
 use App\Services\PendaftaranNotifier;
 use App\Services\Surat\SertifikatService;
 use App\Services\Surat\SuratBalasanService;
+use App\Services\Surat\SuratSelesaiService;
+use Illuminate\Http\RedirectResponse;
 
 /** Verifikasi berkas: daftar pengajuan masuk (+ pencarian nama) dan ubah status. */
 class VerifikasiAdminController extends Controller
 {
+    /**
+     * Menampilkan daftar pengajuan yang sudah dikirim.
+     */
     public function index(PencarianRequest $request)
     {
-        $pendaftars = PendaftaranMagang::latest()
+        $pendaftars = PendaftaranMagang::withCount('anggotas')
+            ->latest()
             ->untukAdmin($request->user())
             ->sudahDikirim()
             ->cariNama($request->kata())
@@ -25,39 +31,48 @@ class VerifikasiAdminController extends Controller
         return view('admin.verifikasi.index', compact('pendaftars'));
     }
 
+    /**
+     * Memperbarui status verifikasi pendaftaran.
+     */
     public function update(
-        UpdateStatusRequest $request,
-        SuratBalasanService $surat,
-        SertifikatService $sertifikat,
-        PendaftaranNotifier $notifier
-    ) {
-        $pendaftaran = $request->pendaftaran();
-        $sebelumnya = $pendaftaran->status;
-        $data = $request->dataStatus();
-        $baru = $data['status'];
+    UpdateStatusRequest $request,
+    SuratBalasanService $surat,
+    SuratSelesaiService $selesai,
+    SertifikatService $sertifikat,
+    PendaftaranNotifier $notifier
+) {
+    $pendaftaran = $request->pendaftaran();
+    $sebelumnya  = $pendaftaran->status;
+    $data        = $request->dataStatus();
+    $baru        = $data['status'];
 
-        $pendaftaran->update($data);
+    $pendaftaran->update($data);
 
-        // Dokumen yang sudah terbit ditarik bila statusnya tidak lagi memenuhi syarat.
-        if (! in_array($baru, ['diterima', 'selesai'], true) && $pendaftaran->suratTerbit()) {
+    // Dokumen yang sudah terbit ditarik bila status tidak lagi "diterima" atau "selesai".
+    if (! in_array($baru, ['diterima', 'selesai'], true)) {
+        if ($pendaftaran->suratTerbit()) {
             $surat->tarik($pendaftaran);
         }
-        if ($baru !== 'selesai' && $pendaftaran->sertifikatTerbit()) {
+        if ($pendaftaran->suratSelesaiTerbit()) {
+            $selesai->tarik($pendaftaran);
+        }
+        if ($pendaftaran->sertifikatTerbit()) {
             $sertifikat->tarik($pendaftaran);
         }
-
-        // Baru diterima -> email pemberitahuan (di dashboard, pop-up muncul otomatis).
-        $perluEmail = $baru === 'diterima' && ! in_array($sebelumnya, ['diterima', 'selesai'], true);
-        $emailGagal = $perluEmail && ! $notifier->kirim($pendaftaran, 'diterima');
-
-        $respons = back()->with('success', match (true) {
-            $perluEmail         => 'Pendaftaran diterima. Pendaftar sudah mendapat pemberitahuan di dashboard dan email; unduh draf surat balasan dari panel Surat Balasan.',
-            $baru === 'selesai' => 'Magang ditandai selesai. Panel Sertifikat kini tersedia.',
-            default             => 'Status verifikasi berkas berhasil diperbarui!',
-        });
-
-        return $emailGagal
-            ? $respons->with('error', 'Status tersimpan, tetapi email notifikasi gagal dikirim. Periksa pengaturan email (MAIL_*) di .env.')
-            : $respons;
     }
+
+    // Email hanya satu kali: saat pertama kali diterima.
+    $baruDiterima = $baru === 'diterima' && ! in_array($sebelumnya, ['diterima', 'selesai'], true);
+    $emailGagal = $baruDiterima && ! $notifier->diterima($pendaftaran);
+
+    $respons = back()->with('success', match (true) {
+        $baruDiterima => 'Pendaftaran diterima. Email notifikasi telah dijadwalkan; surat balasan dan dokumen lain dapat disiapkan di panel di bawah.',
+        $baru === 'selesai' => 'Magang ditandai selesai.',
+        default             => 'Status verifikasi berkas berhasil diperbarui!',
+    });
+
+    return $emailGagal
+    ? $respons->with('error', 'Status tersimpan, tetapi email notifikasi gagal dijadwalkan. Periksa pengaturan email (MAIL_*) di .env.')
+    : $respons;
+}
 }

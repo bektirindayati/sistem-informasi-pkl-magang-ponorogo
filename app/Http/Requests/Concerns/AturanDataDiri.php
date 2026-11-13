@@ -3,91 +3,58 @@
 namespace App\Http\Requests\Concerns;
 
 use App\Models\PendaftaranMagang;
-use Closure;
 use Illuminate\Validation\Rule;
 
-/** Aturan & pesan data diri yang dipakai bersama oleh profil dan pendaftaran. */
+/** Aturan & pesan data diri: profil, ketua (prefix ''), dan anggota (prefix 'anggota.*.'). */
 trait AturanDataDiri
 {
-    /** $wajib = 'required' (kirim/update) atau 'nullable' (draft/profil). */
-    protected function aturanDataDiri(string $wajib): array
+    /** kolom => [label, panjang maksimal] */
+    private function kolomDataDiri(): array
     {
         return [
-            'kategori'     => [$wajib, Rule::in(array_keys(PendaftaranMagang::KATEGORI))],
-            'nama_lengkap' => [$wajib, 'string', 'max:255'],
-            'nim_nisn'     => [$wajib, 'string', 'max:50'],
-            'instansi'     => [$wajib, 'string', 'max:255'],
-            'jurusan'      => [$wajib, 'string', 'max:255'],
-            'no_hp'        => [$wajib, 'numeric', 'digits_between:10,15'],
-            'alamat'       => [$wajib, 'string', 'max:1000'],
-
-            // Provinsi & kabupaten boleh ditulis bebas. Khusus provinsi yang ada di
-            // config/wilayah.php, kabupaten harus salah satu isinya.
-            'provinsi'     => [$wajib, 'string', 'max:100'],
-            'kabupaten'    => [$wajib, 'string', 'max:100', $this->kabupatenSesuaiProvinsi()],
+            'nama_lengkap' => ['Nama lengkap', 255],
+            'nim_nisn'     => ['NIM / NISN', 50],
+            'instansi'     => ['Asal instansi', 255],
+            'jurusan'      => ['Jurusan / program studi', 255],
         ];
     }
 
-    private function kabupatenSesuaiProvinsi(): Closure
+    protected function aturanDataDiri(string $wajib, string $prefix = ''): array
     {
-        return function (string $atribut, mixed $nilai, Closure $gagal) {
-            $daftar = $this->kabupatenTerdaftar();
+        $aturan = [];
 
-            if ($daftar !== null
-                && ! in_array(mb_strtolower(trim((string) $nilai)), array_map('mb_strtolower', $daftar), true)) {
-                $gagal('Kabupaten / kota tidak sesuai dengan provinsi yang dipilih.');
-            }
-        };
-    }
-
-    /** Daftar kabupaten bila provinsi yang diisi ada di config/wilayah.php; null bila provinsi bebas. */
-    private function kabupatenTerdaftar(): ?array
-    {
-        $provinsi = $this->input('provinsi');
-
-        if (! is_string($provinsi)) {
-            return null;
+        foreach ($this->kolomDataDiri() as $kolom => [, $maks]) {
+            $aturan[$prefix . $kolom] = [$wajib, 'string', "max:$maks"];
         }
 
-        foreach (config('wilayah', []) as $nama => $daftar) {
-            if (mb_strtolower($nama) === mb_strtolower(trim($provinsi))) {
-                return $daftar;
-            }
+        $aturan[$prefix . 'no_hp'] = [$wajib, 'digits_between:10,15'];
+
+        // Kategori hanya untuk ketua / mandiri; anggota mengikuti ketua.
+        if ($prefix === '') {
+            $aturan['kategori'] = [$wajib, Rule::in(array_keys(PendaftaranMagang::KATEGORI))];
         }
 
-        return null;
+        return $aturan;
     }
 
-    protected function pesanDataDiri(): array
+    protected function pesanDataDiri(string $prefix = ''): array
     {
-        return [
-            'kategori.required' => 'Kategori pendaftar wajib dipilih.',
-            'kategori.in'       => 'Kategori pendaftar tidak valid.',
+        $awal  = $prefix === '' ? '' : 'Anggota ke-:position: ';
+        $pesan = [];
 
-            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-            'nama_lengkap.max'      => 'Nama lengkap maksimal 255 karakter.',
+        foreach ($this->kolomDataDiri() as $kolom => [$label]) {
+            $pesan["{$prefix}{$kolom}.required"] = "{$awal}{$label} wajib diisi.";
+            $pesan["{$prefix}{$kolom}.max"]      = "{$awal}{$label} maksimal :max karakter.";
+        }
 
-            'nim_nisn.required' => 'NIM / NISN wajib diisi.',
-            'nim_nisn.max'      => 'NIM / NISN maksimal 50 karakter.',
+        $pesan["{$prefix}no_hp.required"]       = "{$awal}No. HP wajib diisi.";
+        $pesan["{$prefix}no_hp.digits_between"] = "{$awal}No. HP harus berupa angka 10-15 digit.";
 
-            'instansi.required' => 'Asal instansi atau universitas wajib diisi.',
-            'instansi.max'      => 'Asal instansi atau universitas maksimal 255 karakter.',
+        if ($prefix === '') {
+            $pesan['kategori.required'] = 'Kategori pendaftar wajib dipilih.';
+            $pesan['kategori.in']       = 'Kategori pendaftar tidak valid.';
+        }
 
-            'jurusan.required' => 'Jurusan atau program studi wajib diisi.',
-            'jurusan.max'      => 'Jurusan atau program studi maksimal 255 karakter.',
-
-            'no_hp.required'       => 'Nomor WhatsApp / HP wajib diisi.',
-            'no_hp.numeric'        => 'Nomor WhatsApp / HP harus berupa angka.',
-            'no_hp.digits_between' => 'Nomor WhatsApp / HP harus terdiri dari 10 hingga 15 digit.',
-
-            'alamat.required' => 'Alamat tempat tinggal wajib diisi.',
-            'alamat.max'      => 'Alamat maksimal 1000 karakter.',
-
-            'provinsi.required' => 'Provinsi wajib diisi.',
-            'provinsi.max'      => 'Provinsi maksimal 100 karakter.',
-
-            'kabupaten.required' => 'Kabupaten / kota wajib diisi.',
-            'kabupaten.max'      => 'Kabupaten / kota maksimal 100 karakter.',
-        ];
+        return $pesan;
     }
 }

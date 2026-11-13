@@ -66,17 +66,45 @@
 
         </div>
 
-        {{-- Avatar --}}
-        <div
-            class="w-9 h-9 md:w-10 md:h-10 rounded-full
-                   bg-cyan-50 text-cyan-700
-                   dark:bg-cyan-900/40 dark:text-cyan-300
-                   flex items-center justify-center
-                   font-extrabold text-xs md:text-sm shrink-0"
+        
+{{-- Avatar Admin --}}
+@php
+    $admin = Auth::user();
+
+    $avatarUrl = $admin?->avatar
+        ? \Illuminate\Support\Facades\Storage::disk('public')->url($admin->avatar)
+        : null;
+
+    $inisial = collect(explode(' ', trim($admin?->name ?? 'AD')))
+        ->filter()
+        ->take(2)
+        ->map(fn ($kata) => strtoupper(substr($kata, 0, 1)))
+        ->implode('');
+@endphp
+
+<div
+    class="w-9 h-9 md:w-10 md:h-10 rounded-full
+           overflow-hidden shrink-0
+           bg-cyan-50 text-cyan-700
+           dark:bg-cyan-900/40 dark:text-cyan-300
+           flex items-center justify-center
+           font-extrabold text-xs md:text-sm
+           border border-slate-200 dark:border-slate-700"
+>
+    @if ($avatarUrl)
+        <img
+            src="{{ $avatarUrl }}"
+            alt="Foto profil {{ $admin->name }}"
+            class="w-full h-full object-cover"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
         >
-            {{ strtoupper(substr(Auth::user()->name ?? 'AD', 0, 2)) }}
-        </div>
+    @endif
 
-    </div>
-
+    <span
+        class="{{ $avatarUrl ? 'hidden' : 'flex' }}
+               w-full h-full items-center justify-center"
+    >
+        {{ $inisial ?: 'AD' }}
+    </span>
+</div>
 </header>

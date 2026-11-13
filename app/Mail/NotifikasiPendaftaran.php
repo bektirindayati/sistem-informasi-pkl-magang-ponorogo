@@ -4,67 +4,46 @@ namespace App\Mail;
 
 use App\Models\PendaftaranMagang;
 use Carbon\Carbon;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Support\Str;
+use Illuminate\Queue\SerializesModels;
 
-/** Email ke pendaftar: diterima | surat (PDF terlampir) | sertifikat (PDF terlampir). Isi: resources/views/emails/. */
-class NotifikasiPendaftaran extends Mailable
+class NotifikasiPendaftaran extends Mailable implements ShouldQueue
 {
-    private const JUDUL = [
-        'diterima'   => 'Selamat! Pendaftaran Magang Anda Diterima',
-        'surat'      => 'Surat Balasan Penerimaan Magang Anda Telah Terbit',
-        'sertifikat' => 'Sertifikat Magang Anda Telah Terbit',
-    ];
+    use Queueable, SerializesModels;
 
-    /** Jenis => [kolom PDF, awalan nama lampiran]. */
-    private const LAMPIRAN = [
-        'surat'      => ['file_surat_balasan', 'Surat_Balasan'],
-        'sertifikat' => ['file_sertifikat', 'Sertifikat'],
-    ];
+    public int $tries = 3;
 
-    public function __construct(public PendaftaranMagang $pendaftaran, public string $jenis)
+    public function __construct(public PendaftaranMagang $pendaftaran)
     {
     }
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: self::JUDUL[$this->jenis] . ' - ' . config('app.name'));
+        return new Envelope(
+            subject: 'Selamat! Pendaftaran Magang Anda Diterima - ' . config('app.name')
+        );
     }
 
     public function content(): Content
     {
         $p = $this->pendaftaran;
-       $format = fn ($tanggal) => $tanggal
-    ? Carbon::parse($tanggal)->locale('id')->translatedFormat('j F Y')
-    : '-';
+
+        $tgl = fn ($d) => $d
+            ? Carbon::parse($d)->locale('id')->translatedFormat('j F Y')
+            : '-';
 
         return new Content(
-            markdown: 'emails.' . $this->jenis,
+            markdown: 'emails.diterima',
             with: [
                 'p'       => $p,
                 'nama'    => $p->nama_lengkap,
-                'periode' => $format($p->tanggal_mulai) . ' s.d. ' . $format($p->tanggal_selesai),
+                'periode' => $tgl($p->tanggal_mulai) . ' s.d. ' . $tgl($p->tanggal_selesai),
                 'url'     => route('user.pendaftaran.status'),
             ],
         );
-    }
-
-    public function attachments(): array
-    {
-        [$kolom, $awalan] = self::LAMPIRAN[$this->jenis] ?? [null, null];
-        $path = $kolom ? $this->pendaftaran->{$kolom} : null;
-
-        if (blank($path)) {
-            return [];
-        }
-
-        return [
-            Attachment::fromStorageDisk(PendaftaranMagang::DISK_SURAT, $path)
-                ->as($awalan . '_' . Str::slug($this->pendaftaran->nama_lengkap ?: 'peserta', '_') . '.pdf')
-                ->withMime('application/pdf'),
-        ];
     }
 }

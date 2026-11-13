@@ -2,43 +2,79 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\TanggapiStatusDokumen;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Sertifikat\SertifikatAdminRequest;
+use App\Models\PendaftaranMagang;
 use App\Services\PendaftaranNotifier;
 use App\Services\Surat\SertifikatService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
-/** Admin: unduh draf sertifikat (Word), lihat PDF tersimpan, dan atur status (diproses / diterbitkan). */
+/** Admin: draf Word/ZIP, lihat PDF, dan status sertifikat (hingga 7 PDF per pendaftaran). */
 class SertifikatAdminController extends Controller
 {
+    use TanggapiStatusDokumen;
+
     public function __construct(private SertifikatService $sertifikat)
     {
     }
 
-    public function draf(SertifikatAdminRequest $request)
+    private function cari(Request $request, int $id): PendaftaranMagang
     {
-        return $this->sertifikat->draf($request->pendaftaran());
+        return PendaftaranMagang::with('sertifikatFiles')
+            ->untukAdmin($request->user())->sudahDikirim()->findOrFail($id);
     }
 
-    public function show(SertifikatAdminRequest $request)
+    public function draf(Request $request, int $id)
     {
-        return $this->sertifikat->berkasFinal($request->pendaftaran(), $request->boolean('unduh'), untukAdmin: true);
+        try {
+            return $this->sertifikat->draf($this->cari($request, $id));
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
-    public function status(SertifikatAdminRequest $request, PendaftaranNotifier $notifier): RedirectResponse
+    public function show(Request $request, int $id)
     {
-        $pendaftaran = $request->pendaftaran();
-        $status = $request->validated('status_sertifikat');
+        return $this->sertifikat->berkasSertifikat(
+            $this->cari($request, $id),
+            $request->integer('berkas') ?: null,
+            $request->boolean('unduh'),
+            untukAdmin: true
+        );
+    }
 
-        $baruTerbit = $this->sertifikat->simpanStatus($pendaftaran, $status, $request->file('sertifikat'));
-        $emailGagal = $baruTerbit && ! $notifier->kirim($pendaftaran, 'sertifikat');
+    public function status(Request $request, int $id, PendaftaranNotifier $notifier): RedirectResponse
+    {
+        $pendaftaran = $this->cari($request, $id);
 
-      $respons = back()->with('success', $status === 'diterbitkan'
-    ? 'Sertifikat berhasil diterbitkan dan dapat diunduh oleh pendaftar melalui dashboard.'
-    : 'Status sertifikat disimpan: sertifikat sedang diproses.');
+        abort_unless(
+            in_array($pendaftaran->status, ['diterima', 'selesai'], true),
+            403,
+            'Dokumen hanya untuk pendaftaran yang sudah diterima.'
+        );
 
-        return $emailGagal
-            ? $respons->with('error', 'Sertifikat tersimpan, tetapi email ke pendaftar gagal dikirim. Periksa pengaturan email (MAIL_*) di .env.')
-            : $respons;
+        $data = $request->validate([
+            'status_sertifikat' => ['required', Rule::in(['diproses', 'diterbitkan'])],
+            'sertifikat'        => ['nullable', 'array', 'max:' . PendaftaranMagang::MAKS_PESERTA],
+            'sertifikat.*'      => ['file', 'mimes:pdf', 'max:5120'],
+            'hapus'             => ['nullable', 'array'],
+            'hapus.*'           => ['integer'],
+        ], [
+            'sertifikat.max'    => 'Maksimal ' . PendaftaranMagang::MAKS_PESERTA . ' sertifikat per pendaftaran.',
+            'sertifikat.*.mimes' => 'Setiap berkas harus berformat PDF.',
+            'sertifikat.*.max'   => 'Ukuran tiap PDF maksimal 5 MB.',
+            'sertifikat.*.file'  => 'Berkas sertifikat tidak valid.',
+        ]);
+
+        $this->sertifikat->simpanSertifikat(
+            $pendaftaran,
+            $data['status_sertifikat'],
+            $request->file('sertifikat', []),
+            array_map('intval', $data['hapus'] ?? [])
+        );
+
+        return $this->tanggapan($request, $notifier, $pendaftaran, 'sertifikat', $data['status_sertifikat'], 'Sertifikat');
     }
 }

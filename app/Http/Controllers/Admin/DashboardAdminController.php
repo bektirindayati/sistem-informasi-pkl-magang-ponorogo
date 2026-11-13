@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AnggotaPendaftaran;
 use App\Models\PendaftaranMagang;
 use Illuminate\Http\Request;
 
@@ -11,23 +12,47 @@ class DashboardAdminController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $dasar = PendaftaranMagang::untukAdmin($request->user())->sudahDikirim();
+        $user = $request->user();
+
+        $dasar = PendaftaranMagang::untukAdmin($user)->sudahDikirim();
 
         $perStatus = (clone $dasar)
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        return view('admin.dashboardadmin', [
-            'totalMagang'      => $perStatus->sum(),
-            'totalPkl'         => $perStatus['diterima'] ?? 0,
-            'totalPending'     => ($perStatus['pending'] ?? 0) + ($perStatus['revisi'] ?? 0),
-            'pendaftarTerbaru' => (clone $dasar)->latest()->take(5)->get(),
+        $totalPengajuan = $perStatus->sum();
 
-            // Diterima tapi suratnya belum dikirim: pengingat untuk admin.
-            'suratMenunggu' => (clone $dasar)->where('status', 'diterima')->where('status_surat', '!=', 'diterbitkan')->count(),
-            // Tanggal selesai sudah lewat tetapi belum ditandai Selesai: saatnya mengurus sertifikat.
-            'perluSelesai' => (clone $dasar)->where('status', 'diterima')->whereDate('tanggal_selesai', '<', today())->count(),
+        return view('admin.dashboardadmin', [
+            'totalPengajuan' => $totalPengajuan,
+
+            'totalPeserta' => $totalPengajuan + AnggotaPendaftaran::whereHas(
+                'pendaftaran',
+                fn ($q) => $q->untukAdmin($user)->sudahDikirim()
+            )->count(),
+
+            'totalDiterima' => $perStatus['diterima'] ?? 0,
+
+            'totalPending' => ($perStatus['pending'] ?? 0)
+                + ($perStatus['revisi'] ?? 0),
+
+            'pendaftarTerbaru' => (clone $dasar)
+                ->withCount('anggotas')
+                ->latest()
+                ->take(5)
+                ->get(),
+
+            'suratMenunggu' => (clone $dasar)
+                ->where('status', 'diterima')
+                ->where(fn ($q) => $q
+                    ->whereNull('status_surat')
+                    ->orWhere('status_surat', '!=', 'diterbitkan'))
+                ->count(),
+
+            'perluSelesai' => (clone $dasar)
+                ->where('status', 'diterima')
+                ->whereDate('tanggal_selesai', '<', today())
+                ->count(),
         ]);
     }
 }

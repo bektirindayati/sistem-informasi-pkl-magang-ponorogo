@@ -14,26 +14,31 @@ use App\Models\PendaftaranMagang;
 class PendaftarAdminController extends Controller
 {
     public function index(PencarianRequest $request)
-    {
-        $admin  = $request->user();
-        $search = $request->kata();
+{
+    $admin  = $request->user();
+    $search = $request->kata();
 
-        $dasar = fn () => PendaftaranMagang::latest()
-            ->untukAdmin($admin)
-            ->cariNama($search);
+    $dasar = fn () => PendaftaranMagang::withCount('anggotas')
+        ->latest()
+        ->untukAdmin($admin)
+        ->cariNama($search);
 
-        return view('admin.pendaftar.index', [
-            'pemagangAktif' => $dasar()->aktif()->get(),
-            'pemagangSelesai' => $dasar()->selesai()->get(),
-            'pemagangDitolak' => $dasar()->ditolak()->get(),
-            'search' => $search,
-        ]);
-    }
+    return view('admin.pendaftar.index', [
+        'pemagangAktif'   => $dasar()->aktif()->get(),
+        'pemagangSelesai' => $dasar()->selesai()->get(),
+        'pemagangDitolak' => $dasar()->ditolak()->get(),
+        'search'          => $search,
+    ]);
+}
 
     public function show(AdminPendaftaranRequest $request)
-    {
-        return view('admin.pendaftar.show', [
-            'pendaftaran' => $request->pendaftaran(),
-        ]);
-    }
+{
+    return view('admin.pendaftar.show', [
+        'pendaftaran' => $request->pendaftaran()->load([
+            'dinas',
+            'bidang',
+            'anggotas',
+        ]),
+    ]);
+}
 }

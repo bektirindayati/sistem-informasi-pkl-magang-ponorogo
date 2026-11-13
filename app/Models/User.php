@@ -11,6 +11,9 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
 
+    public const STATUS_AKTIF = 'aktif';
+    public const STATUS_DIBLOKIR = 'diblokir';
+
     /**
      * Isian profil wajib untuk mendaftar: kolom => label.
      */
@@ -52,6 +55,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
+            'blocked_at'        => 'datetime',
         ];
     }
 
@@ -75,12 +79,25 @@ class User extends Authenticatable
         return $this->hasMany(PendaftaranMagang::class, 'user_id');
     }
 
-    /**
-     * Pendaftaran terbaru (id terbesar); otomatis di-cache per request.
-     */
     public function pendaftaranTerakhir()
     {
         return $this->hasOne(PendaftaranMagang::class, 'user_id')->latestOfMany();
+    }
+
+    /**
+     * Admin yang melakukan pemblokiran akun.
+     */
+    public function blockedBy()
+    {
+        return $this->belongsTo(self::class, 'blocked_by');
+    }
+
+    /**
+     * Memeriksa apakah akun sedang diblokir.
+     */
+    public function isBlocked(): bool
+    {
+        return $this->status_akun === self::STATUS_DIBLOKIR;
     }
 
     /**

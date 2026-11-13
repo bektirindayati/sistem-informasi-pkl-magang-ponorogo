@@ -22,8 +22,8 @@
         </span>
     </nav>
 
-    <article class="mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white
-                    dark:border-slate-800 dark:bg-slate-900">
+    <article class="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white
+                dark:border-slate-800 dark:bg-slate-900">
 
         {{-- HEADER --}}
         <header class="border-b border-slate-200 px-5 pb-6 pt-7 dark:border-slate-800 sm:px-10 sm:pt-9">
@@ -98,8 +98,8 @@
                             </figure>
 
                             @if($foto->uraian)
-                                <p class="mx-auto max-w-3xl whitespace-pre-line break-words text-base leading-8
-                                          text-slate-700 dark:text-slate-100">{{ $foto->uraian }}</p>
+                                <p class="w-full whitespace-pre-line break-words text-base leading-8
+          text-slate-700 dark:text-slate-100">{{ $foto->uraian }}</p>
                             @endif
                         </section>
                     @endforeach

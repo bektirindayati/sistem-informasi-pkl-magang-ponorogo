@@ -22,3 +22,15 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Database lokal
+*.sqlite*
+
+# Environment dan rahasia
+.env.*
+!.env.example
+
+# Backup database
+*.sql
+*.dump
+*.bak
