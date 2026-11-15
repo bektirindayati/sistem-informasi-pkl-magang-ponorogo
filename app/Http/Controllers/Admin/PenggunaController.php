@@ -10,6 +10,10 @@ use Illuminate\Validation\Rule;
 
 class PenggunaController extends Controller
 {
+    /**
+     * Halaman Kelola Admin: Super Admin + Admin Dinas (tanpa pagination).
+     * View: resources/views/admin/pengguna/admin.blade.php
+     */
     public function index(Request $request)
     {
         $search = $request->search;
@@ -19,50 +23,70 @@ class PenggunaController extends Controller
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")));
 
-        // 1. Super admin: selalu tampil paling atas, tanpa pagination.
         $superAdmins = (clone $dasar)
             ->where('role', 'super_admin')
             ->orderBy('name')
             ->get();
 
-        // 2. Admin dinas: tanpa pagination.
         $adminDinas = (clone $dasar)
             ->where('role', 'admin')
             ->orderBy('name')
             ->get();
 
-        // 3. User / pendaftar: menggunakan pagination.
-        $pengguna = (clone $dasar)
+        $dinasList = Dinas::orderBy('nama_dinas')->get();
+
+        return view('admin.pengguna.admin', compact(
+            'superAdmins',
+            'adminDinas',
+            'dinasList'
+        ));
+    }
+
+    /**
+     * Halaman Kelola Pengguna: User / Pendaftar (dengan pagination).
+     * View: resources/views/admin/pengguna/user.blade.php
+     */
+    public function user(Request $request)
+    {
+        $search = $request->search;
+
+        $pengguna = User::with('dinas')
             ->where(fn ($q) => $q->whereNull('role')->orWhere('role', 'user'))
+            ->when($search, fn ($q) => $q->where(fn ($q) => $q
+                ->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")))
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
 
         $dinasList = Dinas::orderBy('nama_dinas')->get();
 
-        return view('admin.pengguna.index', compact(
-            'superAdmins',
-            'adminDinas',
-            'pengguna',
-            'dinasList'
-        ));
+        return view('admin.pengguna.user', compact('pengguna', 'dinasList'));
     }
 
     /**
      * Mengubah role dan dinas pengguna.
+     *
+     * Aturan:
+     * - Super Admin     : permanen, tidak dapat diubah.
+     * - Admin Dinas     : hanya Admin Dinas atau Super Admin.
+     * - User            : hanya User Biasa atau Admin Dinas.
      */
     public function update(Request $request, User $user)
     {
-        // Tentukan role yang boleh dipilih berdasarkan role saat ini.
         $roleSaatIni = $user->role ?: 'user';
 
+        if ($roleSaatIni === 'super_admin') {
+            return back()->withErrors(
+                'Role Super Admin bersifat permanen dan tidak dapat diubah.'
+            );
+        }
+
         $roleDiizinkan = match ($roleSaatIni) {
-            'super_admin' => ['super_admin'],
-            'admin'       => ['admin', 'user'],
-            default       => ['user', 'admin', 'super_admin'],
+            'admin' => ['admin', 'super_admin'],
+            default => ['user', 'admin'],
         };
 
-        // Validasi request berdasarkan aturan role.
         $data = $request->validate([
             'role' => [
                 'required',
@@ -73,30 +97,24 @@ class PenggunaController extends Controller
                 'required_if:role,admin',
                 'exists:dinas,id',
             ],
+        ], [
+            'role.in'                => 'Perubahan role tersebut tidak diizinkan.',
+            'dinas_id.required_if'   => 'Dinas wajib dipilih untuk Admin Dinas.',
         ]);
 
         // Cegah pengguna mengubah role akunnya sendiri.
-        if (
-            $user->id === auth()->id()
-            && $data['role'] !== $roleSaatIni
-        ) {
+        if ($user->id === auth()->id() && $data['role'] !== $roleSaatIni) {
             return back()->withErrors(
                 'Anda tidak dapat mengubah role akun Anda sendiri.'
             );
         }
 
-        // Simpan perubahan role dan dinas.
         $user->update([
-            'role' => $data['role'],
-            'dinas_id' => $data['role'] === 'admin'
-                ? $data['dinas_id']
-                : null,
+            'role'     => $data['role'],
+            'dinas_id' => $data['role'] === 'admin' ? $data['dinas_id'] : null,
         ]);
 
-        return back()->with(
-            'success',
-            'Role pengguna berhasil diperbarui.'
-        );
+        return back()->with('success', 'Role pengguna berhasil diperbarui.');
     }
 
     /**
@@ -105,14 +123,12 @@ class PenggunaController extends Controller
      */
     public function updateStatusAkun(Request $request, User $user)
     {
-        // Jangan izinkan pemblokiran akun admin atau super admin.
         abort_unless(
             in_array($user->role, ['user', null], true),
             403,
             'Status akun admin tidak dapat diubah melalui fitur ini.'
         );
 
-        // Validasi status akun dan alasan pemblokiran.
         $data = $request->validate([
             'status_akun' => [
                 'required',
@@ -128,23 +144,22 @@ class PenggunaController extends Controller
                 'max:1000',
             ],
         ], [
-            'status_akun.required' => 'Status akun wajib dipilih.',
-            'status_akun.in' => 'Status akun tidak valid.',
+            'status_akun.required'      => 'Status akun wajib dipilih.',
+            'status_akun.in'            => 'Status akun tidak valid.',
             'alasan_blokir.required_if' => 'Alasan pemblokiran wajib diisi.',
-            'alasan_blokir.max' => 'Alasan pemblokiran maksimal 1000 karakter.',
+            'alasan_blokir.max'         => 'Alasan pemblokiran maksimal 1000 karakter.',
         ]);
 
         if ($data['status_akun'] === User::STATUS_DIBLOKIR) {
-            $user->status_akun = User::STATUS_DIBLOKIR;
+            $user->status_akun   = User::STATUS_DIBLOKIR;
             $user->alasan_blokir = $data['alasan_blokir'];
-            $user->blocked_at = now();
-            $user->blocked_by = auth()->id();
+            $user->blocked_at    = now();
+            $user->blocked_by    = auth()->id();
         } else {
-            // Membuka blokir dan membersihkan informasi pemblokiran.
-            $user->status_akun = User::STATUS_AKTIF;
+            $user->status_akun   = User::STATUS_AKTIF;
             $user->alasan_blokir = null;
-            $user->blocked_at = null;
-            $user->blocked_by = null;
+            $user->blocked_at    = null;
+            $user->blocked_by    = null;
         }
 
         $user->save();

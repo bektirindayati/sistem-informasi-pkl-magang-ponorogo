@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Publik\BerandaController;
 use App\Http\Controllers\Publik\ChatbotController;
+use App\Http\Controllers\Publik\InstansiPublikController;
 use App\Http\Controllers\Publik\DokumentasiPublikController;
 use App\Http\Controllers\SuperAdmin\DinasSuperAdminController;
 use App\Http\Controllers\SuperAdmin\PenggunaSuperAdminController;
@@ -21,7 +22,6 @@ use App\Http\Controllers\User\SuratBalasanUserController;
 use App\Http\Controllers\Admin\SertifikatAdminController;
 use App\Http\Controllers\User\SertifikatUserController;
 use App\Http\Controllers\Admin\SuratSelesaiAdminController;
-use App\Http\Middleware\NormalisasiStatusDokumen;
 use Illuminate\Support\Facades\Route;
 
 // Parameter id wajib angka, supaya segmen seperti "status" atau "riwayat" tidak pernah ditangkap sebagai {id}.
@@ -38,6 +38,9 @@ Route::get('/', BerandaController::class)->name('home');
 Route::view('/informasi', 'user.pendaftaran.informasi')->name('informasi');
 Route::view('/login', 'auth.login')->name('login');
 
+Route::get('/instansi', InstansiPublikController::class)->name('instansi.index');
+
+Route::get('/dokumentasi', [DokumentasiPublikController::class, 'index'])->name('dokumentasi.index');
 Route::get('/dokumentasi/{dokumentasi}', [DokumentasiPublikController::class, 'show'])
     ->name('dokumentasi.show');
 
@@ -90,7 +93,7 @@ Route::middleware('auth')->group(function () {
 
                 // Detail pengajuan pengguna
                 Route::get('/{id}', 'show')->name('show');
-                
+
                 // Data untuk form (dipanggil JavaScript)
                 Route::get('/bidang/{dinasId}', 'getBidang')->name('bidang');
 
@@ -132,8 +135,9 @@ Route::middleware(['auth', 'admin'])
                 Route::get('/{id}', 'show')->name('show');
             });
 
-     
-      // Verifikasi berkas & surat
+
+
+// Verifikasi berkas & surat
 Route::middleware('permission:verifikasi-pendaftar')->group(function () {
 
     // Verifikasi pendaftar
@@ -152,9 +156,8 @@ Route::middleware('permission:verifikasi-pendaftar')->group(function () {
         ->group(function () {
             Route::get('/', 'show')->name('show');
             Route::get('/draf', 'draf')->name('draf');
-            Route::post('/status', 'status')
-                    ->name('status')
-                    ->middleware(NormalisasiStatusDokumen::class);
+            Route::post('/status', 'status')->name('status');
+            Route::post('/email', 'email')->name('email');
         });
 
     // Sertifikat
@@ -164,23 +167,22 @@ Route::middleware('permission:verifikasi-pendaftar')->group(function () {
         ->group(function () {
             Route::get('/', 'show')->name('show');
             Route::get('/draf', 'draf')->name('draf');
-            Route::post('/status', 'status')
-                ->name('status')
-                ->middleware(NormalisasiStatusDokumen::class);
+            Route::post('/status', 'status')->name('status');
+            Route::post('/email', 'email')->name('email');
         });
 
     // Surat selesai magang
-Route::prefix('pendaftaran/{id}/surat-selesai')
-    ->name('surat-selesai.')
-    ->controller(SuratSelesaiAdminController::class)
-    ->group(function () {
-        Route::get('/', 'show')->name('show');
-        Route::get('/draf', 'draf')->name('draf');
-        Route::post('/status', 'status')
-            ->name('status')
-            ->middleware(NormalisasiStatusDokumen::class);
-    });
+    Route::prefix('pendaftaran/{id}/surat-selesai')
+        ->name('surat-selesai.')
+        ->controller(SuratSelesaiAdminController::class)
+        ->group(function () {
+            Route::get('/', 'show')->name('show');
+            Route::get('/draf', 'draf')->name('draf');
+            Route::post('/status', 'status')->name('status');
+            Route::post('/email', 'email')->name('email');
+        });
 });
+
         // Bidang instansi
         Route::middleware('permission:kelola-instansi')
             ->prefix('instansi')
@@ -205,7 +207,7 @@ Route::prefix('pendaftaran/{id}/surat-selesai')
                 Route::delete('/{id}', 'destroy')->name('destroy');
             });
 
-        // Khusus super admin (permission hanya dimiliki role super_admin) 
+        // Khusus super admin (permission hanya dimiliki role super_admin)
 
         Route::middleware('permission:kelola-dinas')
             ->prefix('dinas')
@@ -225,6 +227,7 @@ Route::prefix('pendaftaran/{id}/surat-selesai')
     ->controller(PenggunaSuperAdminController::class)
     ->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/user', 'user')->name('user');
         Route::put('/{id}', 'update')->name('update');
 
         Route::patch('/{user}/status-akun', [

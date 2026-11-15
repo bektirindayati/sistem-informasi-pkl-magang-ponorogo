@@ -9,33 +9,12 @@ use App\Services\StatistikMagangService;
 
 class BerandaController extends Controller
 {
-    public function __construct(
-        private StatistikMagangService $statistik
-    ) {
-    }
-
-    public function __invoke()
+    public function __invoke(StatistikMagangService $statistik)
     {
-        // Statistik utama halaman beranda
-        $ringkasan = $this->statistik->ringkasan();
-
-        // Rekap statistik masing-masing dinas
-        $rekapPerDinas = $this->statistik->rekapPerDinas();
-
-        // Ambil dinas aktif dan pasangkan rekap statistiknya
-        $dinases = Dinas::aktif()
-            ->get()
-            ->each(function ($dinas) use ($rekapPerDinas) {
-                $dinas->rekap = $rekapPerDinas->get($dinas->id, [
-                    'pendaftar' => 0,
-                    'aktif' => 0,
-                    'selesai' => 0,
-                ]);
-            });
+        // Ambil dinas aktif (pembatasan 6 kartu dilakukan di view)
+        $dinases = Dinas::aktif()->get();
 
         return view('welcome', [
-            ...$ringkasan,
-
             'dinases' => $dinases,
 
             // Urut menurut waktu acara, bukan waktu unggah
@@ -43,6 +22,12 @@ class BerandaController extends Controller
                 ->terbaru()
                 ->take(6)
                 ->get(),
+
+            // Total seluruh dokumentasi, untuk tombol "Lihat semua" bila lebih dari 6
+            'totalDokumentasi' => DokumentasiMagang::count(),
+
+            // Ringkasan statistik halaman beranda
+            'statistik' => $statistik->ringkasan(),
         ]);
     }
 }

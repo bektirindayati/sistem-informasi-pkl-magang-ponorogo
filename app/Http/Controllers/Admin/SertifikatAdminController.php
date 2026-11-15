@@ -23,7 +23,9 @@ class SertifikatAdminController extends Controller
     private function cari(Request $request, int $id): PendaftaranMagang
     {
         return PendaftaranMagang::with('sertifikatFiles')
-            ->untukAdmin($request->user())->sudahDikirim()->findOrFail($id);
+            ->untukAdmin($request->user())
+            ->sudahDikirim()
+            ->findOrFail($id);
     }
 
     public function draf(Request $request, int $id)
@@ -45,7 +47,7 @@ class SertifikatAdminController extends Controller
         );
     }
 
-    public function status(Request $request, int $id, PendaftaranNotifier $notifier): RedirectResponse
+    public function status(Request $request, int $id): RedirectResponse
     {
         $pendaftaran = $this->cari($request, $id);
 
@@ -62,7 +64,7 @@ class SertifikatAdminController extends Controller
             'hapus'             => ['nullable', 'array'],
             'hapus.*'           => ['integer'],
         ], [
-            'sertifikat.max'    => 'Maksimal ' . PendaftaranMagang::MAKS_PESERTA . ' sertifikat per pendaftaran.',
+            'sertifikat.max'     => 'Maksimal ' . PendaftaranMagang::MAKS_PESERTA . ' sertifikat per pendaftaran.',
             'sertifikat.*.mimes' => 'Setiap berkas harus berformat PDF.',
             'sertifikat.*.max'   => 'Ukuran tiap PDF maksimal 5 MB.',
             'sertifikat.*.file'  => 'Berkas sertifikat tidak valid.',
@@ -75,6 +77,22 @@ class SertifikatAdminController extends Controller
             array_map('intval', $data['hapus'] ?? [])
         );
 
-        return $this->tanggapan($request, $notifier, $pendaftaran, 'sertifikat', $data['status_sertifikat'], 'Sertifikat');
+        return $this->tanggapan(
+            $data['status_sertifikat'],
+            'Sertifikat'
+        );
+    }
+
+    public function email(
+        Request $request,
+        int $id,
+        PendaftaranNotifier $notifier
+    ): RedirectResponse {
+        return $this->kirimEmail(
+            $this->cari($request, $id),
+            $notifier,
+            'sertifikat',
+            'sertifikat'
+        );
     }
 }

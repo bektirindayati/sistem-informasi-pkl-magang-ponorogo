@@ -145,7 +145,6 @@
                 bg-gradient-to-b from-sky-100 to-white
                 dark:from-[#0b1a33] dark:to-slate-900
                 pointer-events-none"></div>
-
 </section>
 
 
@@ -164,262 +163,68 @@
             </x-section-heading>
 
             {{-- KARTU STATISTIK --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+<x-statistik-magang :stat="$statistik" />
 
-                {{-- TOTAL PENDAFTAR --}}
-                <div class="group relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl
-                            border border-slate-200 dark:border-slate-700
-                            shadow-[0_4px_20px_rgba(15,23,42,0.04)] dark:shadow-none
-                            hover:shadow-[0_10px_30px_rgba(47,91,255,0.12)]
-                            hover:-translate-y-0.5 transition-all duration-200 p-5">
 
-                    <svg class="absolute -right-4 -bottom-4 w-28 h-28 text-[#2F5BFF]/[0.06] dark:text-blue-400/[0.08] pointer-events-none"
-                         viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-width="1.2" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
-                        <circle cx="9" cy="7" r="4" stroke-width="1.2"/>
-                        <path stroke-width="1.2" d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-                    </svg>
+{{-- Ganti dua section lama di welcome.blade.php dengan isi file ini. --}}
 
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#2F5BFF]"></div>
+{{-- ==================== INSTANSI TUJUAN ==================== --}}
+@php
+    $batasDinas  = 6;
+    $dinasTampil = $dinases->take($batasDinas);
+    $totalDinas  = $dinases->count();
+@endphp
 
-                    <div class="relative flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-2xl bg-[#2F5BFF]/10 border border-[#2F5BFF]/15 dark:border-blue-400/20 flex items-center justify-center shrink-0 group-hover:bg-[#2F5BFF]/15 transition-colors">
-                            <svg class="w-5 h-5 text-[#2F5BFF] dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
-                                <circle cx="9" cy="7" r="4" stroke-width="1.8"/>
-                                <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Total Pendaftar</p>
-                            <p class="text-xs text-slate-400 mt-0.5">Seluruh pengajuan</p>
-                        </div>
-                    </div>
+<section class="py-8 sm:py-16 px-4 sm:px-6 bg-slate-50 dark:bg-slate-800/40">
+    <div class="max-w-6xl mx-auto">
 
-                    <div class="relative mt-4 flex items-baseline gap-2">
-                        <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">{{ $totalPendaftar }}</h3>
-                        <span class="text-xs font-semibold text-slate-400">pengajuan</span>
-                    </div>
-                    <p class="relative text-xs text-slate-400 mt-1.5">Tercatat di sistem</p>
+        <x-section-heading
+            eyebrow="Instansi Tujuan"
+            title="Daftar Dinas & Instansi Kabupaten Ponorogo"
+        >
+            Pilih instansi penempatan magang yang tersedia.
+        </x-section-heading>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+
+            @forelse ($dinasTampil as $dinas)
+                <x-instansi-card
+                    :slug="Str::slug($dinas->nama_dinas)"
+                    :nama="$dinas->nama_dinas"
+                    :deskripsi="$dinas->deskripsi"
+                    :gambar="$dinas->gambar ?? null"
+                    :rekap="$dinas->rekap ?? null"
+                />
+            @empty
+                <div class="col-span-full py-10 text-center">
+                    <x-ikon name="building" class="mx-auto mb-3 h-10 w-10 text-slate-400" />
+                    <h3 class="font-semibold text-slate-700 dark:text-slate-200">Belum ada instansi yang tersedia</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Silakan cek kembali nanti.</p>
                 </div>
-
-                {{-- PEMAGANG AKTIF --}}
-                <div class="group relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl
-                            border border-slate-200 dark:border-slate-700
-                            shadow-[0_4px_20px_rgba(15,23,42,0.04)] dark:shadow-none
-                            hover:shadow-[0_10px_30px_rgba(16,185,129,0.12)]
-                            hover:-translate-y-0.5 transition-all duration-200 p-5">
-
-                    <svg class="absolute -right-4 -bottom-4 w-28 h-28 text-emerald-500/[0.07] dark:text-emerald-400/[0.08] pointer-events-none"
-                         viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <circle cx="9" cy="7" r="4" stroke-width="1.2"/>
-                        <path stroke-width="1.2" d="M3 21v-2a6 6 0 0112 0v2"/>
-                        <path stroke-width="1.4" d="M16 11l2 2 4-5"/>
-                    </svg>
-
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
-
-                    <div class="relative flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20 transition-colors">
-                            <svg class="w-5 h-5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="9" cy="7" r="4" stroke-width="1.8"/>
-                                <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 21v-2a6 6 0 0112 0v2"/>
-                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M16 11l2 2 4-5"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Pemagang Aktif</p>
-                            <p class="text-xs text-slate-400 mt-0.5">Sedang menjalani magang</p>
-                        </div>
-                    </div>
-
-                    <div class="relative mt-4 flex items-baseline gap-2">
-                        <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">{{ $pemagangAktif }}</h3>
-                        <span class="text-xs font-semibold text-slate-400">orang</span>
-                    </div>
-                    <p class="relative text-xs text-slate-400 mt-1.5">Status diterima & periode masih berjalan</p>
-                </div>
-
-                {{-- ALUMNI --}}
-                <div class="group relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl
-                            border border-slate-200 dark:border-slate-700
-                            shadow-[0_4px_20px_rgba(15,23,42,0.04)] dark:shadow-none
-                            hover:shadow-[0_10px_30px_rgba(71,85,105,0.12)]
-                            hover:-translate-y-0.5 transition-all duration-200 p-5">
-
-                    <svg class="absolute -right-4 -bottom-4 w-28 h-28 text-slate-500/[0.07] dark:text-slate-400/[0.08] pointer-events-none"
-                         viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" d="M22 10L12 5 2 10l10 5 10-5z"/>
-                        <path stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" d="M6 12v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>
-                    </svg>
-
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-slate-500"></div>
-
-                    <div class="relative flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 group-hover:bg-slate-200 dark:group-hover:bg-slate-600 transition-colors">
-                            <svg class="w-5 h-5 text-slate-600 dark:text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M22 10L12 5 2 10l10 5 10-5z"/>
-                                <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 12v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Alumni Magang</p>
-                            <p class="text-xs text-slate-400 mt-0.5">Telah selesai periode</p>
-                        </div>
-                    </div>
-
-                    <div class="relative mt-4 flex items-baseline gap-2">
-                        <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">{{ $alumniSelesai }}</h3>
-                        <span class="text-xs font-semibold text-slate-400">orang</span>
-                    </div>
-                    <p class="relative text-xs text-slate-400 mt-1.5">Riwayat pemagang yang sudah tuntas</p>
-                </div>
-
-            </div>
-
-            {{-- GRAFIK --}}
-            <div class="relative w-full min-w-0 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-[0_4px_20px_rgba(15,23,42,0.04)] dark:shadow-none overflow-hidden">
-
-                {{-- HEADER --}}
-                <div class="px-6 pt-5 pb-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-100 dark:border-slate-700">
-
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#2F5BFF]/10 border border-[#2F5BFF]/15 dark:border-blue-400/20 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-[#2F5BFF] dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20h17M8 17v-5m4 5V8m4 9V5m4 12V3"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">Perkembangan Pendaftar & Pemagang</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Perbandingan jumlah pendaftar dan pemagang aktif setiap tahun</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-300 w-fit">
-                        <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/>
-                            <path d="M16 2v4M8 2v4M3 10h18" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                        <span class="font-medium">5 Tahun Terakhir</span>
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                </div>
-
-                {{-- GRAFIK + RINGKASAN --}}
-                <div class="px-5 pb-5 pt-4">
-
-                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 min-w-0 items-stretch">
-
-                        <div class="lg:col-span-3 rounded-xl bg-slate-50/70 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 p-4">
-                            <div class="relative h-[300px]">
-                                <canvas id="statistikMagangChart"></canvas>
-                            </div>
-                        </div>
-
-                        <div class="relative overflow-hidden rounded-xl bg-[#2F5BFF]/[0.04] dark:bg-blue-500/10 border border-[#2F5BFF]/10 dark:border-blue-400/15 p-5">
-
-                            <h4 class="text-base font-bold text-[#2F5BFF] dark:text-blue-400 mb-5">Ringkasan Tahun {{ $tahunSekarang }}</h4>
-
-                            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700">
-                                <div class="flex items-center gap-2.5">
-                                    <span class="w-3 h-3 rounded-full bg-[#6385F5]"></span>
-                                    <span class="text-sm text-slate-600 dark:text-slate-300">Pendaftar</span>
-                                </div>
-                                <span class="font-bold text-slate-800 dark:text-slate-100">{{ $pendaftarTahunIni }}</span>
-                            </div>
-
-                            <div class="flex items-center justify-between py-4 border-b border-slate-200 dark:border-slate-700">
-                                <div class="flex items-center gap-2.5">
-                                    <span class="w-3 h-3 rounded-full bg-[#F45B91]"></span>
-                                    <span class="text-sm text-slate-600 dark:text-slate-300">Diterima</span>
-                                </div>
-                                <span class="font-bold text-slate-800 dark:text-slate-100">{{ $diterimaTahunIni }}</span>
-                            </div>
-
-                            <div class="mt-5">
-                                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">Tingkat Diterima</p>
-
-                                <div class="flex items-center gap-3">
-                                    <div class="relative w-20 h-20 shrink-0">
-                                        <svg class="w-20 h-20" viewBox="0 0 100 100">
-                                            <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="9"
-                                                    class="text-slate-200 dark:text-slate-700"/>
-                                            <circle cx="50" cy="50" r="40" fill="none"
-                                                    stroke="#ec4899" stroke-width="9"
-                                                    stroke-linecap="round"
-                                                    stroke-dasharray="251.2"
-                                                    stroke-dashoffset="{{ 251.2 - (251.2 * $persentaseDiterima / 100) }}"
-                                                    transform="rotate(-90 50 50)"/>
-                                        </svg>
-                                        <div class="absolute inset-0 flex items-center justify-center">
-                                            <span class="text-sm font-bold text-pink-500">{{ $persentaseDiterima }}%</span>
-                                        </div>
-                                    </div>
-                                    <p class="text-xs leading-5 text-slate-500 dark:text-slate-400">
-                                        {{ $diterimaTahunIni }} dari {{ $pendaftarTahunIni }} pendaftar tahun ini telah diterima.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    {{-- INFO --}}
-                    <div class="mt-4 px-4 py-3 rounded-xl bg-[#2F5BFF]/[0.05] dark:bg-blue-500/10 border border-[#2F5BFF]/10 dark:border-blue-400/15 flex items-center gap-3">
-                        <div class="w-7 h-7 rounded-full bg-[#2F5BFF]/10 flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4 text-[#2F5BFF] dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 22a10 10 0 100-20 10 10 0 000 20z"/>
-                            </svg>
-                        </div>
-                        <p class="text-xs text-[#2F5BFF] dark:text-blue-300">Data diperbarui secara real-time dari sistem SiMagang.</p>
-                    </div>
-
-                </div>
-            </div>
+            @endforelse
 
         </div>
-    </section>
 
-
-    {{-- ==================== INSTANSI TUJUAN ==================== --}}
-    <section class="py-8 sm:py-16 px-4 sm:px-6 bg-slate-50 dark:bg-slate-800/40">
-        <div class="max-w-6xl mx-auto">
-
-            <x-section-heading
-                eyebrow="Instansi Tujuan"
-                title="Daftar Dinas & Instansi Kabupaten Ponorogo"
-            >
-                Pilih instansi penempatan magang yang tersedia.
-            </x-section-heading>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
-
-                @forelse ($dinases as $dinas)
-                    <x-instansi-card
-                        :slug="Str::slug($dinas->nama_dinas)"
-                        :nama="$dinas->nama_dinas"
-                        :deskripsi="$dinas->deskripsi"
-                        :icon="'🏢'"
-                        :gambar="$dinas->gambar ?? null"
-                        :rekap="$dinas->rekap ?? null"
-                    />
-                @empty
-                    <div class="col-span-full py-10 text-center">
-                        <div class="text-4xl mb-3">🏢</div>
-                        <h3 class="font-semibold text-slate-700 dark:text-slate-200">Belum ada instansi yang tersedia</h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Silakan cek kembali nanti.</p>
-                    </div>
-                @endforelse
-
+        @if ($totalDinas > $batasDinas)
+            <div class="mt-8 sm:mt-10 flex flex-col items-center gap-2">
+                <x-button :href="route('instansi.index')" variant="secondary" size="sm">
+                    Lihat semua dinas ({{ $totalDinas }})
+                </x-button>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Menampilkan {{ $dinasTampil->count() }} dari {{ $totalDinas }} dinas
+                </p>
             </div>
+        @endif
 
-        </div>
-    </section>
+    </div>
+</section>
 
 
-   {{-- ==================== DOKUMENTASI ==================== --}}
+{{-- ==================== DOKUMENTASI ==================== --}}
+@php
+    $totalDok = $totalDokumentasi ?? $dokumentasis->count();
+@endphp
+
 <section id="dokumentasi" class="py-8 sm:py-16 px-4 sm:px-6 bg-white dark:bg-slate-950">
     <div class="max-w-6xl mx-auto">
 
@@ -447,7 +252,7 @@
                 </a>
             @empty
                 <div class="col-span-full py-10 text-center">
-                    <div class="text-4xl mb-3">📸</div>
+                    <x-ikon name="photo" class="mx-auto mb-3 h-10 w-10 text-slate-400" />
                     <h3 class="font-semibold text-slate-700 dark:text-slate-100">Belum ada dokumentasi kegiatan</h3>
                     <p class="text-sm text-slate-500 dark:text-slate-300 mt-1">
                         Dokumentasi kegiatan magang akan tampil di sini setelah diunggah admin.
@@ -456,6 +261,18 @@
             @endforelse
 
         </div>
+
+        @if ($totalDok > $dokumentasis->count())
+            <div class="mt-8 sm:mt-10 flex flex-col items-center gap-2">
+                <x-button :href="route('dokumentasi.index')" variant="secondary" size="sm">
+                    Lihat semua dokumentasi ({{ $totalDok }})
+                </x-button>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Menampilkan {{ $dokumentasis->count() }} dari {{ $totalDok }} kegiatan
+                </p>
+            </div>
+        @endif
+
     </div>
 </section>
 
@@ -505,59 +322,5 @@
 </div>{{-- /bg-white --}}
 
 <x-footer />
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    const statistik = @json($statistikMagang);
-    const tahun = statistik.map(item => item.tahun);
-    const pendaftar = statistik.map(item => Number(item.pendaftar));
-    const diterima = statistik.map(item => Number(item.diterima));
-    const ctx = document.getElementById('statistikMagangChart');
-
-    const chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: tahun,
-            datasets: [
-                { label: 'Pendaftar', data: pendaftar, backgroundColor: '#6385F5',
-                  borderRadius: 7, borderSkipped: false, barPercentage: 0.65, categoryPercentage: 0.65 },
-                { label: 'Diterima', data: diterima, backgroundColor: '#F45B91',
-                  borderRadius: 7, borderSkipped: false, barPercentage: 0.65, categoryPercentage: 0.65 }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 25, font: { size: 13 } }
-                },
-                tooltip: {
-                    backgroundColor: '#172554', titleColor: '#ffffff', bodyColor: '#ffffff',
-                    padding: 12, cornerRadius: 10, displayColors: true
-                }
-            },
-            scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 13 } } },
-                y: { beginAtZero: true, ticks: { precision: 0, font: { size: 12 } }, grid: { borderDash: [5, 5] } }
-            }
-        }
-    });
-
-    // Warna grafik mengikuti mode terang/gelap
-    function terapkanTemaChart(dark) {
-        chart.options.plugins.legend.labels.color = dark ? '#cbd5e1' : '#475569';
-        chart.options.scales.x.ticks.color = dark ? '#cbd5e1' : '#475569';
-        chart.options.scales.y.ticks.color = dark ? '#94a3b8' : '#64748b';
-        chart.options.scales.y.grid.color = dark ? '#334155' : '#e2e8f0';
-        chart.update();
-    }
-    terapkanTemaChart(document.documentElement.classList.contains('dark'));
-    window.addEventListener('themechange', e => terapkanTemaChart(e.detail.dark));
-
-</script>
 </body>
 </html>

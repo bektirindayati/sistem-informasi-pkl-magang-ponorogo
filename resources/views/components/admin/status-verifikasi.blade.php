@@ -22,8 +22,8 @@
         'ditolak' => 'border-l-rose-500', 'selesai' => 'border-l-cyan-500',
     ][$p->status] ?? 'border-l-slate-300';
 
-    $input = 'px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-sm font-semibold text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 dark:focus:ring-cyan-500/20 outline-none transition';
-    $btn   = 'relative inline-flex items-center justify-center whitespace-nowrap px-3.5 py-1.5 rounded-lg border border-transparent text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition';
+    $input = 'h-9 w-[11.5rem] px-3 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 dark:focus:ring-cyan-500/20 outline-none transition';
+    $btn   = 'relative inline-flex h-9 items-center justify-center whitespace-nowrap px-3.5 rounded-lg border border-transparent text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition';
 @endphp
 
 <div class="border-l-4 {{ $aksen }} pl-4 py-3">
@@ -42,7 +42,7 @@
             </div>
 
             <div class="flex items-center justify-end gap-2">
-                <select name="status" id="statusVerifikasi" class="{{ $input }} w-[11.5rem]">
+                <select name="status" id="statusVerifikasi" class="{{ $input }}">
                     @foreach ($pilihan as $nilai => $teks)
                         <option value="{{ $nilai }}" @selected(old('status', $p->status) === $nilai)>{{ $teks }}</option>
                     @endforeach

@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\Concerns\TanggapiStatusDokumen;
 use App\Http\Requests\Admin\SuratBalasan\AksesSuratBalasanRequest;
 use App\Http\Requests\Admin\SuratBalasan\UnggahSuratBalasanRequest;
+use App\Services\PendaftaranNotifier;
 use App\Services\Surat\SuratBalasanService;
 use Illuminate\Http\RedirectResponse;
 
-/** Admin: unduh draf Word, lihat PDF tersimpan, dan atur status surat (diproses / diterbitkan). */
 class SuratBalasanAdminController extends Controller
 {
+    use TanggapiStatusDokumen;
+
     public function __construct(private SuratBalasanService $surat)
     {
     }
@@ -29,18 +32,28 @@ class SuratBalasanAdminController extends Controller
         );
     }
 
- public function status(UnggahSuratBalasanRequest $request): RedirectResponse
-{
-    $status = $request->validated('status_surat');
+    public function status(UnggahSuratBalasanRequest $request): RedirectResponse
+    {
+        $status = $request->validated('status_surat');
 
-    $this->surat->simpanStatus(
-        $request->pendaftaran(),
-        $status,
-        $request->file('surat_balasan')
-    );
+        $this->surat->simpanStatus(
+            $request->pendaftaran(),
+            $status,
+            $request->file('surat_balasan')
+        );
 
-    return back()->with('success', $status === 'diterbitkan'
-        ? 'Surat balasan berhasil diterbitkan. Pendaftar dapat mengunduhnya melalui dashboard.'
-        : 'Status surat disimpan: surat sedang diproses.');
-}
+        return $this->tanggapan($status, 'Surat balasan');
+    }
+
+    public function email(
+        AksesSuratBalasanRequest $request,
+        PendaftaranNotifier $notifier
+    ): RedirectResponse {
+        return $this->kirimEmail(
+            $request->pendaftaran(),
+            $notifier,
+            'balasan',
+            'surat balasan'
+        );
+    }
 }

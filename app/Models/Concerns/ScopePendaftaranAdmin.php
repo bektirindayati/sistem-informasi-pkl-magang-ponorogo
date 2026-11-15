@@ -50,15 +50,13 @@ public function scopeAktif($query)
 }
 
     public function scopeSedangMagang($query)
-    {
-        $hariIni = now()->toDateString();
+{
+    $hariIni = now()->toDateString();
 
-        return $query->where('status', 'diterima')
-            ->where(function ($q) use ($hariIni) {
-                $q->whereNull('tanggal_selesai')
-                  ->orWhereDate('tanggal_selesai', '>=', $hariIni);
-            });
-    }
+    return $query->where('status', 'diterima')
+        ->where(fn ($q) => $q->whereNull('tanggal_mulai')->orWhereDate('tanggal_mulai', '<=', $hariIni))
+        ->where(fn ($q) => $q->whereNull('tanggal_selesai')->orWhereDate('tanggal_selesai', '>=', $hariIni));
+}
 
     /**
  * Pendaftar yang sudah ditandai selesai oleh admin.

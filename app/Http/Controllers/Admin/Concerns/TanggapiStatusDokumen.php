@@ -5,27 +5,31 @@ namespace App\Http\Controllers\Admin\Concerns;
 use App\Models\PendaftaranMagang;
 use App\Services\PendaftaranNotifier;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 trait TanggapiStatusDokumen
 {
-    protected function tanggapan(
-        Request $request,
-        PendaftaranNotifier $notifier,
-        PendaftaranMagang $p,
-        string $jenis,
-        string $status,
-        string $nama
-    ): RedirectResponse {
-        $terbit = $status === 'diterbitkan';
-        $email  = $terbit && $request->boolean('kirim_email') ? $notifier->dokumen($p, $jenis) : null;
-
-        $respons = back()->with('success', ($terbit
+    protected function tanggapan(string $status, string $nama): RedirectResponse
+    {
+        return back()->with('success', $status === 'diterbitkan'
             ? "{$nama} berhasil diterbitkan. Pendaftar dapat mengunduhnya melalui dashboard."
-            : "Status {$nama} disimpan: sedang diproses.") . ($email ? ' Email sedang dikirim ke pendaftar.' : ''));
+            : "Status {$nama} disimpan: sedang diproses.");
+    }
 
-        return $email === false
-            ? $respons->with('error', "{$nama} tersimpan, tetapi email tidak dapat dijadwalkan (alamat email kosong atau antrean bermasalah).")
-            : $respons;
+    /** Kirim email dokumen (PDF terlampir) ke pendaftar. Hanya untuk dokumen yang sudah diterbitkan. */
+    protected function kirimEmail(PendaftaranMagang $p, PendaftaranNotifier $notifier, string $jenis, string $nama): RedirectResponse
+    {
+        $terbit = match ($jenis) {
+            'balasan'    => $p->suratTerbit(),
+            'selesai'    => $p->suratSelesaiTerbit(),
+            'sertifikat' => $p->sertifikatTerbit(),
+        };
+
+        if (! $terbit) {
+            return back()->with('error', "{$nama} belum diterbitkan, jadi emailnya belum bisa dikirim.");
+        }
+
+        return $notifier->dokumen($p, $jenis)
+            ? back()->with('success', "Email {$nama} sudah dijadwalkan untuk dikirim ke pendaftar.")
+            : back()->with('error', "Email {$nama} gagal dijadwalkan (alamat email pendaftar kosong atau antrean bermasalah).");
     }
 }

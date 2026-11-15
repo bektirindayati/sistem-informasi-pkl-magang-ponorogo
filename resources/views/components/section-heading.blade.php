@@ -1,4 +1,3 @@
-
 {{--
     resources/views/components/section-heading.blade.php
     Pemakaian:
@@ -8,7 +7,7 @@
 --}}
 @props(['eyebrow' => null, 'title'])
 
-<div class="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+<div class="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
 
     @if ($eyebrow)
         <span class="inline-flex items-center px-3.5 py-1.5 rounded-full
@@ -20,13 +19,13 @@
         </span>
     @endif
 
-    <h2 class="mt-4 text-2xl sm:text-4xl font-extrabold tracking-tight
+    <h2 class="mt-3 text-xl sm:text-2xl font-extrabold tracking-tight
                text-slate-900 dark:text-white">
         {{ $title }}
     </h2>
 
     @if (trim((string) $slot) !== '')
-        <p class="mt-3 text-sm sm:text-base
+        <p class="mt-2.5 text-sm sm:text-base
                   text-slate-600 dark:text-slate-400
                   leading-relaxed">
             {{ $slot }}

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\Concerns\TanggapiStatusDokumen;
 use App\Models\PendaftaranMagang;
+use App\Services\PendaftaranNotifier;
 use App\Services\Surat\SuratSelesaiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,13 +14,17 @@ use Illuminate\Validation\Rule;
 /** Admin: draf Word, lihat PDF, dan status surat selesai magang. */
 class SuratSelesaiAdminController extends Controller
 {
+    use TanggapiStatusDokumen;
+
     public function __construct(private SuratSelesaiService $surat)
     {
     }
 
     private function cari(Request $request, int $id): PendaftaranMagang
     {
-        return PendaftaranMagang::untukAdmin($request->user())->sudahDikirim()->findOrFail($id);
+        return PendaftaranMagang::untukAdmin($request->user())
+            ->sudahDikirim()
+            ->findOrFail($id);
     }
 
     public function draf(Request $request, int $id)
@@ -26,13 +32,17 @@ class SuratSelesaiAdminController extends Controller
         try {
             return $this->surat->draf($this->cari($request, $id));
         } catch (\RuntimeException $e) {
-            return back()->with('error', $e->getMessage());   // mis. template belum disiapkan
+            return back()->with('error', $e->getMessage());
         }
     }
 
     public function show(Request $request, int $id)
     {
-        return $this->surat->berkasFinal($this->cari($request, $id), $request->boolean('unduh'), untukAdmin: true);
+        return $this->surat->berkasFinal(
+            $this->cari($request, $id),
+            $request->boolean('unduh'),
+            untukAdmin: true
+        );
     }
 
     public function status(Request $request, int $id): RedirectResponse
@@ -59,8 +69,22 @@ class SuratSelesaiAdminController extends Controller
             $request->file('surat_selesai')
         );
 
-        return back()->with('success', $data['status_surat_selesai'] === 'diterbitkan'
-            ? 'Surat selesai magang berhasil diterbitkan.'
-            : 'Status surat disimpan: sedang diproses.');
+        return $this->tanggapan(
+            $data['status_surat_selesai'],
+            'Surat selesai magang'
+        );
+    }
+
+    public function email(
+        Request $request,
+        int $id,
+        PendaftaranNotifier $notifier
+    ): RedirectResponse {
+        return $this->kirimEmail(
+            $this->cari($request, $id),
+            $notifier,
+            'selesai',
+            'surat selesai magang'
+        );
     }
 }
