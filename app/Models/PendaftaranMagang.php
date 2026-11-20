@@ -103,12 +103,16 @@ protected static function booted(): void
         }
     });
 
-    // Hapus seluruh file sertifikat sebelum data pendaftaran dihapus.
-    static::deleting(function (self $p) {
-        $p->sertifikatFiles->each(function ($file) {
-            Storage::disk(self::DISK_SURAT)->delete($file->file);
-        });
+    // Hapus seluruh file sertifikat dan PDF surat pengantar anggota sebelum data pendaftaran dihapus.
+static::deleting(function (self $p) {
+    $p->sertifikatFiles->each(function ($file) {
+        Storage::disk(self::DISK_SURAT)->delete($file->file);
     });
+
+    Storage::disk(self::DISK_BERKAS)->delete(
+        $p->anggotas->pluck('surat_pengantar')->filter()->all()
+    );
+});
 
     // Hapus berkas peserta dan PDF surat resmi saat pendaftaran dihapus.
     static::deleted(function (self $p) {

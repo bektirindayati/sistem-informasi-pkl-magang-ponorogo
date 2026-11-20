@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class AnggotaPendaftaran extends Model
 {
-    /** Kolom data diri anggota (dipakai form, request, dan view). */
-    public const KOLOM = ['nama_lengkap', 'nim_nisn', 'instansi', 'jurusan', 'no_hp'];
+    /** Data diri + nomor surat pengantar. Ketua/mandiri memakai nama kolom yang sama di pendaftaran_magangs. */
+    public const KOLOM = ['nama_lengkap', 'nim_nisn', 'instansi', 'jurusan', 'no_hp', 'nomor_surat_pengantar'];
 
     protected $table = 'anggota_pendaftarans';
-    protected $fillable = self::KOLOM;
+
+    protected $fillable = ['nama_lengkap', 'nim_nisn', 'instansi', 'jurusan', 'no_hp', 'nomor_surat_pengantar', 'surat_pengantar'];
 
     public function pendaftaran()
     {

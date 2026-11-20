@@ -9,6 +9,7 @@
         'Nama Lengkap'      => $pendaftaran->nama_lengkap,
         'Kategori'          => $pendaftaran->kategori,
         'NIM / NISN'        => $pendaftaran->nim_nisn,
+        'Nomor Surat Pengantar' => $pendaftaran->nomor_surat_pengantar,
         'No. WhatsApp / HP' => $pendaftaran->no_hp,
         'Asal Instansi'     => $pendaftaran->instansi,
         'Jurusan'           => $pendaftaran->jurusan,
@@ -17,6 +18,7 @@
     $labelAnggota = [
         'nama_lengkap' => 'Nama Lengkap',
         'nim_nisn'     => 'NIM / NISN',
+        'nomor_surat_pengantar' => 'Nomor Surat Pengantar',
         'instansi'     => 'Asal Instansi',
         'jurusan'      => 'Jurusan',
         'no_hp'        => 'No. WhatsApp / HP',
@@ -72,6 +74,15 @@
                                     </div>
                                 @endforeach
                             </dl>
+                                                        </dl>
+
+                            @if ($a->surat_pengantar)
+                                <a href="{{ asset('storage/' . $a->surat_pengantar) }}" target="_blank" rel="noopener"
+                                   class="mt-3 inline-flex rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700
+                                          hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
+                                    Lihat Surat Pengantar
+                                </a>
+                            @endif
                         </div>
                     @empty
                         <p class="text-base text-slate-500 dark:text-slate-400">Belum ada anggota.</p>

@@ -10,6 +10,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Collection;
 
 abstract class BasePendaftaranRequest extends FormRequest
 {
@@ -163,24 +164,44 @@ abstract class BasePendaftaranRequest extends FormRequest
         return $this->input('tipe') === 'kelompok';
     }
 
-    /**
+        /**
      * Aturan validasi anggota kelompok.
      * Anggota harus memiliki data diri yang lengkap.
      */
     protected function aturanAnggota(string $wajib): array
     {
         $aturan = $this->aturanDataDiri('required', 'anggota.*.');
-
         $aturan['anggota.*.nim_nisn'][] = 'distinct';
+        $aturan['anggota.*.nomor_surat_pengantar'] = ['required', 'string', 'max:100'];
+        $aturan['anggota.*.id']  = ['nullable', 'integer'];
+        $aturan['anggota.*.uid'] = ['nullable', 'string', 'max:40'];
 
-        return [
-            'anggota' => [
-                $wajib === 'required' ? 'required' : 'nullable',
-                'array',
-                'min:1',
-                'max:' . PendaftaranMagang::MAKS_ANGGOTA,
-            ],
-        ] + $aturan;
+        // PDF surat pengantar tiap anggota: wajib saat kirim bila belum pernah tersimpan di server.
+        $tersimpan = $this->anggotaBerkasTersimpan();
+
+        foreach (array_keys((array) $this->input('anggota', [])) as $i) {
+            $sudahAda = $tersimpan->contains((int) $this->input("anggota.{$i}.id"));
+
+            $aturan["anggota.{$i}.surat_pengantar"] = [
+                $wajib === 'required' && ! $sudahAda ? 'required' : 'nullable',
+                'file', 'mimes:pdf', 'max:2048',
+            ];
+        }
+
+        return ['anggota' => [
+            $wajib === 'required' ? 'required' : 'nullable',
+            'array', 'min:1', 'max:' . PendaftaranMagang::MAKS_ANGGOTA,
+        ]] + $aturan;
+    }
+
+        /** ID anggota milik pendaftaran ini yang sudah punya PDF surat pengantar di server. */
+    private function anggotaBerkasTersimpan(): Collection
+    {
+        $p = $this->pendaftaran();
+
+        return $p->exists
+            ? $p->anggotas()->whereNotNull('surat_pengantar')->pluck('id')
+            : collect();
     }
 
     /** Surat pengantar wajib/tidak tergantung konteks, proposal selalu opsional. */
@@ -237,15 +258,21 @@ abstract class BasePendaftaranRequest extends FormRequest
         return array_merge($data, $this->dataStatus());
     }
 
-    /**
-     * Mengambil data anggota yang siap disimpan.
-     * Kosong jika pendaftaran mandiri.
-     */
+        /** Anggota siap simpan: data + 'berkas' (UploadedFile|null). */
     public function dataAnggota(): array
     {
-        return $this->kelompok()
-            ? array_values($this->validated('anggota') ?? [])
-            : [];
+        if (! $this->kelompok()) {
+            return [];
+        }
+
+        return collect($this->validated()['anggota'] ?? [])
+            ->map(function (array $a) {
+                $berkas = $a['surat_pengantar'] ?? null;
+                unset($a['surat_pengantar']);
+
+                return $a + ['berkas' => $berkas];
+            })
+            ->values()->all();
     }
 
     /** Pesan validasi. */
@@ -266,6 +293,17 @@ abstract class BasePendaftaranRequest extends FormRequest
 
                 'anggota.*.nim_nisn.distinct' =>
                     'Anggota ke-:position: NIM / NISN duplikat dengan anggota lain.',
+                                    'anggota.*.nomor_surat_pengantar.required' =>
+                    'Anggota ke-:position: nomor surat pengantar wajib diisi.',
+                'anggota.*.nomor_surat_pengantar.max' =>
+                    'Anggota ke-:position: nomor surat pengantar maksimal :max karakter.',
+
+                'anggota.*.surat_pengantar.required' =>
+                    'Anggota ke-:position: surat pengantar wajib diunggah.',
+                'anggota.*.surat_pengantar.mimes' =>
+                    'Anggota ke-:position: surat pengantar harus berformat PDF.',
+                'anggota.*.surat_pengantar.max' =>
+                    'Anggota ke-:position: ukuran surat pengantar tidak boleh lebih dari 2MB.',
 
                 'dinas_id.required' => 'Instansi / dinas tujuan wajib dipilih.',
                 'dinas_id.exists' => 'Instansi / dinas tujuan yang dipilih tidak tersedia.',

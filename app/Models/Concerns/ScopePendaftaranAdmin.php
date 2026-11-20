@@ -70,4 +70,29 @@ public function scopeSelesai($query)
     {
         return $query->where('status', 'ditolak');
     }
+
+    /** Pending atau revisi: menunggu keputusan admin. */
+public function scopeMenungguReview($query)
+{
+    return $query->whereIn('status', ['pending', 'revisi']);
+}
+
+/** Sudah diterima, tetapi surat balasan belum diterbitkan. */
+public function scopeSuratBelumTerbit($query)
+{
+    return $query->whereIn('status', ['diterima', 'selesai'])
+        ->where(fn ($q) => $q->whereNull('status_surat')->orWhere('status_surat', '!=', 'diterbitkan'));
+}
+
+/**
+ * Magang sudah selesai (ditandai selesai, atau diterima dan tanggal selesainya sudah lewat),
+ * tetapi sertifikat belum diterbitkan.
+ */
+public function scopeSertifikatBelumTerbit($query)
+{
+    return $query
+        ->where(fn ($q) => $q->where('status', 'selesai')
+            ->orWhere(fn ($d) => $d->where('status', 'diterima')->whereDate('tanggal_selesai', '<', today())))
+        ->where(fn ($q) => $q->whereNull('status_sertifikat')->orWhere('status_sertifikat', '!=', 'diterbitkan'));
+}
 }

@@ -19,7 +19,11 @@
             'ditolak' => 'Ditolak', 'selesai' => 'Selesai Magang',
         ];
 
-        $seksi = [
+                $seksi = $filter ? [[
+            'kunci' => 'filter', 'aksen' => 'border-l-blue-500',
+            'title' => $filter['judul'], 'description' => $filter['keterangan'],
+            'data' => $daftarFilter, 'kosong' => 'Tidak ada pendaftar pada daftar ini.',
+        ]] : [
             [
                 'kunci' => 'aktif', 'title' => 'Aktif / Proses',
                 'description' => 'Peserta yang sedang menjalani magang atau dalam tahap verifikasi.',
@@ -37,7 +41,7 @@
             ],
         ];
 
-        $total = collect($seksi)->sum(fn ($s) => count($s['data']));
+                $total = collect($seksi)->sum(fn ($s) => count($s['data']));
     @endphp
 
     <section class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800

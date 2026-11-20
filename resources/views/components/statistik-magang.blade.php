@@ -1,5 +1,5 @@
 {{-- <x-statistik-magang :stat="$statistik" :lingkup="$lingkup" /> : kartu ringkasan + grafik 5 tahun --}}
-@props(['stat', 'lingkup' => null])
+@props(['stat'])
 
 @php
     $kartu = [
@@ -134,7 +134,6 @@
                     <x-ikon name="info" class="w-4 h-4 text-[#2F5BFF] dark:text-blue-400" />
                 </div>
                 <p class="text-xs text-[#2F5BFF] dark:text-blue-300">
-                    @if ($lingkup) Menampilkan data: {{ $lingkup }}. @endif
                     Data diperbarui secara real-time dari sistem SiMagang.
                 </p>
             </div>

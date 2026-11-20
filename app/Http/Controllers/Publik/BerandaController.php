@@ -20,10 +20,10 @@ class BerandaController extends Controller
             // Urut menurut waktu acara, bukan waktu unggah
             'dokumentasis' => DokumentasiMagang::with('fotos')
                 ->terbaru()
-                ->take(6)
+                ->take(3)
                 ->get(),
 
-            // Total seluruh dokumentasi, untuk tombol "Lihat semua" bila lebih dari 6
+            // Total seluruh dokumentasi, untuk tombol "Lihat semua" bila lebih dari 3
             'totalDokumentasi' => DokumentasiMagang::count(),
 
             // Ringkasan statistik halaman beranda

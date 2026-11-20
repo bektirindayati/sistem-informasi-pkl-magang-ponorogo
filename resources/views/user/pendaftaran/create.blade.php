@@ -81,10 +81,31 @@
     $bisaSimpanDraft   = ! $isEdit || $isDraft;
     $hasSuratPengantar = $isEdit && filled($pendaftaran->surat_pengantar);
 
-    $tipe = old('tipe', $pendaftaran?->tipe ?? 'mandiri');
+$tipe = old('tipe', $pendaftaran?->tipe ?? 'mandiri');
 
-$anggotaAwal = collect(old('anggota', $pendaftaran?->anggotas->map(fn ($a) => $a->only(\App\Models\AnggotaPendaftaran::KOLOM))->all() ?? []))
-    ->values()->all();
+$anggotaTersimpan = $pendaftaran?->anggotas ?? collect();
+
+$suratAnggota = $anggotaTersimpan->mapWithKeys(
+    fn ($a) => [
+        $a->id => $a->surat_pengantar
+            ? asset('storage/' . $a->surat_pengantar)
+            : null,
+    ]
+);
+
+$anggotaAwal = collect(
+    old(
+        'anggota',
+        $anggotaTersimpan
+            ->map(fn ($a) => $a->only(\App\Models\AnggotaPendaftaran::KOLOM) + ['id' => $a->id])
+            ->all()
+    )
+)
+    ->map(fn ($a) => $a + [
+        'surat' => $suratAnggota->get($a['id'] ?? 0),
+    ])
+    ->values()
+    ->all();
 @endphp
 <div class="min-h-screen bg-slate-50 dark:bg-slate-900/50 py-8 sm:py-10 px-4 sm:px-6">
     <div class="max-w-4xl mx-auto">
@@ -198,27 +219,31 @@ $anggotaAwal = collect(old('anggota', $pendaftaran?->anggotas->map(fn ($a) => $a
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                            {{-- DINAS --}}
-                            <x-form.select
-                                name="dinas_id"
-                                label="Instansi / Dinas Tujuan"
-                                id="dinasTujuan"
-                                required
-                                onchange="gantiDinas()"
-                                hint="Pilih instansi tujuan magang."
-                            >
-                                <option value="" disabled @selected(blank($dinasTerpilih))>
-                                    -- Pilih Instansi --
-                                </option>
-                                @foreach ($dinases as $dinas)
-                                    <option
-                                        value="{{ $dinas->id }}"
-                                        @selected((string) $dinasTerpilih === (string) $dinas->id)
-                                    >
-                                        {{ $dinas->nama_dinas }}
-                                    </option>
-                                @endforeach
-                            </x-form.select>
+                          {{-- DINAS --}}
+<x-form.select
+    name="dinas_id"
+    label="Instansi / Dinas Tujuan"
+    id="dinasTujuan"
+    required
+    cari
+    satuan="instansi"
+    cari-placeholder="Ketik nama instansi atau pilih dari daftar..."
+    onchange="gantiDinas()"
+    hint="Pilih instansi tujuan magang. Ketik beberapa huruf untuk mencari."
+>
+    <option value="" disabled @selected(blank($dinasTerpilih))>
+        -- Pilih Instansi --
+    </option>
+
+    @foreach ($dinases as $dinas)
+        <option
+            value="{{ $dinas->id }}"
+            @selected((string) $dinasTerpilih === (string) $dinas->id)
+        >
+            {{ $dinas->nama_dinas }}
+        </option>
+    @endforeach
+</x-form.select>
 
                             {{-- BIDANG (diisi JavaScript; sengaja tidak ada yang terpilih otomatis) --}}
                             <x-form.select
@@ -256,6 +281,15 @@ $anggotaAwal = collect(old('anggota', $pendaftaran?->anggotas->map(fn ($a) => $a
             @endforeach
         </div>
 
+<div id="petunjukKelompok" class="hidden rounded-xl border border-indigo-200 dark:border-indigo-500/25 bg-indigo-50/70 dark:bg-indigo-500/10 px-4 py-3">
+    <p class="text-sm font-bold text-indigo-800 dark:text-indigo-200">Cara mengisi pendaftaran kelompok</p>
+    <ol class="mt-1.5 list-decimal list-inside space-y-0.5 text-xs leading-relaxed text-indigo-900/80 dark:text-indigo-200/80">
+        <li>Anda mengisi sebagai ketua. Data ketua diambil dari profil.</li>
+        <li>Tambahkan setiap anggota. <strong>Setiap orang, termasuk Anda, memiliki nomor dan file surat pengantar sendiri.</strong></li>
+        <li>Tanggal, pengirim, dan kota surat cukup diisi sekali di bagian 3 dan berlaku untuk semua.</li>
+    </ol>
+</div>
+
         <p id="labelKetua" class="hidden text-[11px] font-bold uppercase tracking-wide text-slate-400">
             Data Ketua Kelompok
             <span class="normal-case font-medium">(diambil dari profil Anda)</span>
@@ -271,21 +305,38 @@ $anggotaAwal = collect(old('anggota', $pendaftaran?->anggotas->map(fn ($a) => $a
         </x-form.select>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <x-form.input name="nama_lengkap" label="Nama Lengkap" required :value="$namaLengkap" />
-            <x-form.input name="nim_nisn" label="NIM / NISN" required
-                          placeholder="Contoh: 22050974001" :value="$isi('nim_nisn')" />
-            <x-form.input name="instansi" label="Asal Instansi / Universitas" required
-                          placeholder="Universitas Negeri Surabaya" :value="$isi('instansi')" />
-            <x-form.input name="jurusan" label="Jurusan / Program Studi" required
-                          placeholder="S1 Teknologi Pendidikan" :value="$isi('jurusan')" />
-            <div class="md:col-span-2">
-                <x-form.input name="no_hp" id="no_hp" label="No. WhatsApp / HP Aktif" required
-                              placeholder="Contoh: 081234567890" inputmode="numeric"
-                              :value="$isi('no_hp')"
-                              oninput="this.value=this.value.replace(/[^0-9]/g,'');" />
-            </div>
-        </div>
+    <x-form.input name="nama_lengkap" label="Nama Lengkap" required :value="$namaLengkap" />
 
+    <x-form.input name="nim_nisn" label="NIM / NISN" required
+                  placeholder="Contoh: 22050974001" :value="$isi('nim_nisn')" />
+
+    <x-form.input name="instansi" label="Asal Instansi / Universitas" required
+                  placeholder="Universitas Negeri Surabaya" :value="$isi('instansi')" />
+
+    <x-form.input name="jurusan" label="Jurusan / Program Studi" required
+                  placeholder="S1 Teknologi Pendidikan" :value="$isi('jurusan')" />
+
+    <x-form.input name="no_hp" id="no_hp" label="No. WhatsApp / HP Aktif" required
+                  placeholder="Contoh: 081234567890" inputmode="numeric" :value="$isi('no_hp')"
+                  oninput="this.value=this.value.replace(/[^0-9]/g,'');" />
+
+    <x-form.input name="nomor_surat_pengantar" label="Nomor Surat Pengantar" required
+                  placeholder="Contoh: B/20069/UN38.I.1/TU.00/2026"
+                  :value="old('nomor_surat_pengantar', $pendaftaran?->nomor_surat_pengantar)" />
+
+    <div class="md:col-span-2">
+        <x-form.file name="surat_pengantar" label="Surat Pengantar" :required="! $hasSuratPengantar" accept=".pdf"
+                     :hint="$hasSuratPengantar
+                         ? 'File saat ini: ' . basename($pendaftaran->surat_pengantar) . '. Pilih file baru hanya bila ingin menggantinya.'
+                         : 'PDF, maksimal 2MB. Surat pengantar atas nama Anda.'" />
+
+        <a id="lihatSuratKetua" target="_blank" rel="noopener"
+           href="{{ $hasSuratPengantar ? asset('storage/' . $pendaftaran->surat_pengantar) : '#' }}"
+           class="{{ $hasSuratPengantar ? '' : 'hidden' }} mt-2 inline-flex text-xs font-semibold text-blue-600 hover:underline dark:text-cyan-400">
+            Lihat surat yang sudah diunggah
+        </a>
+    </div>
+</div>
         {{-- ANGGOTA KELOMPOK (hanya tampil jika berkelompok) --}}
         <div id="blokAnggota" class="hidden space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
             <div class="flex items-center justify-between gap-3">
@@ -303,6 +354,7 @@ $anggotaAwal = collect(old('anggota', $pendaftaran?->anggotas->map(fn ($a) => $a
 
             <ul id="daftarAnggota" class="space-y-2"></ul>
             <div id="hiddenAnggota"></div>
+            <div id="berkasAnggota" class="hidden"></div>
 
             {{-- Editor (dipakai untuk tambah & edit). Input sengaja di luar form (atribut form tidak valid)
                  supaya tidak ikut terkirim; yang terkirim hanya hidden input anggota[i][kolom]. --}}
@@ -311,20 +363,23 @@ $anggotaAwal = collect(old('anggota', $pendaftaran?->anggotas->map(fn ($a) => $a
 
              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     @foreach ([
-        'nama_lengkap' => 'Nama Lengkap',
-        'nim_nisn'     => 'NIM / NISN',
-        'instansi'     => 'Asal Instansi / Universitas',
-        'jurusan'      => 'Jurusan / Program Studi',
-        'no_hp'        => 'No. WhatsApp / HP Aktif',
-    ] as $kolom => $label)
-        <x-form.input
-            :name="'ang_' . $kolom"
-            :label="$label"
-            required
-            form="editorAnggota"
-            :inputmode="$kolom === 'no_hp' ? 'numeric' : null"
-        />
-    @endforeach
+    'nama_lengkap'          => 'Nama Lengkap',
+    'nim_nisn'              => 'NIM / NISN',
+    'instansi'              => 'Asal Instansi / Universitas',
+    'jurusan'               => 'Jurusan / Program Studi',
+    'no_hp'                 => 'No. WhatsApp / HP Aktif',
+    'nomor_surat_pengantar' => 'Nomor Surat Pengantar',
+] as $kolom => $label)
+    <x-form.input :name="'ang_' . $kolom" :label="$label" required form="editorAnggota"
+                  :inputmode="$kolom === 'no_hp' ? 'numeric' : null"
+                  :placeholder="$kolom === 'nomor_surat_pengantar' ? 'Contoh: B/20069/UN38.I.1/TU.00/2026' : null" />
+@endforeach
+
+<div class="md:col-span-2">
+    <x-form.file name="ang_surat_pengantar" label="Surat Pengantar Anggota" required accept=".pdf" form="editorAnggota"
+                 hint="PDF, maksimal 2MB. Tanggal, pengirim, dan kota surat mengikuti data surat ketua di bagian 3." />
+    <p id="infoSuratEditor" class="hidden mt-2 text-xs text-slate-500 dark:text-slate-400"></p>
+</div>
 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400">Kategori anggota mengikuti ketua.</p>
                 <p id="errorEditor" class="hidden text-xs font-medium text-rose-600 dark:text-rose-400"></p>
@@ -342,18 +397,36 @@ $anggotaAwal = collect(old('anggota', $pendaftaran?->anggotas->map(fn ($a) => $a
 
             {{-- Detail anggota --}}
             <dialog id="dialogAnggota"
-                    class="rounded-2xl p-0 w-[min(92vw,26rem)] backdrop:bg-black/50
-                           bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                <div class="p-5">
-                    <h3 class="text-sm font-bold">Detail Anggota</h3>
-                    <dl id="isiDetailAnggota" class="mt-4 space-y-3 text-sm"></dl>
-                    <div class="mt-5 text-right">
-                        <button type="button" onclick="this.closest('dialog').close()"
-                                class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200
-                                       dark:bg-slate-700 dark:hover:bg-slate-600 transition">Tutup</button>
-                    </div>
-                </div>
-            </dialog>
+        class="m-auto w-[min(92vw,28rem)] overflow-hidden rounded-2xl border border-slate-200 p-0 shadow-2xl
+               bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100
+               backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm">
+
+    <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-4 dark:border-slate-700 dark:bg-slate-900/40">
+        <span id="inisialDetail"
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"></span>
+        <div class="min-w-0">
+            <p id="namaDetail" class="truncate text-base font-bold"></p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Anggota kelompok</p>
+        </div>
+    </div>
+
+    <dl id="isiDetailAnggota" class="grid grid-cols-2 gap-x-5 gap-y-3 px-5 py-4 text-sm"></dl>
+
+    <div class="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-4 dark:border-slate-700">
+        <a id="lihatSuratDetail" href="#" target="_blank" rel="noopener"
+           class="hidden rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-700 transition
+                  hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-500/20">
+            Lihat Surat Pengantar
+        </a>
+        <span id="tanpaSuratDetail" class="hidden text-xs text-amber-700 dark:text-amber-300">Surat pengantar belum diunggah</span>
+
+        <button type="button" onclick="this.closest('dialog').close()"
+                class="ml-auto rounded-lg bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 transition
+                       hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">
+            Tutup
+        </button>
+    </div>
+</dialog>
         </div>
 
     </div>
@@ -387,30 +460,34 @@ $anggotaAwal = collect(old('anggota', $pendaftaran?->anggotas->map(fn ($a) => $a
                     </div>
 
                     {{-- SECTION 3 --}}
-                    <div class="form-section">
-                        <x-step-heading number="3" variant="indigo">
-                            Unggah Berkas Persyaratan
-                        </x-step-heading>
-                        <div class="mt-3 mb-4 ml-0 sm:ml-10">
-                            <div class="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                <svg class="w-4 h-4 mt-0.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M13 16h-1v-4h-1m1-8h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
-                                </svg>
-                                <p>
-                                    Format file wajib
-                                    <strong class="text-slate-700 dark:text-slate-200">PDF</strong>
-                                    dengan ukuran maksimal
-                                    <strong class="text-slate-700 dark:text-slate-200">2MB</strong>
-                                    per file.
-                                    @if($isEdit)
-                                        <span class="block mt-1">
-                                            Kosongkan file jika tidak ingin mengganti dokumen yang sudah ada.
-                                        </span>
-                                    @endif
-                                </p>
-                            </div>
-                        </div>
+<div class="form-section">
+    <x-step-heading number="3" variant="indigo">
+        Data Surat Pengantar &amp; Proposal
+    </x-step-heading>
+
+    <p class="mt-3 mb-4 sm:ml-10 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+        Isi sesuai surat pengantar dari kampus/sekolah. Pada pendaftaran berkelompok, data ini dipakai bersama oleh seluruh anggota.
+        Format file wajib <strong class="text-slate-700 dark:text-slate-200">PDF</strong>, maksimal
+        <strong class="text-slate-700 dark:text-slate-200">2MB</strong> per file.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <x-form.input type="date" name="tanggal_surat_pengantar" id="tanggal_surat_pengantar"
+                      label="Tanggal Surat Pengantar" required max="{{ date('Y-m-d') }}"
+                      :value="old('tanggal_surat_pengantar', $tglPengantarVal)" />
+
+        <x-form.input name="jabatan_penerima" label="Pengirim Surat" required
+                      placeholder="Contoh: Direktur Pendidikan dan Transformasi Pendidikan"
+                      hint="Jabatan pejabat kampus/sekolah yang menandatangani surat pengantar; surat balasan ditujukan kepadanya."
+                      :value="old('jabatan_penerima', $pendaftaran?->jabatan_penerima)" />
+
+        <x-form.input name="kota_tujuan" label="Kota Kampus / Sekolah" required placeholder="Contoh: Surabaya"
+                      :value="old('kota_tujuan', $pendaftaran?->kota_tujuan)" />
+
+        <x-form.file name="proposal" label="Proposal Magang" accept=".pdf"
+                     :hint="$isEdit && filled($pendaftaran->proposal) ? 'File saat ini: ' . basename($pendaftaran->proposal) : 'Opsional.'" />
+    </div>
+</div>
 
                         
 {{-- DATA SURAT PENGANTAR (dipakai mengisi surat balasan) --}}
@@ -652,20 +729,33 @@ $anggotaAwal = collect(old('anggota', $pendaftaran?->anggotas->map(fn ($a) => $a
 // ==========================================
 // ANGGOTA KELOMPOK
 // ==========================================
-const KOLOM_ANGGOTA  = ['nama_lengkap', 'nim_nisn', 'instansi', 'jurusan', 'no_hp'];
-const LABEL_ANGGOTA  = {
+const KOLOM_ANGGOTA = ['nama_lengkap', 'nim_nisn', 'instansi', 'jurusan', 'no_hp', 'nomor_surat_pengantar'];
+const LABEL_ANGGOTA = {
     nama_lengkap: 'Nama Lengkap', nim_nisn: 'NIM / NISN', instansi: 'Asal Instansi',
-    jurusan: 'Jurusan / Program Studi', no_hp: 'No. WhatsApp / HP',
+    jurusan: 'Jurusan / Program Studi', no_hp: 'No. WhatsApp / HP', nomor_surat_pengantar: 'Nomor Surat Pengantar',
 };
-const MAKS_ANGGOTA   = @json(\App\Models\PendaftaranMagang::MAKS_ANGGOTA);
-let anggota   = @json($anggotaAwal);
-let editIndex = null;
+const MAKS_ANGGOTA = @json(\App\Models\PendaftaranMagang::MAKS_ANGGOTA);
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const tipeDipilih = () => document.querySelector('input[name="tipe"]:checked')?.value ?? 'mandiri';
-const ed = k => document.querySelector(`[name="ang_${k}"]`);
+const ed  = k => document.querySelector(`[name="ang_${k}"]`);
 const $id = id => document.getElementById(id);
+
+const buatUid   = () => (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)).slice(0, 36);
+const normalisasi = a => { a.uid ??= a.id ? 'id' + a.id : buatUid(); a.surat ??= null; return a; };
+
+let anggota = @json($anggotaAwal).map(normalisasi);
+const berkasAnggota = new Map();   // uid -> <input type="file"> berisi PDF yang dipilih tetapi belum terunggah
+let editIndex = null;
+
+const suratAda = a => Boolean(a.surat) || berkasAnggota.has(a.uid);
+
+/** URL untuk membuka surat: pratinjau file yang baru dipilih, atau PDF yang sudah tersimpan. */
+function urlSurat(a) {
+    const berkas = berkasAnggota.get(a.uid)?.files[0];
+    return berkas ? URL.createObjectURL(berkas) : a.surat;
+}
 
 function renderAnggota() {
     const kelompok = tipeDipilih() === 'kelompok';
@@ -675,9 +765,14 @@ function renderAnggota() {
             <span class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-xs font-bold
                          bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">${i + 1}</span>
             <div class="min-w-0 flex-1">
-                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">${esc(a.nama_lengkap)}</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${esc(a.nim_nisn)}</p>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100 break-words">${esc(a.nama_lengkap)}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 break-words">${esc(a.nim_nisn)} · Surat No. ${esc(a.nomor_surat_pengantar)}</p>
             </div>
+            <span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${suratAda(a)
+                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
+                : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'}">
+                ${suratAda(a) ? 'Surat terlampir' : 'Belum ada surat'}
+            </span>
             <details class="relative">
                 <summary aria-label="Menu anggota"
                          class="list-none cursor-pointer px-2 py-1 rounded-lg text-lg leading-none
@@ -692,11 +787,31 @@ function renderAnggota() {
             </details>
         </li>`).join('');
 
-    // Hanya dikirim bila berkelompok; data tetap di memori jika user kembali memilih "Berkelompok".
+    // Field tersembunyi hanya dikirim bila berkelompok; data tetap di memori jika user kembali memilih "Berkelompok".
     $id('hiddenAnggota').innerHTML = kelompok
-        ? anggota.map((a, i) => KOLOM_ANGGOTA.map(k =>
-            `<input type="hidden" name="anggota[${i}][${k}]" value="${esc(a[k])}">`).join('')).join('')
+        ? anggota.map((a, i) => [
+              ...KOLOM_ANGGOTA.map(k => [k, a[k]]),
+              ['uid', a.uid],
+              ...(a.id ? [['id', a.id]] : []),
+          ].map(([k, v]) => `<input type="hidden" name="anggota[${i}][${k}]" value="${esc(v)}">`).join('')).join('')
         : '';
+
+    // Kolom berkas: nama mengikuti urutan terbaru; kolom milik anggota yang sudah dihapus dibuang.
+    const kontainer = $id('berkasAnggota');
+    const aktif = new Set(anggota.map(a => a.uid));
+
+    [...berkasAnggota].forEach(([uid, el]) => {
+        if (!aktif.has(uid)) { el.remove(); berkasAnggota.delete(uid); }
+    });
+
+    anggota.forEach((a, i) => {
+        const el = berkasAnggota.get(a.uid);
+        if (!el) return;
+
+        el.name = `anggota[${i}][surat_pengantar]`;
+        el.disabled = !kelompok;   // mode mandiri: tidak ikut terkirim
+        if (el.parentElement !== kontainer) kontainer.append(el);
+    });
 
     $id('jumlahAnggota').textContent = anggota.length ? `(${anggota.length})` : '';
     $id('btnTambahAnggota').disabled = anggota.length >= MAKS_ANGGOTA;
@@ -704,10 +819,28 @@ function renderAnggota() {
 
 function terapkanTipe() {
     const kelompok = tipeDipilih() === 'kelompok';
+
     $id('blokAnggota').classList.toggle('hidden', !kelompok);
     $id('labelKetua').classList.toggle('hidden', !kelompok);
+    $id('petunjukKelompok').classList.toggle('hidden', !kelompok);
+
     if (!kelompok) tutupEditor();
     renderAnggota();
+}
+
+function infoSuratEditor(a) {
+    const info = $id('infoSuratEditor');
+    const url  = a ? urlSurat(a) : null;
+
+    info.innerHTML = url
+        ? `File saat ini: <a href="${esc(url)}" target="_blank" rel="noopener" class="font-semibold text-blue-600 hover:underline dark:text-cyan-400">Lihat surat</a>. Pilih file baru hanya bila ingin menggantinya.`
+        : '';
+    info.classList.toggle('hidden', !url);
+}
+
+function tampilkanErrorEditor(pesan) {
+    $id('errorEditor').textContent = pesan;
+    $id('errorEditor').classList.remove('hidden');
 }
 
 function bukaEditor(i = null) {
@@ -715,6 +848,9 @@ function bukaEditor(i = null) {
     const a = i === null ? { instansi: fieldEl('instansi')?.value ?? '' } : anggota[i];
 
     KOLOM_ANGGOTA.forEach(k => { ed(k).value = a[k] ?? ''; });
+    ed('surat_pengantar').value = '';
+    infoSuratEditor(i === null ? null : a);
+
     $id('judulEditor').textContent = i === null ? 'Tambah Anggota' : `Edit Anggota ${i + 1}`;
     $id('errorEditor').classList.add('hidden');
     $id('editorAnggota').classList.remove('hidden');
@@ -732,6 +868,16 @@ function cekAnggota(a) {
         if (pesan) return pesan;
     }
 
+    const lama   = editIndex === null ? null : anggota[editIndex];
+    const berkas = ed('surat_pengantar').files[0];
+
+    if (!berkas && !(lama && suratAda(lama))) return 'Surat pengantar anggota wajib diunggah (PDF).';
+
+    if (berkas) {
+        const pesan = validateFile(ed('surat_pengantar'), false);
+        if (pesan) return pesan;
+    }
+
     const nimLain = [fieldEl('nim_nisn')?.value.trim(), ...anggota.filter((_, j) => j !== editIndex).map(x => x.nim_nisn)];
     return nimLain.includes(a.nim_nisn) ? 'NIM / NISN sudah dipakai ketua atau anggota lain.' : null;
 }
@@ -740,13 +886,23 @@ function simpanAnggota() {
     const a = Object.fromEntries(KOLOM_ANGGOTA.map(k => [k, ed(k).value.trim()]));
     const pesan = cekAnggota(a);
 
-    if (pesan) {
-        $id('errorEditor').textContent = pesan;
-        $id('errorEditor').classList.remove('hidden');
-        return;
+    if (pesan) return tampilkanErrorEditor(pesan);
+
+    const item = normalisasi({ ...(editIndex === null ? {} : anggota[editIndex]), ...a });   // uid, id, surat dipertahankan
+
+    // PDF yang dipilih: kolomnya dipindah ke penampung tersembunyi, editor mendapat kolom kosong yang baru.
+    const pilihan = ed('surat_pengantar');
+    if (pilihan.files.length) {
+        const pengganti = pilihan.cloneNode();
+        pilihan.replaceWith(pengganti);
+        ['id', 'form', 'required'].forEach(n => pilihan.removeAttribute(n));
+        pilihan.classList.add('hidden');
+
+        berkasAnggota.get(item.uid)?.remove();
+        berkasAnggota.set(item.uid, pilihan);
     }
 
-    editIndex === null ? anggota.push(a) : (anggota[editIndex] = a);
+    editIndex === null ? anggota.push(item) : (anggota[editIndex] = item);
     tutupEditor();
     perubahanAnggota();
 }
@@ -759,23 +915,36 @@ function hapusAnggota(i) {
 }
 
 function lihatAnggota(i) {
-    $id('isiDetailAnggota').innerHTML = KOLOM_ANGGOTA.map(k => `
-        <div>
-            <dt class="text-[11px] font-bold uppercase tracking-wider text-slate-400">${LABEL_ANGGOTA[k]}</dt>
-            <dd class="mt-0.5 font-semibold break-words">${esc(anggota[i][k]) || '-'}</dd>
-        </div>`).join('');
+    const a   = anggota[i];
+    const url = urlSurat(a);
+
+    $id('inisialDetail').textContent = (a.nama_lengkap || '?').trim().charAt(0).toUpperCase();
+    $id('namaDetail').textContent = a.nama_lengkap;
+
+    $id('isiDetailAnggota').innerHTML = [['nim_nisn', 1], ['no_hp', 1], ['instansi', 2], ['jurusan', 2], ['nomor_surat_pengantar', 2]]
+        .map(([k, lebar]) => `
+            <div class="${lebar === 2 ? 'col-span-2' : ''}">
+                <dt class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">${LABEL_ANGGOTA[k]}</dt>
+                <dd class="mt-0.5 font-semibold break-words">${esc(a[k]) || '-'}</dd>
+            </div>`).join('');
+
+    const tautan = $id('lihatSuratDetail');
+    tautan.classList.toggle('hidden', !url);
+    if (url) tautan.href = url;
+    $id('tanpaSuratDetail').classList.toggle('hidden', Boolean(url));
+
     $id('dialogAnggota').showModal();
 }
 
 function perubahanAnggota() {
     simpanBackup();
     renderAnggota();
-    if (AUTOSAVE_AKTIF) scheduleAutoSave();
+    if (AUTOSAVE_AKTIF) scheduleAutoSave();   // hidden input tidak memicu event, jadi dipanggil manual
 }
 
 function initAnggota() {
-ed('no_hp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, ''); });    
-document.querySelectorAll('input[name="tipe"]').forEach(r => r.addEventListener('change', terapkanTipe));
+    ed('no_hp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, ''); });
+    document.querySelectorAll('input[name="tipe"]').forEach(r => r.addEventListener('change', terapkanTipe));
 
     const aksi = { edit: bukaEditor, lihat: lihatAnggota, hapus: hapusAnggota };
     $id('daftarAnggota').addEventListener('click', e => {
@@ -792,15 +961,26 @@ document.querySelectorAll('input[name="tipe"]').forEach(r => r.addEventListener(
         });
     });
 
+    const editor = $id('editorAnggota');
+
     // Enter di editor = Simpan Anggota (bukan submit form).
-    $id('editorAnggota').addEventListener('keydown', e => {
+    editor.addEventListener('keydown', e => {
         if (e.key === 'Enter') { e.preventDefault(); simpanAnggota(); }
+    });
+
+    // PDF langsung dicek formatnya dan ukurannya saat dipilih.
+    editor.addEventListener('change', e => {
+        if (e.target.name !== 'ang_surat_pengantar' || !e.target.files[0]) return;
+
+        const pesan = validateFile(e.target, false);
+        if (pesan) { tampilkanErrorEditor(pesan); e.target.value = ''; }
     });
 
     terapkanTipe();
 }
 document.addEventListener('DOMContentLoaded', () => {
     const pulih = pulihkanBackup();   // harus sebelum bidang dimuat
+    window.sinkronKombo?.();
 
     const bidangSiap = document.getElementById('dinasTujuan').value
         ? updateBidang(pulih?.fields.instansi_bidang_id || @json(old('instansi_bidang_id', $pendaftaran?->instansi_bidang_id)))
@@ -852,6 +1032,7 @@ function pulihkanBackup() {
     }
 
     anggota = Array.isArray(data.anggota) ? data.anggota : [];
+    anggota.forEach(normalisasi);
     return data;
 }
 
@@ -960,6 +1141,8 @@ function initBackup() {
         const form = document.getElementById('pendaftaranForm');
         return form ? form.elements[name] : null;
     }
+// Elemen yang menampilkan status validasi (untuk kolom pencarian: kolom ketiknya).
+const tampilEl = el => el.parentElement?.querySelector('[data-kombo-input]') || el;
 
     function showFieldError(name, message) {
         const el = fieldEl(name);
@@ -974,8 +1157,8 @@ function initBackup() {
         }
         err.textContent = message;
 
-        el.classList.remove('border-emerald-400', 'ring-emerald-100');
-        el.classList.add('border-rose-400');
+        tampilEl(el).classList.remove('border-emerald-400', 'ring-emerald-100');
+tampilEl(el).classList.add('border-rose-400');
     }
 
     function showFieldSuccess(name) {
@@ -985,15 +1168,15 @@ function initBackup() {
         const err = document.querySelector('[data-client-error="' + name + '"]');
         if (err) err.remove();
 
-        el.classList.remove('border-rose-400');
-        el.classList.add('border-emerald-400');
+        tampilEl(el).classList.remove('border-rose-400');
+tampilEl(el).classList.add('border-emerald-400');
     }
 
     function clearFieldState(name) {
         const el = fieldEl(name);
         const err = document.querySelector('[data-client-error="' + name + '"]');
         if (err) err.remove();
-        if (el) el.classList.remove('border-rose-400', 'border-emerald-400');
+        if (el) tampilEl(el).classList.remove('border-rose-400', 'border-emerald-400');
     }
 
     function validateField(name) {
@@ -1080,20 +1263,18 @@ function initBackup() {
         cekBerkas(form, 'proposal', false, errors);
         if (tipeDipilih() === 'kelompok') {
     const editorTerbuka = !document.getElementById('editorAnggota').classList.contains('hidden');
+    const tanpaSurat = anggota.filter(a => !suratAda(a)).map(a => a.nama_lengkap);
 
     const msg = editorTerbuka
         ? 'Simpan atau batalkan form anggota yang sedang dibuka.'
-        : (strict && !anggota.length
+        : strict && !anggota.length
             ? 'Tambahkan minimal satu anggota kelompok.'
-            : null);
+            : strict && tanpaSurat.length
+                ? 'Surat pengantar belum diunggah untuk: ' + tanpaSurat.join(', ') + '.'
+                : null;
 
-    if (msg) {
-        errors.push({
-            field: 'anggota',
-            label: 'Anggota Kelompok',
-            message: msg
-        });
-    }
+    if (msg) errors.push({ field: 'anggota', label: 'Anggota Kelompok', message: msg });
+}
 }
         if (errors.length) {
             showErrorSummary(errors);
@@ -1146,34 +1327,62 @@ function initBackup() {
     let autoSavePromise = null;
 
     function kirimDraft() {
-        const form = document.getElementById('pendaftaranForm');
-        const formData = new FormData(form);
-        formData.delete('_method');
+    const form = document.getElementById('pendaftaranForm');
+    const formData = new FormData(form);
+    formData.delete('_method');
 
-        const dikirim = [...berkasBerubah];
-        ['surat_pengantar', 'proposal'].forEach(n => {
-            if (!berkasBerubah.has(n)) formData.delete(n);
-        });
+    const dikirim = [...berkasBerubah];
+    ['surat_pengantar', 'proposal'].forEach(n => {
+        if (!berkasBerubah.has(n)) formData.delete(n);
+    });
 
-        return fetch(URL_DRAFT, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': form.elements['_token'].value,
-                'Accept': 'application/json',
-            },
-        }).then(async res => {
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok || !data.success) {
-                const pesanValidasi = data.errors ? Object.values(data.errors)[0][0] : null;
-                throw new Error(pesanValidasi || data.message || 'Draft gagal disimpan.');
+    // Berkas anggota yang ikut terkirim pada permintaan ini (dibersihkan setelah tersimpan).
+    const terkirim = new Map(berkasAnggota);
+
+    return fetch(URL_DRAFT, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': form.elements['_token'].value,
+            'Accept': 'application/json',
+        },
+    }).then(async res => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+            const pesanValidasi = data.errors ? Object.values(data.errors)[0][0] : null;
+            throw new Error(pesanValidasi || data.message || 'Draft gagal disimpan.');
+        }
+
+        dikirim.forEach(n => berkasBerubah.delete(n));
+        hasSuratPengantar = hasSuratPengantar || data.has_surat;
+
+        if (data.surat_url) {
+            const tautan = $id('lihatSuratKetua');
+            tautan.href = data.surat_url;
+            tautan.classList.remove('hidden');
+        }
+
+        // Anggota: simpan id dan URL surat dari server; buang kolom berkas yang sudah tersimpan.
+        Object.entries(data.anggota ?? {}).forEach(([uid, info]) => {
+            const a = anggota.find(x => x.uid === uid);
+            if (!a) return;
+
+            a.id = info.id;
+            a.surat = info.surat;
+
+            const el = terkirim.get(uid);
+            if (el && berkasAnggota.get(uid) === el) {   // belum diganti pilihan yang lebih baru
+                el.remove();
+                berkasAnggota.delete(uid);
             }
-            dikirim.forEach(n => berkasBerubah.delete(n));
-            hasSuratPengantar = hasSuratPengantar || data.has_surat;
-            return data;
         });
-    }
 
+        renderAnggota();
+        simpanBackup();
+
+        return data;
+    });
+}
     function scheduleAutoSave() {
         adaPerubahan = true;
         clearTimeout(autoSaveTimer);
@@ -1289,6 +1498,10 @@ function initBackup() {
         clearTimeout(autoSaveTimer);
         await autoSavePromise;
         hapusBackup();
+        ['surat_pengantar', 'proposal'].forEach(n => {
+    const el = fieldEl(n);
+    if (el && !berkasBerubah.has(n)) el.disabled = true;   // sudah ada di server
+});
         document.getElementById('pendaftaranForm').submit();
     }
 

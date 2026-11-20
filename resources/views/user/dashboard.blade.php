@@ -164,7 +164,7 @@
 @endphp
 
 <div class="px-4 sm:px-6">
-<div class="mx-auto max-w-6xl space-y-10 sm:space-y-14">
+<div class="mx-auto max-w-6xl space-y-14 sm:space-y-20">
 
     {{-- =================== ATAS: SAMBUTAN, PERINGATAN, STATUS =================== --}}
     <div class="space-y-4 sm:space-y-5">

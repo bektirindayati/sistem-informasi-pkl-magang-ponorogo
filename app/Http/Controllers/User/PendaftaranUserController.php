@@ -12,6 +12,7 @@ use App\Http\Requests\Pendaftaran\UpdatePendaftaranRequest;
 use App\Models\Dinas;
 use App\Models\InstansiBidang;
 use App\Models\PendaftaranMagang;
+use App\Services\SinkronAnggota;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -22,6 +23,10 @@ use Illuminate\Support\Facades\Storage;
  */
 class PendaftaranUserController extends Controller
 {
+    public function __construct(private SinkronAnggota $anggota)
+    {
+    }
+
     // ---------- Form & penyimpanan ----------
 
     public function create(Request $request)
@@ -74,45 +79,37 @@ class PendaftaranUserController extends Controller
         ]);
     }
 
-    /**
-     * Menyimpan draft pendaftaran melalui AJAX.
-     */
     public function saveDraft(DraftPendaftaranRequest $request)
-    {
-        $pendaftaran = $this->simpan(
-            $request->pendaftaran(),
-            $request
-        );
+{
+    [$pendaftaran, $anggota] = $this->simpan($request->pendaftaran(), $request);
 
-        return response()->json([
-            'success' => true,
-            'id' => $pendaftaran->id,
-            'has_surat' => filled($pendaftaran->surat_pengantar),
-            'detail_url' => route(
-                'user.pendaftaran.show',
-                $pendaftaran->id
-            ),
-            'message' => 'Draft berhasil disimpan.',
-        ]);
-    }
-
+    return response()->json([
+        'success'    => true,
+        'id'         => $pendaftaran->id,
+        'has_surat'  => filled($pendaftaran->surat_pengantar),
+        'surat_url'  => filled($pendaftaran->surat_pengantar) ? asset('storage/' . $pendaftaran->surat_pengantar) : null,
+        'anggota'    => $anggota,
+        'detail_url' => route('user.pendaftaran.show', $pendaftaran->id),
+        'message'    => 'Draft berhasil disimpan.',
+    ]);
+}
     /**
      * Mengirim pendaftaran baru.
      */
     public function store(StorePendaftaranRequest $request)
-    {
-        $this->simpan(
-            $request->pendaftaran(),
-            $request
-        );
+{
+    $this->simpan(
+        $request->pendaftaran(),
+        $request
+    );
 
-        return redirect()
-            ->route('user.pendaftaran.riwayat')
-            ->with(
-                'success',
-                'Pendaftaran berhasil dikirim dan sedang menunggu verifikasi.'
-            );
-    }
+    return redirect()
+        ->route('user.pendaftaran.riwayat')
+        ->with(
+            'success',
+            'Pendaftaran berhasil dikirim dan sedang menunggu verifikasi.'
+        );
+}
 
     /**
      * Menampilkan kembali formulir untuk mengedit pengajuan.
@@ -129,19 +126,16 @@ class PendaftaranUserController extends Controller
      * Menyimpan perubahan pengajuan.
      */
     public function update(UpdatePendaftaranRequest $request)
-    {
-        $pendaftaran = $this->simpan(
-            $request->pendaftaran(),
-            $request
-        );
+{
+    [$pendaftaran] = $this->simpan($request->pendaftaran(), $request);
 
-        return redirect()
-            ->route('user.pendaftaran.show', $pendaftaran->id)
-            ->with(
-                'success',
-                'Perubahan berhasil disimpan, menunggu verifikasi ulang.'
-            );
-    }
+    return redirect()
+        ->route('user.pendaftaran.show', $pendaftaran->id)
+        ->with(
+            'success',
+            'Perubahan berhasil disimpan, menunggu verifikasi ulang.'
+        );
+}
 
     // ---------- Detail pengajuan ----------
 
@@ -223,50 +217,42 @@ class PendaftaranUserController extends Controller
 
     // ---------- Pembantu ----------
 
-    /**
-     * Mengisi data dari request, menyimpan berkas,
-     * lalu menyimpan record pendaftaran dan anggota kelompok.
-     */
-    private function simpan(
-        PendaftaranMagang $pendaftaran,
-        BasePendaftaranRequest $request
-    ): PendaftaranMagang {
+   /**
+ * Mengisi data, menyimpan berkas, record, dan anggota.
+ * Mengembalikan [pendaftaran, peta anggota].
+ */
+private function simpan(
+    PendaftaranMagang $pendaftaran,
+    BasePendaftaranRequest $request
+): array {
+    $pendaftaran->fill($request->dataPendaftaran());
 
-        $pendaftaran->fill($request->dataPendaftaran());
+    $baru = [];
 
-        $baru = [];
-
-        foreach (PendaftaranMagang::KOLOM_BERKAS as $kolom) {
-            if ($request->hasFile($kolom)) {
-                $baru[] = $pendaftaran->{$kolom} =
-                    $request->file($kolom)->store(
-                        "pendaftaran/{$kolom}",
-                        PendaftaranMagang::DISK_BERKAS
-                    );
-            }
+    foreach (PendaftaranMagang::KOLOM_BERKAS as $kolom) {
+        if ($request->hasFile($kolom)) {
+            $baru[] = $pendaftaran->{$kolom} = $request->file($kolom)->store(
+                "pendaftaran/{$kolom}",
+                PendaftaranMagang::DISK_BERKAS
+            );
         }
-
-        try {
-            DB::transaction(function () use ($pendaftaran, $request) {
-                // Simpan data utama pendaftaran.
-                $pendaftaran->save();
-
-                // Hapus anggota lama.
-                $pendaftaran->anggotas()->delete();
-
-                // Simpan anggota terbaru.
-                $pendaftaran->anggotas()->createMany(
-                    $request->dataAnggota()
-                );
-            });
-        } catch (\Throwable $e) {
-            // Jika gagal simpan, hapus berkas baru agar tidak menjadi sampah.
-            Storage::disk(PendaftaranMagang::DISK_BERKAS)
-                ->delete($baru);
-
-            throw $e;
-        }
-
-        return $pendaftaran;
     }
+
+    $hasil = ['peta' => [], 'hapus' => []];
+
+    try {
+        DB::transaction(function () use ($pendaftaran, $request, &$baru, &$hasil) {
+            $pendaftaran->save(); // Berkas lama dihapus oleh hook updated di model.
+            $hasil = $this->anggota->jalankan($pendaftaran, $request->dataAnggota(), $baru);
+        });
+    } catch (\Throwable $e) {
+        Storage::disk(PendaftaranMagang::DISK_BERKAS)->delete($baru);
+
+        throw $e;
+    }
+
+    Storage::disk(PendaftaranMagang::DISK_BERKAS)->delete($hasil['hapus']);
+
+    return [$pendaftaran, $hasil['peta']];
+}
 }

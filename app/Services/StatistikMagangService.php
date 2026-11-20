@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\AnggotaPendaftaran;
 use App\Models\PendaftaranMagang;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
 /** Statistik magang: beranda publik & super admin (semua dinas) atau admin dinas (satu dinas). */
@@ -12,12 +11,9 @@ class StatistikMagangService
 {
     private const JUMLAH_TAHUN = 5;
 
-    /** @param User|null $admin null = semua dinas (beranda publik) */
-    public function ringkasan(?User $admin = null): array
+    public function ringkasan(): array
     {
-        $dasar = fn (): Builder => PendaftaranMagang::query()
-            ->sudahDikirim()
-            ->when($admin, fn (Builder $q) => $q->untukAdmin($admin));
+        $dasar = fn (): Builder => PendaftaranMagang::query()->sudahDikirim();
 
         $tahunIni = now()->year;
         $tahun    = range($tahunIni - self::JUMLAH_TAHUN + 1, $tahunIni);

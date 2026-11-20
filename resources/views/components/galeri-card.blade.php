@@ -38,9 +38,9 @@
     </div>
 
     {{-- Isi --}}
-    <div class="flex flex-1 flex-col p-5">
+    <div class="flex flex-1 flex-col p-4">
 
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 dark:text-slate-300">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-slate-500 dark:text-slate-300">
             @if($tanggal)
                 <span class="inline-flex items-center gap-1.5">
                     <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -62,18 +62,18 @@
             @endif
         </div>
 
-        <h3 class="mt-3 line-clamp-2 text-lg font-bold leading-snug text-slate-900 transition-colors
+        <h3 class="mt-2.5 line-clamp-2 text-base font-bold leading-snug text-slate-900 transition-colors
                    group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-300">
             {{ $judul }}
         </h3>
 
         @if($ringkasan)
-            <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+            <p class="mt-1.5 line-clamp-3 text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">
                 {{ $ringkasan }}
             </p>
         @endif
 
-        <span class="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-bold text-blue-700 dark:text-blue-400">
+        <span class="mt-auto inline-flex items-center gap-1 pt-3 text-[13px] font-bold text-blue-700 dark:text-blue-400">
             Baca selengkapnya
             <svg class="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" fill="none"
                  stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

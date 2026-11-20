@@ -70,11 +70,13 @@ return new class extends Migration
         Schema::create('anggota_pendaftarans', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pendaftaran_magang_id')->constrained('pendaftaran_magangs')->cascadeOnDelete();
-            $table->string('nama_lengkap');
+           $table->string('nama_lengkap');
             $table->string('nim_nisn', 50);
             $table->string('instansi');
             $table->string('jurusan');
             $table->string('no_hp', 20);
+            $table->string('nomor_surat_pengantar', 100)->nullable();
+            $table->string('surat_pengantar')->nullable();
             $table->timestamps();
         });
 

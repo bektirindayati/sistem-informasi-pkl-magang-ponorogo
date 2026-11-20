@@ -83,12 +83,16 @@ class SuratBalasanService extends DokumenService
             'nip_pengirim'     => $this->isi($dinas?->nip_pejabat),
 
             // =========================================
-            // SURAT: TUJUAN DAN RUJUKAN SURAT PENGANTAR
-            // =========================================
-            'tanggal_surat'       => $this->tanggal(today()),
-            'jabatan_penerima'    => $this->isi($p->jabatan_penerima),
-            'nama_penerima'       => $this->isi($p->instansi),
-            'kota_tujuan'         => Str::upper($this->isi($p->kota_tujuan)),
+// SURAT: TUJUAN DAN RUJUKAN SURAT PENGANTAR
+// =========================================
+'tanggal_surat' => $this->tanggal(today()),
+
+// Yth.: jabatan penerima, lalu nama kampus/sekolah di baris bawah.
+'nama_penerima' => $this->isi(
+    implode("\n", array_filter([$p->jabatan_penerima, $p->instansi]))
+),
+
+'kota_tujuan' => Str::upper($this->isi($p->kota_tujuan)),
 
             'pengirim_surat' => $this->isi(
                 trim($p->jabatan_penerima . ' ' . $p->instansi)
