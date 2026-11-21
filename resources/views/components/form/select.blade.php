@@ -24,8 +24,8 @@
     {{-- Label --}}
     <label
         for="{{ $id }}"
-        class="block text-sm font-semibold
-               text-slate-700 dark:text-slate-200
+        class="block text-[13px] font-semibold
+               text-slate-600 dark:text-slate-300
                mb-1.5"
     >
         {{ $label }}
@@ -51,7 +51,7 @@
                 spellcheck="false"
                 placeholder="{{ $cariPlaceholder }}"
                 data-kombo-input
-                class="w-full pl-4 pr-10 py-3 rounded-xl border text-sm font-medium
+                class="w-full h-11 pl-4 pr-10 rounded-xl border text-[15px] font-medium
                        outline-none transition-colors duration-200 {{ $batas }}
                        text-slate-800 dark:text-slate-100
                        placeholder:text-slate-400 dark:placeholder:text-slate-500
@@ -73,24 +73,19 @@
         </div>
     @endif
 
-    {{-- Select --}}
+    {{-- Select (tinggi h-11, sama dengan input & kolom pencarian) --}}
     <select
         name="{{ $name }}"
         id="{{ $id }}"
         @if ($required) required @endif
         {{ $attributes->except(['id', 'class'])->merge([
             'class' =>
-                'w-full px-4 py-3 rounded-xl border text-sm font-medium ' .
+                'w-full h-11 px-4 rounded-xl border text-[15px] font-medium ' .
                 'outline-none transition-colors duration-200 ' .
-
-                ($hasError
-                    ? 'border-rose-500 bg-rose-50/50 dark:bg-rose-500/10 dark:border-rose-500'
-                    : 'border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-900') .
-
+                $batas .
                 ' text-slate-800 dark:text-slate-100' .
                 ' focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500' .
                 ' dark:focus:ring-cyan-500/20 dark:focus:border-cyan-500' .
-
                 ' shadow-sm dark:shadow-none',
         ]) }}
     >

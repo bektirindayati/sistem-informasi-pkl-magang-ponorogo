@@ -18,8 +18,8 @@
     {{-- Label --}}
     <label
         for="{{ $id }}"
-        class="block text-sm font-semibold
-               text-slate-700 dark:text-slate-200
+        class="block text-[13px] font-semibold
+               text-slate-600 dark:text-slate-300
                mb-1.5"
     >
         {{ $label }}
@@ -29,7 +29,7 @@
         @endif
     </label>
 
-    {{-- Input --}}
+    {{-- Input (tinggi tetap h-11 agar sama dengan select & kolom pencarian) --}}
     <input
         type="{{ $type }}"
         name="{{ $name }}"
@@ -38,15 +38,15 @@
         @if ($required) required @endif
         {{ $attributes->except(['id', 'value', 'class'])->merge([
             'class' =>
-                'w-full px-4 py-3 rounded-xl border text-sm ' .
+                'w-full h-11 px-4 rounded-xl border text-[15px] font-medium ' .
                 'outline-none transition-colors duration-200 ' .
 
                 ($hasError
                     ? 'border-rose-500 bg-rose-50/50 dark:bg-rose-500/10 dark:border-rose-500'
                     : 'border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-900') .
 
-                ' text-slate-800 dark:text-slate-100' .
-                ' placeholder:text-slate-400 dark:placeholder:text-slate-500' .
+                '' .
+                ' text-slate-900 dark:text-slate-100 placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400' .
 
                 ' read-only:bg-slate-50 dark:read-only:bg-slate-800' .
                 ' read-only:text-slate-500 dark:read-only:text-slate-300' .
