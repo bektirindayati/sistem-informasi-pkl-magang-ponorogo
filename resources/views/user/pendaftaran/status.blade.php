@@ -30,7 +30,7 @@
 
         {{-- BELUM PERNAH MENDAFTAR --}}
         <x-card class="text-center !py-12">
-            <div class="text-3xl mb-3">📭</div>
+            <x-ikon name="inbox" class="mx-auto mb-3 h-10 w-10 text-slate-400 dark:text-slate-500" />
 
             <h2 class="text-base font-semibold text-slate-900 dark:text-white">
                 Belum Ada Pendaftaran
@@ -47,48 +47,41 @@
 
     @else
 
-        @php
-            $status = $pendaftaran->status;
+       @php
+    $status = $pendaftaran->status;
 
-            // Tiga langkah: dikirim -> verifikasi -> keputusan
-            $langkah = [
-                ['label' => 'Data Dikirim', 'state' => $status === 'draft' ? 'active' : 'done'],
-                ['label' => 'Verifikasi',   'state' => match (true) {
-                    $status === 'draft'                      => 'todo',
-                    in_array($status, ['pending', 'revisi']) => 'active',
-                    default                                  => 'done',
-                }],
-                ['label' => 'Keputusan',    'state' => match ($status) {
-                    'diterima', 'selesai' => 'done',
-                    'ditolak'             => 'rejected',
-                    default               => 'todo',
-                }],
-            ];
+    // Tiga langkah: dikirim -> verifikasi -> keputusan
+    $langkah = [
+        ['label' => 'Data Dikirim', 'state' => $status === 'draft' ? 'active' : 'done'],
+        ['label' => 'Verifikasi', 'state' => match (true) {
+            $status === 'draft'                       => 'todo',
+            in_array($status, ['pending', 'revisi'])  => 'active',
+            default                                   => 'done',
+        }],
+        ['label' => 'Keputusan', 'state' => match ($status) {
+            'diterima', 'selesai' => 'done',
+            'ditolak'             => 'rejected',
+            default               => 'todo',
+        }],
+    ];
 
-            $warnaBulat = [
-                'done'     => 'bg-emerald-500 text-white',
-                'active'   => 'bg-blue-600 text-white animate-pulse',
-                'rejected' => 'bg-rose-500 text-white',
-                'todo'     => 'bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400',
-            ];
+    $warnaBulat = [
+        'done'     => 'bg-emerald-500 text-white',
+        'active'   => 'bg-blue-600 text-white animate-pulse',
+        'rejected' => 'bg-rose-500 text-white',
+        'todo'     => 'bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400',
+    ];
 
-            $ikonBulat = [
-                'done'     => '✓',
-                'active'   => '●',
-                'rejected' => '✕',
-                'todo'     => '○',
-            ];
+    // Warna garis mengikuti status langkah tujuan
+    $warnaGaris = fn ($state) => match ($state) {
+        'done'     => 'bg-emerald-500',
+        'active'   => 'bg-blue-500',
+        'rejected' => 'bg-rose-400',
+        default    => 'bg-slate-200 dark:bg-slate-600',
+    };
 
-            // Warna garis mengikuti status langkah tujuan
-            $warnaGaris = fn ($state) => match ($state) {
-                'done'     => 'bg-emerald-500',
-                'active'   => 'bg-blue-500',
-                'rejected' => 'bg-rose-400',
-                default    => 'bg-slate-200 dark:bg-slate-600',
-            };
-
-            $bolehBatal = in_array($status, ['draft', 'pending', 'revisi', 'ditolak']);
-        @endphp
+    $bolehBatal = in_array($status, ['draft', 'pending', 'revisi', 'ditolak']);
+@endphp
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
@@ -130,7 +123,16 @@
                                 <div class="w-16 flex flex-col items-center shrink-0">
                                     <div class="w-7 h-7 rounded-full flex items-center justify-center
                                                 text-xs font-bold {{ $warnaBulat[$item['state']] }}">
-                                        {{ $ikonBulat[$item['state']] }}
+                                        @switch($item['state'])
+    @case('done')
+        <x-ikon name="check" class="h-4 w-4" />
+        @break
+    @case('rejected')
+        <x-ikon name="x" class="h-4 w-4" />
+        @break
+    @default
+        <span class="h-2 w-2 rounded-full bg-current"></span>
+@endswitch
                                     </div>
 
                                     <span class="text-xs font-medium
@@ -184,7 +186,7 @@
                                     rounded-xl">
 
                             <h3 class="text-base font-semibold text-orange-800 dark:text-orange-300">
-                                ⚠️ Perlu Perbaikan
+                            Perlu Perbaikan
                             </h3>
 
                             <p class="text-sm text-orange-900/80 dark:text-orange-200/80 mt-1 mb-4">
@@ -219,7 +221,7 @@
                                         bg-emerald-100 dark:bg-emerald-500/10
                                         text-emerald-700 dark:text-emerald-400
                                         flex items-center justify-center text-lg shrink-0">
-                                ✅
+                                <x-ikon name="check-circle" class="h-5 w-5" />
                             </div>
 
                             <div>
@@ -245,7 +247,7 @@
                                     rounded-xl">
 
                             <h3 class="text-base font-semibold text-rose-800 dark:text-rose-300">
-                                ❌ Pendaftaran Ditolak
+                            Pendaftaran Ditolak
                             </h3>
 
                             <div class="mt-3 p-4 bg-white dark:bg-slate-800
@@ -273,7 +275,7 @@
 
     <div class="flex items-start gap-4">
         <div class="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-500/10 text-cyan-700 dark:text-cyan-300
-                    flex items-center justify-center text-lg shrink-0">🏁</div>
+                    flex items-center justify-center text-lg shrink-0"><x-ikon name="flag" class="h-5 w-5" /></div>
 
         <div>
             <h3 class="text-base font-semibold text-slate-900 dark:text-white">
@@ -298,7 +300,7 @@
                                         bg-slate-100 dark:bg-slate-700
                                         text-slate-600 dark:text-slate-300
                                         flex items-center justify-center text-lg shrink-0">
-                                📝
+                                <x-ikon name="edit" class="h-5 w-5" />
                             </div>
 
                             <div>

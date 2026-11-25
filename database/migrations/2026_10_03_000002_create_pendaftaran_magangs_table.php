@@ -83,6 +83,7 @@ return new class extends Migration
         Schema::create('sertifikat_files', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pendaftaran_magang_id')->constrained('pendaftaran_magangs')->cascadeOnDelete();
+            $table->foreignId('anggota_pendaftaran_id')->nullable()->constrained('anggota_pendaftarans')->cascadeOnDelete();   // null = ketua/mandiri
             $table->string('file');   // path di disk privat
             $table->string('nama');   // nama tampilan, mis. Sertifikat_Budi.pdf
             $table->timestamps();

@@ -92,7 +92,6 @@ $peserta = $p->anggotas
         @endif
         <th class="py-2 pr-4">NIM / NISN</th>
         <th class="py-2 pr-4">Jurusan</th>
-        <th class="py-2 pr-4">Asal Instansi</th>
         <th class="py-2 pr-4">Surat Pengantar</th>
         <th class="py-2">No. HP</th>
     </tr>
@@ -110,7 +109,6 @@ $peserta = $p->anggotas
             @endif
             <td class="py-2.5 pr-4">{{ $o['nim_nisn'] ?: '-' }}</td>
             <td class="py-2.5 pr-4">{{ $o['jurusan'] ?: '-' }}</td>
-            <td class="py-2.5 pr-4">{{ $o['instansi'] ?: '-' }}</td>
             <td class="py-2.5 pr-4">
                 <span class="block text-sm text-slate-500 dark:text-slate-400">
                     {{ $o['nomor_surat_pengantar'] ?: '-' }}

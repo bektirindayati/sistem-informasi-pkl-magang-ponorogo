@@ -27,7 +27,10 @@ class SuratBalasanService extends DokumenService
             'boleh'  => ['diterima', 'selesai'],
         ];
     }
-
+        protected function jenisTemplate(PendaftaranMagang $p): string
+    {
+        return 'balasan' . ($p->tipe === 'kelompok' ? '_kelompok' : '');
+    }
     /**
      * Template siswa (PKL) bila tersedia, selain itu template magang.
      */

@@ -555,6 +555,8 @@
                                              :hint="$isEdit && filled($pendaftaran->proposal)
                                                  ? 'File saat ini: ' . basename($pendaftaran->proposal)
                                                  : 'PDF, maksimal 2MB.'" />
+                                <x-form.file name="cv" label="CV (Curriculum Vitae)" accept=".pdf"
+                                            :hint="$isEdit && filled($pendaftaran->cv) ? 'File saat ini: ' . basename($pendaftaran->cv) : 'Opsional. PDF, maksimal 2MB.'" />
                             </div>
                         </div>
                     </div>
@@ -1087,6 +1089,7 @@
         kota_tujuan: 'Kota Kampus / Sekolah',
         surat_pengantar: 'Surat Pengantar',
         proposal: 'Proposal Magang',
+        cv: 'CV',
     };
 
     const validators = {
@@ -1288,6 +1291,7 @@
 
         cekBerkas(form, 'surat_pengantar', strict && isSuratPengantarRequired(), errors);
         cekBerkas(form, 'proposal', false, errors);
+        cekBerkas(form, 'cv', false, errors);
 
         if (tipeDipilih() === 'kelompok') {
             const editorTerbuka = !document.getElementById('editorAnggota').classList.contains('hidden');
@@ -1326,7 +1330,7 @@
             el.addEventListener('blur', () => validateField(name));
         });
 
-        ['surat_pengantar', 'proposal'].forEach(name => {
+        ['surat_pengantar', 'proposal', 'cv'].forEach(name => {
             const el = form.elements[name];
             if (!el) return;
             el.addEventListener('change', () => {
@@ -1360,7 +1364,7 @@
         formData.delete('_method');
 
         const dikirim = [...berkasBerubah];
-        ['surat_pengantar', 'proposal'].forEach(n => {
+        ['surat_pengantar', 'proposal', 'cv'].forEach(n => {
             if (!berkasBerubah.has(n)) formData.delete(n);
         });
 
@@ -1465,7 +1469,7 @@
             });
         });
 
-        ['surat_pengantar', 'proposal'].forEach(name => {
+        ['surat_pengantar', 'proposal', 'cv'].forEach(name => {
             const el = form.elements[name];
             if (!el) return;
             el.addEventListener('change', () => {
@@ -1489,7 +1493,7 @@
 
         // file yang dipilih tapi belum terkirim ikut disimpan
         const form = document.getElementById('pendaftaranForm');
-        ['surat_pengantar', 'proposal'].forEach(n => {
+        ['surat_pengantar', 'proposal', 'cv'].forEach(n => {
             if (form.elements[n] && form.elements[n].files.length) berkasBerubah.add(n);
         });
 
@@ -1531,7 +1535,7 @@
         // Perbaikan: pada mode revisi auto-save tidak aktif, jadi berkasBerubah selalu kosong
         // dan file baru yang dipilih ikut terbuang. Sekarang file dikirim bila memang dipilih
         // dan belum tersimpan di server.
-        ['surat_pengantar', 'proposal'].forEach(n => {
+        ['surat_pengantar', 'proposal', 'cv'].forEach(n => {
             const el = fieldEl(n);
             if (!el) return;
 

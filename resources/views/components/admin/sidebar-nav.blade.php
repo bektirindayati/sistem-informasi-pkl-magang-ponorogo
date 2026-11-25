@@ -1,23 +1,30 @@
-
 @php
     $menu = [
         ['lihat-dashboard', 'admin.dashboard', 'dashboard', 'Dashboard'],
         ['lihat-pendaftar', 'admin.pendaftar.index', 'users', 'Data Pendaftar'],
         ['verifikasi-pendaftar', 'admin.verifikasi.index', 'clipboard-check', 'Verifikasi Berkas'],
-        ['kelola-instansi', 'admin.instansi.index', 'building', 'Kelola Instansi/Bidang'],
         ['kelola-dokumentasi', 'admin.dokumentasi.index', 'photo', 'Kelola Dokumentasi'],
     ];
 
-    $sistem = [
+    $dataMaster = [
         ['kelola-dinas', 'admin.dinas.index', 'office', 'Kelola Dinas'],
+        ['kelola-instansi', 'admin.instansi.index', 'building', 'Kelola Instansi/Bidang'],
+    ];
+
+    $sistem = [
         ['kelola-admin', 'admin.pengguna.index', 'shield', 'Kelola Admin', true],
         ['kelola-admin', 'admin.pengguna.user', 'users', 'Kelola Pengguna'],
     ];
 
+    $pengaturan = [
+    ['kelola-template-surat', 'admin.template.index', 'template', 'Template Surat'],
+];
+
     $judul = 'mb-2 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500';
 @endphp
 
-<nav class="flex-1 overflow-y-auto px-3 py-5
+{{-- NAVIGASI SIDEBAR --}}
+<nav class="flex-1 min-h-0 overflow-y-auto px-3 py-5
             [scrollbar-color:#cbd5e1_transparent]
             dark:[scrollbar-color:#334155_transparent]
             [scrollbar-width:thin]">
@@ -35,8 +42,27 @@
         @endforeach
     </div>
 
+    {{-- DATA MASTER --}}
+    @canany(['kelola-dinas', 'kelola-instansi'])
+        <div class="mt-6 border-t border-slate-200 dark:border-slate-800 pt-5">
+
+            <p class="{{ $judul }}">Data Master</p>
+
+            <div class="space-y-1">
+                @foreach ($dataMaster as [$izin, $rute, $ikon, $nama])
+                    @can($izin)
+                        <x-admin.nav-link :route="$rute" :icon="$ikon">
+                            {{ $nama }}
+                        </x-admin.nav-link>
+                    @endcan
+                @endforeach
+            </div>
+
+        </div>
+    @endcanany
+
     {{-- MANAJEMEN SISTEM --}}
-    @canany(['kelola-dinas', 'kelola-admin'])
+    @canany(['kelola-admin'])
         <div class="mt-6 border-t border-slate-200 dark:border-slate-800 pt-5">
 
             <p class="{{ $judul }}">Manajemen Sistem</p>
@@ -56,7 +82,24 @@
 
         </div>
     @endcanany
+        {{-- PENGATURAN --}}
+    @can('kelola-template-surat')
+        <div class="mt-6 border-t border-slate-200 dark:border-slate-800 pt-5">
 
+            <p class="{{ $judul }}">Pengaturan</p>
+
+            <div class="space-y-1">
+                @foreach ($pengaturan as [$izin, $rute, $ikon, $nama])
+                    @can($izin)
+                        <x-admin.nav-link :route="$rute" :icon="$ikon">
+                            {{ $nama }}
+                        </x-admin.nav-link>
+                    @endcan
+                @endforeach
+            </div>
+
+        </div>
+    @endcan
 </nav>
 
 {{-- BAGIAN BAWAH SIDEBAR --}}
@@ -83,6 +126,7 @@
         </button>
     </form>
 
+    {{-- IDENTITAS SISTEM --}}
     <div class="mt-3 flex items-center gap-2 px-3 pb-1">
         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></span>
 

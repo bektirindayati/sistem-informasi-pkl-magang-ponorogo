@@ -1,4 +1,3 @@
-
 {{-- <x-admin.nav-link route="admin.pendaftar.index" icon="users">Data Pendaftar</x-admin.nav-link> --}}
 
 @props(['route', 'icon', 'exact' => false])
@@ -21,7 +20,7 @@
           text-sm font-semibold transition-colors duration-150
           {{ $active
               ? 'bg-blue-50 text-blue-700 dark:bg-cyan-500/10 dark:text-cyan-300'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-white dark:hover:bg-slate-800 dark:hover:text-white' }}">
+              : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white' }}">
 
     {{-- INDIKATOR MENU AKTIF --}}
     <span class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2
@@ -36,7 +35,7 @@
         class="h-5 w-5 shrink-0
                {{ $active
                    ? 'text-blue-600 dark:text-cyan-400'
-                   : 'text-slate-400 group-hover:text-slate-600 dark:text-white dark:group-hover:text-white' }}" />
+                   : 'text-slate-500 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-white' }}" />
 
     {{-- NAMA MENU --}}
     <span class="min-w-0 truncate">{{ $slot }}</span>

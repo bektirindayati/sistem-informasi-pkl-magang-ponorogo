@@ -57,7 +57,11 @@ public function attachments(): array
     [, $kolom, $awalan] = self::JENIS[$this->jenis];
 
     $berkas = $this->jenis === 'sertifikat'
-        ? $p->sertifikatFiles->map(fn ($f) => [$f->file, $f->nama])->all()
+        ? $p->pesertaSertifikat()->filter(fn ($x) => $x['file'])
+            ->map(fn ($x) => [
+                $x['file']->file,
+                'Sertifikat_' . Str::slug($x['nama'], '_') . '.pdf',
+            ])->values()->all()
         : [
             [
                 $p->{$kolom},

@@ -58,24 +58,23 @@ class SertifikatAdminController extends Controller
         );
 
         $data = $request->validate([
-            'status_sertifikat' => ['required', Rule::in(['diproses', 'diterbitkan'])],
-            'sertifikat'        => ['nullable', 'array', 'max:' . PendaftaranMagang::MAKS_PESERTA],
-            'sertifikat.*'      => ['file', 'mimes:pdf', 'max:5120'],
-            'hapus'             => ['nullable', 'array'],
-            'hapus.*'           => ['integer'],
-        ], [
-            'sertifikat.max'     => 'Maksimal ' . PendaftaranMagang::MAKS_PESERTA . ' sertifikat per pendaftaran.',
-            'sertifikat.*.mimes' => 'Setiap berkas harus berformat PDF.',
-            'sertifikat.*.max'   => 'Ukuran tiap PDF maksimal 5 MB.',
-            'sertifikat.*.file'  => 'Berkas sertifikat tidak valid.',
-        ]);
+    'status_sertifikat' => ['required', Rule::in(['diproses', 'diterbitkan'])],
+    'sertifikat'        => ['nullable', 'array'],
+    'sertifikat.*'      => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+    'hapus'             => ['nullable', 'array'],
+    'hapus.*'           => ['string', 'max:20'],
+], [
+    'sertifikat.*.mimes' => 'Setiap berkas harus berformat PDF.',
+    'sertifikat.*.max'   => 'Ukuran tiap PDF maksimal 5 MB.',
+    'sertifikat.*.file'  => 'Berkas sertifikat tidak valid.',
+]);
 
-        $this->sertifikat->simpanSertifikat(
-            $pendaftaran,
-            $data['status_sertifikat'],
-            $request->file('sertifikat', []),
-            array_map('intval', $data['hapus'] ?? [])
-        );
+$this->sertifikat->simpanSertifikat(
+    $pendaftaran,
+    $data['status_sertifikat'],
+    $request->file('sertifikat', []),
+    $data['hapus'] ?? []
+);
 
         return $this->tanggapan(
             $data['status_sertifikat'],

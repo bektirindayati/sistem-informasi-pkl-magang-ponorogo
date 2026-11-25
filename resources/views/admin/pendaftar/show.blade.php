@@ -40,7 +40,7 @@
                 <x-admin.status-verifikasi :pendaftaran="$p" />
                 <x-admin.dokumen jenis="balasan" :pendaftaran="$p" />
                 <x-admin.dokumen jenis="selesai" :pendaftaran="$p" />
-                <x-admin.dokumen jenis="sertifikat" :pendaftaran="$p" />
+                <x-admin.sertifikat :pendaftaran="$p" />
             </div>
         </div>
 

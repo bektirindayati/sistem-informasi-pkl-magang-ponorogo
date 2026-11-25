@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\ScopePendaftaranAdmin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 class PendaftaranMagang extends Model
@@ -17,7 +18,7 @@ class PendaftaranMagang extends Model
     /** Disk PDF surat resmi: privat, hanya bisa diakses lewat controller. */
     public const DISK_SURAT = 'local';
 
-    public const KOLOM_BERKAS = ['surat_pengantar', 'proposal'];
+    public const KOLOM_BERKAS = ['surat_pengantar', 'proposal', 'cv'];
 
     public const STATUS_BOLEH_EDIT = ['draft', 'revisi'];
 
@@ -117,10 +118,7 @@ static::deleting(function (self $p) {
     // Hapus berkas peserta dan PDF surat resmi saat pendaftaran dihapus.
     static::deleted(function (self $p) {
         Storage::disk(self::DISK_BERKAS)->delete(
-            array_filter([
-                $p->surat_pengantar,
-                $p->proposal,
-            ])
+            array_filter([$p->surat_pengantar, $p->proposal, $p->cv])
         );
 
         foreach ([
@@ -228,5 +226,29 @@ public function sertifikatFiles()
 {
     return $this->hasMany(SertifikatFile::class)->orderBy('id');
 }
+/** Ketua (atau pendaftar mandiri) + anggota, masing-masing dengan sertifikatnya bila sudah diunggah. */
+public function pesertaSertifikat(): Collection
+{
+    $this->loadMissing('anggotas', 'sertifikatFiles');
+    $berkas = $this->sertifikatFiles->keyBy(fn ($f) => $f->anggota_pendaftaran_id ?? 'ketua');
 
+    return $this->anggotas
+        ->map(fn ($a) => [
+            'kunci'   => (string) $a->id,
+            'nama'    => $a->nama_lengkap,
+            'peran'   => 'Anggota',
+            'nim'     => $a->nim_nisn,
+            'jurusan' => $a->jurusan,
+            'file'    => $berkas->get($a->id),
+        ])
+        ->prepend([
+            'kunci'   => 'ketua',
+            'nama'    => $this->nama_lengkap,
+            'peran'   => $this->tipe === 'kelompok' ? 'Ketua' : null,
+            'nim'     => $this->nim_nisn,
+            'jurusan' => $this->jurusan,
+            'file'    => $berkas->get('ketua'),
+        ])
+        ->values();
+}
 }

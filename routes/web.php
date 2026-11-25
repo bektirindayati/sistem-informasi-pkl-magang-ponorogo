@@ -22,12 +22,15 @@ use App\Http\Controllers\User\SuratBalasanUserController;
 use App\Http\Controllers\Admin\SertifikatAdminController;
 use App\Http\Controllers\User\SertifikatUserController;
 use App\Http\Controllers\Admin\SuratSelesaiAdminController;
+use App\Http\Controllers\User\SuratSelesaiUserController;
+use App\Http\Controllers\Admin\TemplateSuratController;
 use Illuminate\Support\Facades\Route;
 
 // Parameter id wajib angka, supaya segmen seperti "status" atau "riwayat" tidak pernah ditangkap sebagai {id}.
 Route::pattern('id', '[0-9]+');
 Route::pattern('pendaftaran', '[0-9]+');
 Route::pattern('dinasId', '[0-9]+');
+Route::pattern('template', '[0-9]+');
 
 /*
 |--------------------------------------------------------------------------
@@ -105,6 +108,7 @@ Route::middleware('auth')->group(function () {
 
             // Unduh surat balasan yang sudah terbit
             Route::get('/{pendaftaran}/surat-balasan', SuratBalasanUserController::class)->name('surat');
+            Route::get('/{pendaftaran}/surat-selesai', SuratSelesaiUserController::class)->name('surat-selesai');
             Route::get('/{pendaftaran}/sertifikat', SertifikatUserController::class)->name('sertifikat');
         });
     });
@@ -207,6 +211,23 @@ Route::middleware('permission:verifikasi-pendaftar')->group(function () {
                 Route::delete('/{id}', 'destroy')->name('destroy');
             });
 
+        // Template surat: super admin = bawaan, admin dinas = template dinasnya
+Route::middleware('permission:kelola-template-surat')
+    ->prefix('template-surat')
+    ->name('template.')
+    ->controller(TemplateSuratController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/sistem/{jenis}', 'sistem')->name('sistem');
+        Route::post('/{jenis}', 'unggah')->name('unggah')->where('jenis', '[a-z_]+');
+        Route::get('/{template}/unduh', 'unduh')->name('unduh');
+        Route::get('/{template}/pratinjau', 'pratinjau')->name('pratinjau');
+        Route::post('/{template}/pratinjau', 'buatPratinjau')->name('pratinjau.buat');
+        Route::post('/{template}/pratinjau/sekarang', 'buatPratinjauSekarang')->name('pratinjau.sekarang');
+        Route::get('/{template}/contoh', 'contoh')->name('contoh');
+        Route::post('/{template}/aktifkan', 'aktifkan')->name('aktifkan');
+        Route::delete('/{template}', 'hapus')->name('hapus');
+    });
         // Khusus super admin (permission hanya dimiliki role super_admin)
 
         Route::middleware('permission:kelola-dinas')

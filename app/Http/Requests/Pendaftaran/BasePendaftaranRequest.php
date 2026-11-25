@@ -221,6 +221,8 @@ abstract class BasePendaftaranRequest extends FormRequest
                 'mimes:pdf',
                 'max:2048',
             ],
+
+            'cv' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
         ];
     }
 
@@ -240,10 +242,7 @@ abstract class BasePendaftaranRequest extends FormRequest
      */
     public function dataPendaftaran(): array
     {
-        $data = Arr::except(
-            $this->validated(),
-            ['surat_pengantar', 'proposal', 'anggota']
-        );
+        $data = Arr::except($this->validated(), ['surat_pengantar', 'proposal', 'cv', 'anggota']);
 
         $data['tipe'] = $data['tipe'] ?? 'mandiri';
 
@@ -342,6 +341,10 @@ abstract class BasePendaftaranRequest extends FormRequest
                 'proposal.file' => 'Proposal harus berupa file.',
                 'proposal.mimes' => 'Proposal magang harus berformat PDF.',
                 'proposal.max' => 'Ukuran proposal magang tidak boleh lebih dari 2MB.',
+
+                'cv.file'  => 'CV harus berupa file.',
+                'cv.mimes' => 'CV harus berformat PDF.',
+                'cv.max'   => 'Ukuran CV tidak boleh lebih dari 2MB.',
             ]
         );
     }

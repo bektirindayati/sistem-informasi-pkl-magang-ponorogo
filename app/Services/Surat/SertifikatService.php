@@ -25,11 +25,15 @@ class SertifikatService extends DokumenService
         ];
     }
 
+    protected function jenisTemplate(PendaftaranMagang $p): string
+    {
+        return 'sertifikat';
+    }
+
     protected function template(PendaftaranMagang $p): string
     {
         return (string) config('surat.template.sertifikat');
     }
-
     /**
      * Data sertifikat yang diisi otomatis oleh SIMANTARA.
      * Nomor naskah dan tanda tangan dibiarkan untuk sistem Kominfo.
@@ -167,27 +171,24 @@ class SertifikatService extends DokumenService
 }
 
 /**
- * Tambah PDF baru, hapus yang dipilih, lalu atur status.
- * Tidak boleh diterbitkan tanpa satu pun PDF; maksimal MAKS_PESERTA berkas.
- *
- * @param \Illuminate\Http\UploadedFile[] $pdfs
- * @param int[] $hapusId
+ * @param array<string, \Illuminate\Http\UploadedFile|null> $pdfs  kunci peserta ('ketua' atau id anggota) => PDF
+ * @param string[] $hapus  kunci peserta yang sertifikatnya dihapus
  */
-public function simpanSertifikat(PendaftaranMagang $p, string $status, array $pdfs = [], array $hapusId = []): void
+public function simpanSertifikat(PendaftaranMagang $p, string $status, array $pdfs = [], array $hapus = []): void
 {
     $k    = $this->profil();
     $disk = Storage::disk(PendaftaranMagang::DISK_SURAT);
 
-    $p->load('sertifikatFiles');
+    $p->load('anggotas', 'sertifikatFiles');
     $sudahTerbit = $p->sertifikatTerbit();
-    $hapus       = $p->sertifikatFiles->whereIn('id', $hapusId);
-    $jumlah      = $p->sertifikatFiles->count() - $hapus->count() + count($pdfs);
+    $peserta     = $p->pesertaSertifikat()->keyBy('kunci');
 
-    if ($jumlah > PendaftaranMagang::MAKS_PESERTA) {
-        throw ValidationException::withMessages([
-            'sertifikat' => 'Maksimal ' . PendaftaranMagang::MAKS_PESERTA . ' sertifikat per pendaftaran.',
-        ]);
-    }
+    // Hanya peserta milik pendaftaran ini yang diterima; entri kosong diabaikan.
+    $pdfs  = collect($pdfs)->filter(fn ($f, $kunci) => $f && $peserta->has($kunci))->all();
+    $hapus = collect($hapus)->map(fn ($v) => (string) $v)->filter(fn ($v) => $peserta->has($v))->all();
+
+    $jumlah = $peserta->filter(fn ($x, $kunci) => isset($pdfs[$kunci])
+        || ($x['file'] && ! in_array((string) $kunci, $hapus, true)))->count();
 
     if ($status === 'diterbitkan' && $jumlah === 0) {
         throw ValidationException::withMessages([
@@ -195,26 +196,36 @@ public function simpanSertifikat(PendaftaranMagang $p, string $status, array $pd
         ]);
     }
 
-    $baru = [];
+    $baru  = [];
+    $buang = [];
 
     try {
-        foreach ($pdfs as $pdf) {
-            $path = $pdf->store($k['folder'], PendaftaranMagang::DISK_SURAT);
+        DB::transaction(function () use ($p, $peserta, $pdfs, $hapus, $status, $k, $sudahTerbit, &$baru, &$buang) {
+            foreach ($peserta as $kunci => $x) {
+                $ganti = isset($pdfs[$kunci]);
 
-            if (! $path) {
-                throw new \RuntimeException('PDF gagal disimpan.');
+                if ($x['file'] && ($ganti || in_array((string) $kunci, $hapus, true))) {
+                    $buang[] = $x['file']->file;
+                    $x['file']->delete();
+                }
+
+                if ($ganti) {
+                    $path = $pdfs[$kunci]->store($k['folder'], PendaftaranMagang::DISK_SURAT);
+                    throw_unless($path, \RuntimeException::class, 'PDF gagal disimpan.');
+                    $baru[] = $path;
+
+                    $nama = Str::limit($pdfs[$kunci]->getClientOriginalName(), 150, '');
+
+                    $p->sertifikatFiles()->create([
+                        'file'                   => $path,
+                        'nama'                   => Str::endsWith(Str::lower($nama), '.pdf') ? $nama : $nama . '.pdf',
+                        'anggota_pendaftaran_id' => (string) $kunci === 'ketua' ? null : (int) $kunci,
+                    ]);
+                }
             }
 
-            $nama = Str::limit($pdf->getClientOriginalName(), 150, '');
-            $baru[] = ['file' => $path, 'nama' => Str::endsWith(Str::lower($nama), '.pdf') ? $nama : $nama . '.pdf'];
-        }
-
-        DB::transaction(function () use ($p, $status, $hapus, $baru, $k, $sudahTerbit) {
-            $p->sertifikatFiles()->whereIn('id', $hapus->pluck('id'))->delete();
-            $p->sertifikatFiles()->createMany($baru);
-
             $terbitkan = $status === 'diterbitkan';
-            $perbarui  = $terbitkan && (! $sudahTerbit || $baru !== []);
+            $perbarui  = $terbitkan && (! $sudahTerbit || $pdfs !== []);
 
             $p->forceFill([
                 $k['status'] => $terbitkan ? 'diterbitkan' : 'diproses',
@@ -222,17 +233,15 @@ public function simpanSertifikat(PendaftaranMagang $p, string $status, array $pd
             ])->save();
         });
     } catch (\Throwable $e) {
-        $disk->delete(array_column($baru, 'file'));
+        $disk->delete($baru);
 
         throw $e;
     }
 
-    // File lama dibuang setelah database berhasil diubah.
-    $disk->delete($hapus->pluck('file')->all());
+    $disk->delete($buang);   // setelah database berhasil
     $p->unsetRelation('sertifikatFiles');
 }
 
-/** Satu berkas (?berkas=ID), atau semuanya sebagai ZIP bila ada beberapa dan tidak ada pilihan. */
 public function berkasSertifikat(PendaftaranMagang $p, ?int $berkasId, bool $unduh = false, bool $untukAdmin = false): Response
 {
     abort_unless($untukAdmin || $p->sertifikatTerbit(), 404, 'Sertifikat belum tersedia.');
@@ -249,9 +258,12 @@ public function berkasSertifikat(PendaftaranMagang $p, ?int $berkasId, bool $und
     $disk = Storage::disk(PendaftaranMagang::DISK_SURAT);
     abort_unless($disk->exists($f->file), 404, 'File tidak ditemukan. Hubungi admin.');
 
+    $pemilik = $p->pesertaSertifikat()->first(fn ($x) => $x['file']?->id === $f->id);
+    $nama    = 'Sertifikat_' . Str::slug($pemilik['nama'] ?? pathinfo($f->nama, PATHINFO_FILENAME), '_') . '.pdf';
+
     $respons = $unduh
-        ? $disk->download($f->file, $f->nama)
-        : $disk->response($f->file, $f->nama, ['Content-Type' => 'application/pdf']);
+        ? $disk->download($f->file, $nama)
+        : $disk->response($f->file, $nama, ['Content-Type' => 'application/pdf']);
 
     $respons->headers->set('Cache-Control', 'no-store, max-age=0');
 
@@ -270,9 +282,9 @@ public function arsip(PendaftaranMagang $p): BinaryFileResponse
         'Berkas ZIP gagal dibuat.'
     );
 
-    foreach ($p->sertifikatFiles as $i => $f) {
-        if ($disk->exists($f->file)) {
-            $zip->addFile($disk->path($f->file), sprintf('%02d_%s', $i + 1, $f->nama));
+    foreach ($p->pesertaSertifikat()->filter(fn ($x) => $x['file'])->values() as $i => $x) {
+        if ($disk->exists($x['file']->file)) {
+            $zip->addFile($disk->path($x['file']->file), sprintf('%02d_Sertifikat_%s.pdf', $i + 1, Str::slug($x['nama'], '_')));
         }
     }
 
@@ -281,5 +293,4 @@ public function arsip(PendaftaranMagang $p): BinaryFileResponse
     return response()
         ->download($zipPath, 'Sertifikat_' . Str::slug($p->nama_lengkap ?: 'kelompok', '_') . '.zip')
         ->deleteFileAfterSend(true);
-}
-}
+}}
